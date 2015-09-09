@@ -1,5 +1,26 @@
-PROGRAM_NAME = "Katalogoi"
-PROGRAM_VERSION = "0.0.1"
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+################################################################################
+#    Katalogoi Copyright (C) 2012 Suizokukan
+#    Contact: suizokukan _A.T._ orange dot fr
+#
+#    This file is part of Katalogoi.
+#    Katalogoi is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Katalogoi is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Katalogoi.  If not, see <http://www.gnu.org/licenses/>.
+################################################################################
+"""
+        Katalogoi project
+"""
 import argparse
 import base64
 import configparser
@@ -8,19 +29,12 @@ from datetime import datetime
 import os
 import re
 
+PROGRAM_NAME = "Katalogoi"
+PROGRAM_VERSION = "0.0.1"
+
 SELECTIONS = {}
 DEFAULT_CONFIGFILE_NAME = "katalogoi.ini"
 TIMESTAMP_BEGIN = datetime.now()
-
-#///////////////////////////////////////////////////////////////////////////////
-def hashfile(afile, hasher, blocksize=65536):
-    buf = afile.read(blocksize)
-    while len(buf) > 0:
-        hasher.update(buf)
-        buf = afile.read(blocksize)
-    #return hasher.digest()
-    #return hasher.hexdigest()
-    return base64.b64encode(hasher.digest()).decode()
 
 #///////////////////////////////////////////////////////////////////////////////
 def display_informations_about(path):
@@ -101,6 +115,16 @@ def get_parameters(configfile_name):
     return parser
 
 #///////////////////////////////////////////////////////////////////////////////
+def hashfile(afile, hasher, blocksize=65536):
+    buf = afile.read(blocksize)
+    while len(buf) > 0:
+        hasher.update(buf)
+        buf = afile.read(blocksize)
+    #return hasher.digest()
+    #return hasher.hexdigest()
+    return base64.b64encode(hasher.digest()).decode()
+
+#///////////////////////////////////////////////////////////////////////////////
 def the_file_can_be_selected(complete_name, filename, size, files):
     """
                 return (bool)res
@@ -162,10 +186,11 @@ def proceed():
 
     # big loop :
     with open(PARAMETERS["main.log_file"]["name"], log_mode) as logfile:
-        logfile.write("*** {0} v.{1} ({2}) ***\n".format(PROGRAM_NAME,
-                                                         PROGRAM_VERSION,
-                                                         datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-        logfile.write("selections : \n{0}\n".format(SELECTIONS))
+        logfile.write("*** {0} v.{1} ({2}) ***\n\n".format(PROGRAM_NAME,
+                                                           PROGRAM_VERSION,
+                                                           datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        logfile.write("selections : \n{0}\n\n".format(SELECTIONS))
+        logfile.write("file list :\n")
 
         files = {}      # hash : complete_name
         total_size_of_the_selected_files = 0
@@ -186,7 +211,7 @@ def proceed():
                     if _hash not in files:
                         res = True
                         files[_hash] = complete_name
-                        logfile.write("+ {0}".complete_name)
+                        logfile.write("+ {0}\n".format(complete_name))
                         total_size_of_the_selected_files += os.stat(complete_name).st_size
                     else:
                         res = False
