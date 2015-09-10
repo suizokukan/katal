@@ -1,14 +1,19 @@
-#
+todo :
+    1/ bdd dans le répertoire dest :
+        hash - name - old path
+
+    $$ --add / --select ne peuvent être utilisés simultanément
+    $$ à la fin d'un --select, proposer le --add ?
+    $$ --generate_configfile
+    $$ todo
 #
 # un principe : on ne touche pas au répertoire de départ.
 #
-# ajouter le timestamp avant après.
-# 
 
 # -h --help
 # --version
 # --configfile
-# --proceed
+# --select / --add (=select+add)
 # --infos        (liste des extensions, ..., taille cumulée, nombre de fichiers)
 # --quiet
 
@@ -19,10 +24,8 @@
 # exclure tout répertoire qui...
 # exclure tout fichier qui...
 
-
 # o liste de tous les fichiers dans un répertoire avec différents critères (nom du fichier/taille)
 # o catalogue de ces fichiers numérotés :       0 -> dir/subdir/dfs.jpg
 # o messages dirigés vers un fichier de log.
-# o .ini pour orienter les rech
 # liste des fichiers renumérotés / détection des doublons / élimination des fichiers selon taille,name(regex)
 #
