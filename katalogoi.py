@@ -37,22 +37,41 @@ DEFAULT_CONFIGFILE_NAME = "katalogoi.ini"
 TIMESTAMP_BEGIN = datetime.now()
 
 #///////////////////////////////////////////////////////////////////////////////
+def logfile_write(msg):
+    LOGFILE.write(msg)
+
+#///////////////////////////////////////////////////////////////////////////////
+def open_logfile():
+
+    if PARAMETERS["main.log_file"]["overwrite"]=="True":
+        # overwrite :
+        log_mode="w"
+    else:
+        # let's append :
+        log_mode="a"
+
+    logfile=open(PARAMETERS["main.log_file"]["name"], log_mode)
+
+    logfile_write("*** {0} v.{1} ({2}) ***\n\n".format(PROGRAM_NAME,
+                                                       PROGRAM_VERSION,
+                                                       datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    return logfile
+
+#///////////////////////////////////////////////////////////////////////////////
 def display_informations_about(path):
     """
         display (on the console) some informations about path.
     """
     if not os.path.exists(path):
         # todo : error
-        print("Can't read path {0}.".format(path))
+        console_msg("Can't read path {0}.".format(path))
         return
     if not os.path.isdir(path):
-        print("{0} isn't a directory.".format(path))
+        console_msg("{0} isn't a directory.".format(path))
         return
 
-    print("=== {0} v.{1} ({2}) ===".format(PROGRAM_NAME,
-                                           PROGRAM_VERSION,
-                                           datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-    print("  = informations about the \"{0}\" directory =".format(path))
+    console_msg("  = informations about the \"{0}\" directory =".format(path))
 
     total_size = 0
     files_number = 0
@@ -66,11 +85,11 @@ def display_informations_about(path):
             total_size += os.stat(complete_name).st_size
             files_number += 1
 
-    print("  o files number : {0}".format(files_number))
-    print("  o total size : ~{0:.2f} Mo; ~{1:.2f} Go; ({2} bytes)".format(total_size/1000000.0,
+    console_msg("  o files number : {0}".format(files_number))
+    console_msg("  o total size : ~{0:.2f} Mo; ~{1:.2f} Go; ({2} bytes)".format(total_size/1000000.0,
                                                                           total_size/1000000000.0,
                                                                           total_size))
-    print("  o list of all extensions : {0}".format(tuple(extensions)))
+    console_msg("  o list of all extensions : {0}".format(tuple(extensions)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def get_args():
@@ -98,9 +117,13 @@ def get_args():
                         help="display informations about the source directory " \
                              "given in the configuration file")
 
-    parser.add_argument('--proceed',
+    parser.add_argument('--select',
                         action="store_true",
-                        help="proceed to what is described in the configuration file")
+                        help="select files according to what is described in the configuration file")
+
+    parser.add_argument('--quiet',
+                        action="store_true",
+                        help="no output to the console")
 
     return parser.parse_args()
 
@@ -113,6 +136,16 @@ def get_parameters(configfile_name):
     parser = configparser.ConfigParser()
     parser.read(configfile_name)
     return parser
+
+#///////////////////////////////////////////////////////////////////////////////
+def console_msg(msg):
+    """
+            console_msg()
+
+            Send a message to the console if not in quiet mode.
+    """
+    if not ARGS.quiet:
+        print(msg)
 
 #///////////////////////////////////////////////////////////////////////////////
 def hashfile(afile, hasher, blocksize=65536):
@@ -172,56 +205,60 @@ def the_file_can_be_selected(complete_name, filename, size, files):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def proceed():
+def select():
 
-    print("  = proceeding according to the instructions in the config file. Please wait... =")
-
-    # log file mode :
-    if PARAMETERS["main.log_file"]["overwrite"]=="True":
-        # overwrite :
-        log_mode="w"
-    else:
-        # let's append :
-        log_mode="a"
+    console_msg("  = selecting files according to the instructions in the config file. Please wait... =")
+    logfile_write("selections : \n{0}\n\n".format(SELECTIONS))
+    logfile_write("file list :\n")
 
     # big loop :
-    with open(PARAMETERS["main.log_file"]["name"], log_mode) as logfile:
-        logfile.write("*** {0} v.{1} ({2}) ***\n\n".format(PROGRAM_NAME,
-                                                           PROGRAM_VERSION,
-                                                           datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-        logfile.write("selections : \n{0}\n\n".format(SELECTIONS))
-        logfile.write("file list :\n")
+    files = {}      # hash : complete_name
+    total_size_of_the_selected_files = 0
+    number_of_discarded_files=0
 
-        files = {}      # hash : complete_name
-        total_size_of_the_selected_files = 0
-        
-        for dirpath, _, filenames in os.walk(PARAMETERS["main.source"]["sourcepath"]):
-            for filename in filenames:
-                complete_name = os.path.join(dirpath, filename)
-                size = os.stat(complete_name).st_size
-                
-                res = the_file_can_be_selected(complete_name, filename, size, files)
-                if not res:
-                    logfile.write("(selections described in the config file)" \
+    for dirpath, _, filenames in os.walk(PARAMETERS["main.source"]["sourcepath"]):
+        for filename in filenames:
+            complete_name = os.path.join(dirpath, filename)
+            size = os.stat(complete_name).st_size
+            
+            res = the_file_can_be_selected(complete_name, filename, size, files)
+            if not res:
+                if LOG_VERBOSITY=="high":
+                    logfile_write("(selections described in the config file)" \
                                   " discarded \"{0}\"\n".format(complete_name))
+                    number_of_discarded_files+=1
+            else:
+                # is filename already stored in <files> ?
+                _hash = hashfile(open(complete_name, 'rb'), hashlib.sha256())
+
+                if _hash not in files:
+                    res = True
+                    files[_hash] = complete_name
+                    logfile_write("+ {0}\n".format(complete_name))
+                    total_size_of_the_selected_files += os.stat(complete_name).st_size
                 else:
-                    # is filename already stored in <files> ?
-                    _hash = hashfile(open(complete_name, 'rb'), hashlib.sha256())
+                    res = False
 
-                    if _hash not in files:
-                        res = True
-                        files[_hash] = complete_name
-                        logfile.write("+ {0}\n".format(complete_name))
-                        total_size_of_the_selected_files += os.stat(complete_name).st_size
-                    else:
-                        res = False
-                        logfile.write("(file's content already read) " \
+                    if LOG_VERBOSITY=="high":
+                        logfile_write("(file's content already read) " \
                                       " discarded \"{0}\"\n".format(complete_name))
+                        number_of_discarded_files+=1
 
-        logfile.write("size of the selected files : ~{0:.2f} Mo; ~{1:.2f} Go; " \
-                      "({2} bytes)\n".format(total_size_of_the_selected_files/1000000.0,
-                                             total_size_of_the_selected_files/1000000000.0,
-                                             total_size_of_the_selected_files))
+    logfile_write("size of the selected files : ~{0:.2f} Mo; ~{1:.2f} Go; " \
+                  "({2} bytes)\n".format(total_size_of_the_selected_files/1000000.0,
+                                         total_size_of_the_selected_files/1000000000.0,
+                                         total_size_of_the_selected_files))
+
+    if len(files)==0:
+        logfile.write("! no file selected !")
+    else:
+        logfile.write("number of selected files : {0} " \
+                      "(discarded : {1}, {2}%".format(len(files),
+                                                      number_of_discarded_files,
+                                                      number_of_discarded_files/len(files)*100))
+
+    if USE_LOG_FILE:
+        logfile.close()
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_selections():
@@ -248,14 +285,24 @@ def read_selections():
 #///////////////////////////////////////////////////////////////////////////////
 ARGS = get_args()
 PARAMETERS = get_parameters(ARGS.configfile)
+USE_LOG_FILE = PARAMETERS["main.log_file"]["use log file"]=="True"
+LOG_VERBOSITY = PARAMETERS["main.log_file"]["verbosity"]
+
+LOGFILE = None
+if USE_LOG_FILE:
+    LOGFILE = open_logfile()
+
+console_msg("=== {0} v.{1} ({2}) ===".format(PROGRAM_NAME,
+                                             PROGRAM_VERSION,
+                                             datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 if ARGS.infos:
     display_informations_about(PARAMETERS["main.source"]["sourcepath"])
-if ARGS.proceed:
+if ARGS.select:
     read_selections()
-    proceed()
+    select()
 
-print("=== exit === ({0}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))    
-print("duration time : {0}".format(datetime.now() - TIMESTAMP_BEGIN))
+console_msg("=== exit === ({0}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))    
+console_msg("duration time : {0}".format(datetime.now() - TIMESTAMP_BEGIN))
 
 

@@ -10,6 +10,7 @@
 # --configfile
 # --proceed
 # --infos        (liste des extensions, ..., taille cumulée, nombre de fichiers)
+# --quiet
 
 # prend un répertoire plein de nombreux répertoires avec des fichiers...
 #       crée un répertoire avec les fichiers renommés (sans s'occuper des 
