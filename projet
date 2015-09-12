@@ -4,7 +4,6 @@ Python3
     1/ bdd dans le répertoire dest :
         hash - name - old path
 
-    $$ afficher la taille via une fonction dédiée
     $$ file name (garder l'extension)
     $$ --generate_configfile
     $$ todo
@@ -12,6 +11,7 @@ Python3
     $$ doc (header, fonctions)
     $$ _parameter
     $$ pylint
+    $$ fonctions dans l'ordre alphabétique + liste dans le header
 
 #
 # un principe : on ne touche pas au répertoire de départ.

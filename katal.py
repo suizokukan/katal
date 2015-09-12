@@ -43,6 +43,20 @@ DATABASE_NAME = "katal.db"
 TIMESTAMP_BEGIN = datetime.now()
 
 #///////////////////////////////////////////////////////////////////////////////
+def size_as_str(size):
+    """
+        Return size a human-readable string.
+    """
+    if size<100000:
+        return "{0} bytes".format(size)
+    elif size<1000000:
+        return "~{0:.2f} Mo ({1} bytes)".format(size/1000000.0,
+                                                size)
+    else:
+        return "~{0:.2f} Go ({1} bytes)".format(size/1000000000.0,
+                                                size)
+    
+#///////////////////////////////////////////////////////////////////////////////
 DiskUsageNTuple = namedtuple('usage', 'total used free')
 def disk_usage(path):
     """Return disk usage statistics about the given path.
@@ -51,6 +65,8 @@ def disk_usage(path):
     'free', which are the amount of total, used and free space, in bytes.
 
         confer http://stackoverflow.com/questions/787776
+
+todo:$$$
     """
     stat = os.statvfs(path)
     free = stat.f_bavail * stat.f_frsize
@@ -106,10 +122,7 @@ def infos():
             files_number += 1
 
     msg("    o files number : {0}".format(files_number))
-    msg("    o total size : ~{0:.2f} Mo; " \
-              "~{1:.2f} Go; ({2} bytes)".format(total_size/1000000.0,
-                                                total_size/1000000000.0,
-                                                total_size))
+    msg("    o total size : {0}".format(size_as_str(total_size)))
     msg("    o list of all extensions : {0}".format(tuple(extensions)))
 
    #...........................................................................
@@ -336,10 +349,7 @@ def select():
                                   " discarded \"{0}\"".format(complete_name))
                         number_of_discarded_files += 1
 
-    msg("    o size of the selected files : ~{0:.2f} Mo; ~{1:.2f} Go; " \
-              "({2} bytes)".format(SELECT_SIZE/1000000.0,
-                                   SELECT_SIZE/1000000000.0,
-                                   SELECT_SIZE))
+    msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE)))
 
     if len(SELECT) == 0:
         msg("    ! no file selected !")
