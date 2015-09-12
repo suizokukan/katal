@@ -35,3 +35,6 @@ point fort du programme : monofichier + pas de dépendance externe
 # o catalogue de ces fichiers numérotés :       0 -> dir/subdir/dfs.jpg
 # o messages dirigés vers un fichier de log.
 # liste des fichiers renumérotés / détection des doublons / élimination des fichiers selon taille,name(regex)
+
+
+doc : SELECT:# hashid : complete filename, source_path, filename without extension, extension, size, date

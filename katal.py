@@ -22,10 +22,28 @@
         katal project
 
         from the Ancient Greek κατάλογος "enrolment, register, catalogue"
+        ________________________________________________________________________
+
+        functions :
+
+        o  actions__infos()             : display informations about the source
+                                          and the target directory
+        o  create_target_name()         : create the name of a file (a target file)
+                                          from various informations read from a
+                                          source file
+        o  get_command_line_arguments() : read the command line arguments
+        o  get_parameters_from_cfgfile(): read the configuration file
+        o  get_disk_free_space()        : return the available space on disk
+        o  parameters_infos()           : display some informations about the
+                                          content of the configuration file
+        o  remove_illegal_characters()  : replace some illegal characters by the
+                                          underscore character.
+        o  size_as_str()                : return a size in bytes as a human-readable
+                                          string
+        o  welcome()                    : display a welcome message
 """
 import argparse
 from base64 import b64encode
-from collections import namedtuple
 import configparser
 import hashlib
 from datetime import datetime
@@ -41,178 +59,16 @@ PROGRAM_VERSION = "0.0.1"
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
 
-#/////////////////////////////////////////////////////////////////////////////////////////
-def remove_illegal_characters(_src):
+#///////////////////////////////////////////////////////////////////////////////
+def action__infos():
     """
-        remove_illegal_characters()
+        action__infos()
         ________________________________________________________________________
 
-        Replace some illegal characters by the underscore character. Use this function
-        to create files on various plateforms.
+        Display informations about the source and the target directory
         ________________________________________________________________________
 
-        PARAMETER
-                o _src   : (str) the source string
-
-        RETURNED VALUE
-                the expected string, i.e. <_src> without illegal characters.
-    """
-    res = _src.replace("*", "_")
-    res = res.replace("/", "_")
-    res = res.replace("\\", "_")
-    res = res.replace(".", "_")
-    res = res.replace("\"", "_")
-    res = res.replace("[", "_")
-    res = res.replace("]", "_")
-    res = res.replace(":", "_")
-    res = res.replace(";", "_")
-    res = res.replace("|", "_")
-    res = res.replace("=", "_")
-    res = res.replace(",", "_")
-    res = res.replace("?", "_")
-    res = res.replace("<", "_")
-    res = res.replace(">", "_")
-    return res
-
-#/////////////////////////////////////////////////////////////////////////////////////////
-def create_target_name(_hashid,
-                       _sourcename_without_extens,
-                       _source_path,
-                       _source_extension,
-                       _str_size,
-                       _str_date,
-                       _database_index):
-    """
-        create_target_name()
-        ________________________________________________________________________
-
-        Create the name of a file (a target file) from various informations
-        read from an source(source) file. The function reads the string stored 
-        in PARAMETERS["target"]["name of the target files"] and replaces some 
-        keywords in the string by the parameters given to this function.
-
-           keywords                             example
-           ---------------------------------------------------------------------
-
-           HASHID                               |
-           SOURCENAME_WITHOUT_EXTENSION       | cat
-           SOURCENAME_WITHOUT_EXTENSION2      | cat_
-           SOURCE_PATH                        | /home/someone/Pictures
-           SOURCE_PATH2                       | _home_someone_Pictures
-           SOURCE_EXTENSION                   | jpg
-           SOURCE_EXTENSION2                  | jpg
-           SIZE                                 | 1234
-           DATE2                                | ****todo$$$
-           DATABASE_INDEX                       | 123
-
-           n.b. : keywords ending by "2" are builded against a set of illegal 
-                  characters replaced by "_".
-        ________________________________________________________________________
-
-        PARAMETERS
-                o _hashid                       : (str)
-                o _sourcename_without_extens  : (str) e.g. "cat"
-                o _source_path                : (str) e.g. "/home/" or "c:\"
-                o _source_extension           : (str) e.g. "jpg" (no dot !)
-                o 
-    """
-
-    target_name  = PARAMETERS["target"]["name of the target files"]
-
-    target_name = target_name.replace("HASHID",
-                                      _hashid)
-
-    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2",
-                                      remove_illegal_characters(_sourcename_without_extens))
-    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION",
-                                      _sourcename_without_extens)
-
-    target_name = target_name.replace("SOURCE_PATH2",
-                                      remove_illegal_characters(_source_path))
-    target_name = target_name.replace("SOURCE_PATH",
-                                      _source_path)
-
-    target_name = target_name.replace("SOURCE_EXTENSION2",
-                                      remove_illegal_characters(_source_extension))
-    target_name = target_name.replace("SOURCE_EXTENSION",
-                                      _source_extension)
-
-    target_name = target_name.replace("SIZE",
-                                      str(_str_size))
-    
-    target_name = target_name.replace("DATE2",
-                                      remove_illegal_characters(str(_str_date)))
-    
-    target_name = target_name.replace("DATABASE_INDEX",
-                                      remove_illegal_characters(str(_database_index)))
-    
-    return target_name
-
-    
-
-#///////////////////////////////////////////////////////////////////////////////
-def size_as_str(size):
-    """
-        Return size a human-readable string.
-    """
-    if size < 100000:
-        return "{0} bytes".format(size)
-    elif size < 1000000:
-        return "~{0:.2f} Mo ({1} bytes)".format(size/1000000.0,
-                                                size)
-    else:
-        return "~{0:.2f} Go ({1} bytes)".format(size/1000000000.0,
-                                                size)
-
-#///////////////////////////////////////////////////////////////////////////////
-DiskUsageNTuple = namedtuple('usage', 'total used free')
-def disk_usage(path):
-    """Return disk usage statistics about the given path.
-
-    Returned valus is a named tuple with attributes 'total', 'used' and
-    'free', which are the amount of total, used and free space, in bytes.
-
-        confer http://stackoverflow.com/questions/787776
-
-todo:$$$
-    """
-    stat = os.statvfs(path)
-    free = stat.f_bavail * stat.f_frsize
-    total = stat.f_blocks * stat.f_frsize
-    used = (stat.f_blocks - stat.f_bfree) * stat.f_frsize
-    return DiskUsageNTuple(total, used, free)
-
-#///////////////////////////////////////////////////////////////////////////////
-def first_message0():
-    """
-        first_message0()
-
-        before PARAMETERS
-
-        $$todo$$
-    """
-    msg("=== {0} v.{1} (launched at {2}) ===".format(PROGRAM_NAME,
-                                                     PROGRAM_VERSION,
-                                                     datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-    msg("  = using \"{0}\" as config file".format(ARGS.configfile))
-
-#///////////////////////////////////////////////////////////////////////////////
-def first_message1():
-    """
-        first_message1()
-
-        after PARAMETERS
-
-        $$todo$$
-    """
-    msg("  = source directory : \"{0}\" =".format(SOURCE_PATH))
-    msg("  = target directory : \"{0}\" =".format(TARGET_PATH))
-
-
-#///////////////////////////////////////////////////////////////////////////////
-def infos():
-    """
-        display some informations about source and dest directories.
+        no PARAMETER, no RETURNED VALUE.
     """
     msg("  = informations =")
 
@@ -266,7 +122,11 @@ def infos():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        msg("    : hashid                                       : (target) file name : (source) source name")
+        # the number 39 is here to align the rows' names and is linked to the
+        # footprint's length.
+        msg("    : hashid{0}: (target) file name{1}:" \
+            " (source) source name".format(" "*39,
+                                           " "*(SOURCENAME_MAXLENGTH-17)))
         row_index = 0
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
@@ -284,12 +144,96 @@ def infos():
 
         db_connection.close()
 
-#///////////////////////////////////////////////////////////////////////////////
-def get_args():
+#/////////////////////////////////////////////////////////////////////////////////////////
+def create_target_name(_hashid,
+                       _sourcename_without_extens,
+                       _source_path,
+                       _source_extension,
+                       _str_size,
+                       _str_date,
+                       _database_index):
     """
-        Read the command line arguments.
+        create_target_name()
+        ________________________________________________________________________
 
-        Return the argparse object.
+        Create the name of a file (a target file) from various informations
+        read from a source file. The function reads the string stored in
+        PARAMETERS["target"]["name of the target files"] and replaces some
+        keywords in the string by the parameters given to this function.
+
+           keywords                             example
+           -----------------------------------+---------------------------------
+           HASHID                             | $$todo$$$
+           SOURCENAME_WITHOUT_EXTENSION       | cat
+           SOURCENAME_WITHOUT_EXTENSION2      | cat_
+           SOURCE_PATH                        | /home/someone/Pictures
+           SOURCE_PATH2                       | _home_someone_Pictures
+           SOURCE_EXTENSION                   | jpg
+           SOURCE_EXTENSION2                  | jpg
+           SIZE                               | 1234
+           DATE2                              | ****todo$$$
+           DATABASE_INDEX                     | 123
+
+           n.b. : keywords ending by "2" are builded against a set of illegal
+                  characters replaced by "_".
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _hashid                       : (str)
+                o _sourcename_without_extens  : (str) e.g. "cat"
+                o _source_path                : (str) e.g. "/home/" or "c:\"
+                o _source_extension           : (str) e.g. "jpg" (no dot !)
+                o _str_size                   : (str) e.g. "1234"
+                o _str_date                   : (str) e.g. "todo$$$"
+                o _database_index             : (int) e.g. 123
+
+        RETURNED VALUE
+                the expected string
+    """
+    target_name = PARAMETERS["target"]["name of the target files"]
+
+    target_name = target_name.replace("HASHID",
+                                      _hashid)
+
+    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2",
+                                      remove_illegal_characters(_sourcename_without_extens))
+    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION",
+                                      _sourcename_without_extens)
+
+    target_name = target_name.replace("SOURCE_PATH2",
+                                      remove_illegal_characters(_source_path))
+    target_name = target_name.replace("SOURCE_PATH",
+                                      _source_path)
+
+    target_name = target_name.replace("SOURCE_EXTENSION2",
+                                      remove_illegal_characters(_source_extension))
+    target_name = target_name.replace("SOURCE_EXTENSION",
+                                      _source_extension)
+
+    target_name = target_name.replace("SIZE",
+                                      _str_size)
+
+    target_name = target_name.replace("DATE2",
+                                      remove_illegal_characters(_str_date))
+
+    target_name = target_name.replace("DATABASE_INDEX",
+                                      remove_illegal_characters(str(_database_index)))
+
+    return target_name
+
+#///////////////////////////////////////////////////////////////////////////////
+def get_command_line_arguments():
+    """
+        get_command_line_arguments()
+        ________________________________________________________________________
+
+        Read the command line arguments.
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE
+                return the argparse object.
     """
     parser = argparse.ArgumentParser(description="{0} v. {1}".format(PROGRAM_NAME, PROGRAM_VERSION),
                                      epilog="by suizokukan AT orange DOT fr",
@@ -331,23 +275,144 @@ def get_args():
     return parser.parse_args()
 
 #///////////////////////////////////////////////////////////////////////////////
-def get_parameters(configfile_name):
+def get_disk_free_space(path):
     """
-        read the configfile and return the parser or None if an error occured.
+        get_disk_free_space()
+        ________________________________________________________________________
+
+        return the available space on disk()
+        ________________________________________________________________________
+
+        PARAMETER
+                o _path : (str) the source path belonging to the disk to be
+                          analysed.
+
+        RETURNED VALUE
+                the expected int(eger)
+    """
+    stat = os.statvfs(path)
+    return stat.f_bavail * stat.f_frsize
+
+#///////////////////////////////////////////////////////////////////////////////
+def get_parameters_from_cfgfile(configfile_name):
+    """
+        get_parameters_from_cfgfile()
+        ________________________________________________________________________
+
+        Read the configfile and return the parser or None if an error occured.
+        ________________________________________________________________________
+        
+        PARAMETER
+                o configfile_name       : (str) config file name (e.g. katal.ini)
+        RETURNED VALUE
+                None if an error occured while reading the configuration file
+                or the expected configparser.ConfigParser object.
     """
     if not os.path.exists(configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(configfile_name))
         return None
 
     parser = configparser.ConfigParser()
+
     try:
         parser.read(configfile_name)
-    except BaseException as exception:
+    except BaseException as exception:  # todo : autre exception
         msg("    ! An error occured while reading the config file \"{0}\".".format(configfile_name))
         msg("    ! Python message : \"{0}\"".format(exception))
         return None
 
     return parser
+
+#///////////////////////////////////////////////////////////////////////////////
+def parameters_infos():
+    """
+        parameters_infos()
+        ________________________________________________________________________
+
+        Display some informations about the content of the configuration file
+        (confer the PARAMETERS variable). This function must be called after
+        the opening of the configuration file.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    msg("  = source directory : \"{0}\" =".format(SOURCE_PATH))
+    msg("  = target directory : \"{0}\" =".format(TARGET_PATH))
+
+#/////////////////////////////////////////////////////////////////////////////////////////
+def remove_illegal_characters(_src):
+    """
+        remove_illegal_characters()
+        ________________________________________________________________________
+
+        Replace some illegal characters by the underscore character. Use this function
+        to create files on various plateforms.
+        ________________________________________________________________________
+
+        PARAMETER
+                o _src   : (str) the source string
+
+        RETURNED VALUE
+                the expected string, i.e. <_src> without illegal characters.
+    """
+    res = _src.replace("*", "_")
+    res = res.replace("/", "_")
+    res = res.replace("\\", "_")
+    res = res.replace(".", "_")
+    res = res.replace("\"", "_")
+    res = res.replace("[", "_")
+    res = res.replace("]", "_")
+    res = res.replace(":", "_")
+    res = res.replace(";", "_")
+    res = res.replace("|", "_")
+    res = res.replace("=", "_")
+    res = res.replace(",", "_")
+    res = res.replace("?", "_")
+    res = res.replace("<", "_")
+    res = res.replace(">", "_")
+    return res
+
+#///////////////////////////////////////////////////////////////////////////////
+def size_as_str(_size):
+    """
+        size_as_str()
+        ________________________________________________________________________
+
+        Return a size in bytes as a human-readable string.
+        ________________________________________________________________________
+
+        PARAMETER
+                o _size         : (int) size in bytes
+
+        RETURNED VALUE
+                a str(ing)
+    """
+    if _size < 100000:
+        return "{0} bytes".format(_size)
+    elif _size < 1000000:
+        return "~{0:.2f} Mo ({1} bytes)".format(_size/1000000.0,
+                                                _size)
+    else:
+        return "~{0:.2f} Go ({1} bytes)".format(_size/1000000000.0,
+                                                _size)
+
+#///////////////////////////////////////////////////////////////////////////////
+def welcome():
+    """
+        welcome()
+        ________________________________________________________________________
+
+        Display a welcome message with some very broad informations about the
+        program. This function may be called before reading the configuration
+        file (confer the variable PARAMETERS).
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE.
+    """
+    msg("=== {0} v.{1} (launched at {2}) ===".format(PROGRAM_NAME,
+                                                     PROGRAM_VERSION,
+                                                     datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    msg("  = using \"{0}\" as config file".format(ARGS.configfile))
 
 #///////////////////////////////////////////////////////////////////////////////
 def hashfile(afile, hasher, blocksize=65536):
@@ -500,10 +565,10 @@ def select():
                                                       ratio))
 
     # let's check that the target path has sufficient free space :
-    available_space = disk_usage(TARGET_PATH)
+    available_space = get_disk_free_space(TARGET_PATH)
     msg("    o required space : {0}; " \
         "available space on disk : {1}".format(SELECT_SIZE_IN_BYTES,
-                                               available_space.free))
+                                               available_space))
 
     # let's give some examples of the target names :
     example_index = 0
@@ -521,7 +586,7 @@ def select():
                                      _sourcename_without_extens=filename_without_extension,
                                      _source_path=source_path,
                                      _source_extension=extension,
-                                     _str_size=size,
+                                     _str_size=str(size),
                                      _str_date=date,
                                      _database_index=str(len(TARGET_DB) + index))
 
@@ -532,7 +597,7 @@ def select():
 
         example_index += 1
 
-        if example_index>5:
+        if example_index > 5:
             break
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -651,14 +716,14 @@ def add():
 
         todo : d'abord appeler select()
     """
-    msg("    = copying data =")
+    msg("  = copying data =")
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     db_connection = sqlite3.connect(db_filename)
     db_cursor = db_connection.cursor()
 
     # (100000 bytes for the database) :
-    available_space = disk_usage(TARGET_PATH).free
+    available_space = get_disk_free_space(TARGET_PATH)
     if available_space < SELECT_SIZE_IN_BYTES + 100000:
         msg("    ! Not enough space on disk. Stopping the program.")
         return # todo : return value for add()
@@ -679,7 +744,7 @@ def add():
                                      _sourcename_without_extens=filename_without_extension,
                                      _source_path=source_path,
                                      _source_extension=extension,
-                                     _str_size=size,
+                                     _str_size=str(size),
                                      _str_date=date,
                                      _database_index=str(len(TARGET_DB) + index))
 
@@ -704,15 +769,15 @@ def add():
 #///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
-ARGS = get_args()
+ARGS = get_command_line_arguments()
 check_args()
 
 # a function like msg() may need this variable before its initialization (see further)
 USE_LOG_FILE = False
 
-first_message0()
+welcome()
 
-PARAMETERS = get_parameters(ARGS.configfile)
+PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
 if PARAMETERS is None:
     sys.exit()  # todo: valeur renvoyée par le programme ?
 
@@ -731,18 +796,18 @@ LOGFILE = None
 if USE_LOG_FILE:
     LOGFILE = logfile_opening()
 
-first_message1()
+parameters_infos()
 
 if not os.path.exists(TARGET_PATH):
     msg("  ! Since the destination path \"{0}\" " \
               "doesn't exist, let's create it.".format(TARGET_PATH))
     os.mkdir(TARGET_PATH)
 
-SELECT = {} # hashid : complete filename, source_path, filename without extension, extension, size, date
+SELECT = {} # see documentation
 SELECT_SIZE_IN_BYTES = 0
 
 if ARGS.infos:
-    infos()
+    action__infos()
 if ARGS.select:
     read_target_db()
     read_sieves()
@@ -753,14 +818,14 @@ if ARGS.select:
 
         if ANSWER in ("y", "yes"):
             add()
-            infos()
+            action__infos()
 
 if ARGS.add:
     read_target_db()
     read_sieves()
     select()
     add()
-    infos()
+    action__infos()
 
 msg("=== exit (stopped at {0}; " \
           "total duration time : {1}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
