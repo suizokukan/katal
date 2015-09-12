@@ -465,7 +465,7 @@ def select():
                 # is filename already stored in <TARGET_DB> ?
                 _hash = hashfile(open(complete_name, 'rb'), hashlib.sha256())
 
-                if _hash not in TARGET_DB:
+                if _hash not in TARGET_DB and _hash not in SELECT:
                     res = True
                     SELECT[_hash] = (complete_name,
                                      dirpath,
