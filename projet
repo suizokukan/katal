@@ -1,4 +1,6 @@
-todo :
+Python3
+
+    todo :
     1/ bdd dans le répertoire dest :
         hash - name - old path
 
@@ -7,7 +9,9 @@ todo :
     $$ --generate_configfile
     $$ todo
     $$ tests, en particulier sous Windows
-    $$ python2/3 ok ?
+    $$ doc (header, fonctions)
+    $$ _parameter
+    $$ pylint
 
 #
 # un principe : on ne touche pas au répertoire de départ.
