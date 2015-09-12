@@ -4,10 +4,11 @@ Python3
     1/ bdd dans le répertoire dest :
         hash - name - old path
 
+    $$ katal.ini : améliorer la présentation
     $$ file name (garder l'extension)
     $$ --generate_configfile
     $$ todo
-    $$ tests, en particulier sous Windows
+    $$ tests, en particulier sous Windows et sous OSX
     $$ doc (header, fonctions)
     $$ _parameter
     $$ pylint

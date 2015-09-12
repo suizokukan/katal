@@ -255,14 +255,14 @@ def logfile_opening():
 
         open the log file and return the result of the called to open().
     """
-    if PARAMETERS["main.log_file"]["overwrite"] == "True":
+    if PARAMETERS["log file"]["overwrite"] == "True":
         # overwrite :
         log_mode = "w"
     else:
         # let's append :
         log_mode = "a"
 
-    logfile = open(PARAMETERS["main.log_file"]["name"], log_mode)
+    logfile = open(PARAMETERS["log file"]["name"], log_mode)
 
     return logfile
 
@@ -287,17 +287,17 @@ def read_sieves():
     stop = False
     sieve_index = 1
     while not stop:
-        if not PARAMETERS.has_section("sieve"+str(sieve_index)):
+        if not PARAMETERS.has_section("source.sieve"+str(sieve_index)):
             stop = True
         else:
             SIEVES[sieve_index] = dict()
 
-            if PARAMETERS.has_option("sieve"+str(sieve_index), "name"):
+            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "name"):
                 SIEVES[sieve_index]["name"] = \
-                                    re.compile(PARAMETERS["sieve"+str(sieve_index)]["name"])
-            if PARAMETERS.has_option("sieve"+str(sieve_index), "size"):
+                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"])
+            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "size"):
                 SIEVES[sieve_index]["size"] = \
-                                    re.compile(PARAMETERS["sieve"+str(sieve_index)]["size"])
+                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["size"])
         sieve_index += 1
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -411,7 +411,7 @@ def the_file_can_be_added__size(sieve_index, size):
     """
     res = False
 
-    sieve_size = PARAMETERS["sieve"+str(sieve_index)]["size"]
+    sieve_size = PARAMETERS["source.sieve"+str(sieve_index)]["size"]
 
     if sieve_size.startswith(">"):
         if size > int(sieve_size[1:]):
@@ -525,14 +525,14 @@ ARGS = get_args()
 check_args()
 
 PARAMETERS = get_parameters(ARGS.configfile)
-USE_LOG_FILE = PARAMETERS["main.log_file"]["use log file"] == "True"
-VERBOSITY = PARAMETERS["main.log_file"]["verbosity"]
+USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
+VERBOSITY = PARAMETERS["log file"]["verbosity"]
 TARGET_DB = []  # a list of hashid
 TARGET_PATH = PARAMETERS["target"]["path"]
 TARGETFILENAME_MAXLENGTH = int(PARAMETERS["infos"]["target filename.max length on console"])
 ORIGINALNAME_MAXLENGTH = int(PARAMETERS["infos"]["original filename.max length on console"])
 
-SOURCE_PATH = PARAMETERS["main.source"]["sourcepath"]
+SOURCE_PATH = PARAMETERS["source"]["sourcepath"]
 
 LOGFILE = None
 if USE_LOG_FILE:
