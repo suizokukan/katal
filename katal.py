@@ -304,7 +304,7 @@ def read_sieves():
 def select():
     """
         $$$todo
-        fill SELECT and SELECT_SIZE
+        fill SELECT and SELECT_SIZE_IN_BYTES
     """
     msg("  = selecting files according to the instructions " \
                 "in the config file. Please wait... =")
@@ -315,7 +315,7 @@ def select():
     msg("  o file list :")
 
     # big loop :
-    SELECT_SIZE = 0
+    SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
 
     for dirpath, _, filenames in os.walk(SOURCE_PATH):
@@ -338,9 +338,10 @@ def select():
                     SELECT[_hash] = complete_name
 
                     if VERBOSITY == "high":
-                        msg("    + selected {0}".format(complete_name))
+                        msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
+                                                                               len(SELECT)))
 
-                    SELECT_SIZE += os.stat(complete_name).st_size
+                    SELECT_SIZE_IN_BYTES += os.stat(complete_name).st_size
                 else:
                     res = False
 
@@ -349,7 +350,7 @@ def select():
                                   " discarded \"{0}\"".format(complete_name))
                         number_of_discarded_files += 1
 
-    msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE)))
+    msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
     if len(SELECT) == 0:
         msg("    ! no file selected !")
@@ -364,7 +365,7 @@ def select():
     # let's check that the target path has sufficient free space :
     available_space = disk_usage(TARGET_PATH)
     msg("    o required space : {0}; " \
-        "available space on disk : {1}".format(SELECT_SIZE,
+        "available space on disk : {1}".format(SELECT_SIZE_IN_BYTES,
                                                available_space.free))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -491,7 +492,7 @@ def add():
 
     # (100000 bytes for the database) :
     available_space = disk_usage(TARGET_PATH).free
-    if available_space < SELECT_SIZE + 100000:
+    if available_space < SELECT_SIZE_IN_BYTES + 100000:
         msg("    ! Not enough space on disk. Stopping the program.")
         return # todo : return value for add()
 
@@ -546,7 +547,7 @@ if not os.path.exists(TARGET_PATH):
     os.mkdir(TARGET_PATH)
 
 SELECT = {} # hashid : filename
-SELECT_SIZE = 0
+SELECT_SIZE_IN_BYTES = 0
 
 if ARGS.infos:
     infos()

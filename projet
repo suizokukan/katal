@@ -4,7 +4,6 @@ Python3
     1/ bdd dans le répertoire dest :
         hash - name - old path
 
-    $$ katal.ini : améliorer la présentation
     $$ file name (garder l'extension)
     $$ --generate_configfile
     $$ todo
@@ -13,6 +12,8 @@ Python3
     $$ _parameter
     $$ pylint
     $$ fonctions dans l'ordre alphabétique + liste dans le header
+    $$ si erreur en listant le .ini (ligne : parser.read(configfile_name)) avec un try/catch
+       attraper l'erreur; pour créer une erreur, dupliquer un source.sieve
 
 #
 # un principe : on ne touche pas au répertoire de départ.
