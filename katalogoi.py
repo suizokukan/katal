@@ -30,12 +30,15 @@ import hashlib
 from datetime import datetime
 import os
 import re
+import shutil
+import sqlite3
 
 PROGRAM_NAME = "Katalogoi"
 PROGRAM_VERSION = "0.0.1"
 
-SELECTIONS = {}
+SIEVES = {}
 DEFAULT_CONFIGFILE_NAME = "katalogoi.ini"
+DATABASE_NAME = "katalogoi.db"
 TIMESTAMP_BEGIN = datetime.now()
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -45,14 +48,15 @@ def console_first_message():
 
         $$todo$$
     """
-    console_msg("=== {0} v.{1} ({2}) ===".format(PROGRAM_NAME,
+    console_w("=== {0} v.{1} ({2}) ===".format(PROGRAM_NAME,
                                                  PROGRAM_VERSION,
                                                  datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    console_w("  = source directory : \"{0}\" =".format(SOURCE_PATH))
 
 #///////////////////////////////////////////////////////////////////////////////
-def console_msg(msg):
+def console_w(msg):
     """
-            console_msg()
+            console_w()
 
             Send a message to the console if not in quiet mode.
     """
@@ -60,24 +64,30 @@ def console_msg(msg):
         print(msg)
 
 #///////////////////////////////////////////////////////////////////////////////
-def display_informations_about(path):
+def infos():
     """
-        display (on the console) some informations about path.
+        display (on the console) some informations about source and dest directories.
     """
-    if not os.path.exists(path):
+    console_w("  = informations =")
+
+    #...........................................................................
+    # source path
+    #...........................................................................
+    if not os.path.exists(SOURCE_PATH):
         # todo : error
-        console_msg("Can't read path {0}.".format(path))
+        console_w("Can't read source path {0}.".format(SOURCE_PATH))
         return
-    if not os.path.isdir(path):
-        console_msg("{0} isn't a directory.".format(path))
+    if not os.path.isdir(SOURCE_PATH):
+        # error (todo)
+        console_w("(source path) {0} isn't a directory.".format(SOURCE_PATH))
         return
 
-    console_msg("  = informations about the \"{0}\" directory =".format(path))
+    console_w("  = informations about the \"{0}\" (source) directory =".format(SOURCE_PATH))
 
     total_size = 0
     files_number = 0
     extensions = set()
-    for dirpath, _, fnames in os.walk(path):
+    for dirpath, _, fnames in os.walk(SOURCE_PATH):
         for filename in fnames:
             complete_name = os.path.join(dirpath, filename)
 
@@ -86,12 +96,42 @@ def display_informations_about(path):
             total_size += os.stat(complete_name).st_size
             files_number += 1
 
-    console_msg("  o files number : {0}".format(files_number))
-    console_msg("  o total size : ~{0:.2f} Mo; " \
-                "~{1:.2f} Go; ({2} bytes)".format(total_size/1000000.0,
-                                                  total_size/1000000000.0,
-                                                  total_size))
-    console_msg("  o list of all extensions : {0}".format(tuple(extensions)))
+    console_w("    o files number : {0}".format(files_number))
+    console_w("    o total size : ~{0:.2f} Mo; " \
+              "~{1:.2f} Go; ({2} bytes)".format(total_size/1000000.0,
+                                                total_size/1000000000.0,
+                                                total_size))
+    console_w("    o list of all extensions : {0}".format(tuple(extensions)))
+
+   #...........................................................................
+    # target path
+    #...........................................................................
+    if not os.path.exists(TARGET_PATH):
+        console_w("Can't read target path {0}.".format(TARGET_PATH))
+        return
+    if not os.path.isdir(TARGET_PATH):
+        # error (todo)
+        console_w("(target path) {0} isn't a directory.".format(TARGET_PATH))
+        return
+
+    console_w("  = informations about the \"{0}\" (target) directory =".format(TARGET_PATH))
+
+    if not os.path.exists(os.path.join(TARGET_PATH, DATABASE_NAME)):
+        console_w("    o no database in the target directory o")
+    else:
+        db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+        db_connection = sqlite3.connect(db_filename)
+        db_cursor = db_connection.cursor()
+
+        console_w("    o hashid                                       : (target) file name - (source) original name")
+        for hashid, filename, originalname in db_cursor.execute('SELECT * FROM files'):
+            if len(originalname)>INFO_ORIGINALNAME_MAXLENGTH_ON_SCREEN:
+                originalname = "[...]"+originalname[-(INFO_ORIGINALNAME_MAXLENGTH_ON_SCREEN-5):]
+            console_w("    o {0} : {1:18} : {2}".format(hashid,
+                                                        filename,
+                                                        originalname))
+
+        db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
 def get_args():
@@ -150,6 +190,7 @@ def get_parameters(configfile_name):
 
     parser = configparser.ConfigParser()
     parser.read(configfile_name)
+
     return parser
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -217,60 +258,59 @@ def logfile_w(msg):
     LOGFILE.write(msg)
 
 #///////////////////////////////////////////////////////////////////////////////
-def read_selections():
+def read_sieves():
     """
-        initialize SELECTIONS
+        initialize SIEVES
     """
     stop = False
-    selection_index = 1
+    sieve_index = 1
     while not stop:
-        if not PARAMETERS.has_section("selection"+str(selection_index)):
+        if not PARAMETERS.has_section("sieve"+str(sieve_index)):
             stop = True
         else:
-            SELECTIONS[selection_index] = dict()
+            SIEVES[sieve_index] = dict()
 
-            if PARAMETERS.has_option("selection"+str(selection_index), "name"):
-                SELECTIONS[selection_index]["name"] = \
-                                    re.compile(PARAMETERS["selection"+str(selection_index)]["name"])
-            if PARAMETERS.has_option("selection"+str(selection_index), "size"):
-                SELECTIONS[selection_index]["size"] = \
-                                    re.compile(PARAMETERS["selection"+str(selection_index)]["size"])
-        selection_index += 1
+            if PARAMETERS.has_option("sieve"+str(sieve_index), "name"):
+                SIEVES[sieve_index]["name"] = \
+                                    re.compile(PARAMETERS["sieve"+str(sieve_index)]["name"])
+            if PARAMETERS.has_option("sieve"+str(sieve_index), "size"):
+                SIEVES[sieve_index]["size"] = \
+                                    re.compile(PARAMETERS["sieve"+str(sieve_index)]["size"])
+        sieve_index += 1
 
 #///////////////////////////////////////////////////////////////////////////////
 def select():
     """
         $$$todo
+        fill SELECT
     """
-
-    console_msg("  = selecting files according to the instructions " \
+    console_w("  = selecting files according to the instructions " \
                 "in the config file. Please wait... =")
-    logfile_w("selections : \n{0}\n\n".format(SELECTIONS))
+    logfile_w("sieves : \n{0}\n\n".format(SIEVES))
     logfile_w("file list :\n")
 
     # big loop :
-    files = {}      # hash : complete_name
     total_size_of_the_selec_files = 0
     number_of_discarded_files = 0
 
-    for dirpath, _, filenames in os.walk(PARAMETERS["main.source"]["sourcepath"]):
+    for dirpath, _, filenames in os.walk(SOURCE_PATH):
         for filename in filenames:
             complete_name = os.path.join(dirpath, filename)
             size = os.stat(complete_name).st_size
 
-            res = the_file_can_be_selected(filename, size)
+            res = the_file_can_be_added(filename, size)
             if not res:
                 if LOG_VERBOSITY == "high":
-                    logfile_w("(selections described in the config file)" \
+                    logfile_w("(sieves described in the config file)" \
                               " discarded \"{0}\"\n".format(complete_name))
                     number_of_discarded_files += 1
             else:
-                # is filename already stored in <files> ?
+                # is filename already stored in <TARGET_DB> ?
                 _hash = hashfile(open(complete_name, 'rb'), hashlib.sha256())
 
-                if _hash not in files:
+                if _hash not in TARGET_DB:
                     res = True
-                    files[_hash] = complete_name
+                    SELECT[_hash] = complete_name
 
                     if LOG_VERBOSITY == "high":
                         logfile_w("+ {0}\n".format(complete_name))
@@ -289,89 +329,170 @@ def select():
                                      total_size_of_the_selec_files/1000000000.0,
                                      total_size_of_the_selec_files))
 
-    if len(files) == 0:
+    if len(SELECT) == 0:
         logfile_w("! no file selected !")
     else:
+        ratio = number_of_discarded_files/len(SELECT)*100.0
         logfile_w("number of selected files : {0} " \
                   "(after discarding {1} file(s), " \
-                  "{2:.2f}% of all the files)\n".format(len(files),
+                  "{2:.2f}% of all the files)\n".format(len(SELECT),
                                                         number_of_discarded_files,
-                                                        number_of_discarded_files/len(files)*100.0))
-
-    if USE_LOG_FILE:
-        logfile_closing()
+                                                        ratio))
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_can_be_selected(filename, size):
+def the_file_can_be_added(filename, size):
     """
                 return (bool)res
     """
-    # to be True, one of the selections must match the file given as a parameter :
+    # to be True, one of the sieves must match the file given as a parameter :
     res = False
 
-    for selection_index in SELECTIONS:
-        selection = SELECTIONS[selection_index]
+    for sieve_index in SIEVES:
+        sieve = SIEVES[sieve_index]
 
-        selection_res = True
+        sieve_res = True
 
-        if selection_res and "name" in selection:
-            selection_res = the_file_can_be_selected__name(selection, filename)
+        if sieve_res and "name" in sieve:
+            sieve_res = the_file_can_be_added__name(sieve, filename)
 
-        if selection_res and "size" in selection:
-            selection_res = the_file_can_be_selected__size(selection_index, size)
+        if sieve_res and "size" in sieve:
+            sieve_res = the_file_can_be_added__size(sieve_index, size)
 
-        # at least, one selection is ok with this file :
-        if selection_res:
+        # at least, one sieve is ok with this file :
+        if sieve_res:
             res = True
             break
 
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_can_be_selected__name(selection, filename):
+def the_file_can_be_added__name(sieve, filename):
     """
-        the_file_can_be_selected__name()
+        the_file_can_be_added__name()
 
-        apply a selection based on the name to <filename>.
+        apply a sieve based on the name to <filename>.
     """
-    return re.match(selection["name"], filename)
+    return re.match(sieve["name"], filename)
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_can_be_selected__size(selection_index, size):
+def the_file_can_be_added__size(sieve_index, size):
     """
-        the_file_can_be_selected__size()
+        the_file_can_be_added__size()
 
-        apply a selection based on the size on <size>.
+        apply a sieve based on the size on <size>.
     """
     res = False
 
-    selection_size = PARAMETERS["selection"+str(selection_index)]["size"]
+    sieve_size = PARAMETERS["sieve"+str(sieve_index)]["size"]
 
-    if selection_size.startswith(">"):
-        if size > int(selection_size[1:]):
+    if sieve_size.startswith(">"):
+        if size > int(sieve_size[1:]):
             res = True
-    if selection_size.startswith(">="):
-        if size >= int(selection_size[2:]):
+    if sieve_size.startswith(">="):
+        if size >= int(sieve_size[2:]):
             res = True
-    if selection_size.startswith("<"):
-        if size < int(selection_size[1:]):
+    if sieve_size.startswith("<"):
+        if size < int(sieve_size[1:]):
             res = True
-    if selection_size.startswith("<="):
-        if size <= int(selection_size[2:]):
+    if sieve_size.startswith("<="):
+        if size <= int(sieve_size[2:]):
             res = True
-    if selection_size.startswith("="):
-        if size == int(selection_size[1:]):
+    if sieve_size.startswith("="):
+        if size == int(sieve_size[1:]):
             res = True
 
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
+def read_target_db():
+    """
+        read the database stored in the target directory and initialize
+        TARGET_DB.
+    """
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+
+    if not os.path.exists(db_filename):
+        console_w("  = creating the database in the target path...")
+        logfile_w("creating the database in target path...")
+        
+        # let's create a new database in the target directory :
+        db_connection = sqlite3.connect(db_filename)
+        db_cursor = db_connection.cursor()
+
+        db_cursor.execute('''CREATE TABLE files
+        (hashid text, name text, originalname text)''')
+
+        db_connection.commit()
+        
+        db_connection.close()
+
+        console_w("  = ... database created.")
+        logfile_w("... database created.")
+
+    db_connection = sqlite3.connect(db_filename)
+    db_cursor = db_connection.cursor()
+
+    for hashid, _, _ in db_cursor.execute('SELECT * FROM files'):
+        TARGET_DB.append(hashid)
+
+    db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
+def check_args():
+    """
+        check_args()
+
+        Check $todo
+    """
+
+    # --select and --add can't be used simultaneously.
+    if ARGS.add==True and ARGS.select==True:
+        # $$$ todo $$$
+        raise
+
+#///////////////////////////////////////////////////////////////////////////////
+def add():
+    """
+        Add the source files to the destination path.
+
+        todo : d'abord appeler select()
+    """
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+    db_connection = sqlite3.connect(db_filename)
+    db_cursor = db_connection.cursor()
+
+    files_to_be_added = []
+    for index, hashid in enumerate(SELECT):
+        original_name = SELECT[hashid]
+
+        short_final_name = str(len(TARGET_DB) + index)
+        final_name = os.path.join(TARGET_PATH, short_final_name)
+
+        console_w("... copying \"{0}\" to \"{1}\" .".format(original_name, final_name))
+        logfile_w("... copying \"{0}\" to \"{1}\" .".format(original_name, final_name))
+        shutil.copyfile(original_name, final_name)
+
+        files_to_be_added.append( (hashid, short_final_name, original_name) )
+
+    db_cursor.executemany('INSERT INTO files VALUES (?,?,?)', files_to_be_added)
+    db_connection.commit()
+
+    db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
 ARGS = get_args()
+check_args()
+
 PARAMETERS = get_parameters(ARGS.configfile)
 USE_LOG_FILE = PARAMETERS["main.log_file"]["use log file"] == "True"
 LOG_VERBOSITY = PARAMETERS["main.log_file"]["verbosity"]
+TARGET_DB = []  # a list of hashid
+TARGET_PATH = PARAMETERS["target"]["path"]
+INFO_ORIGINALNAME_MAXLENGTH_ON_SCREEN = int(PARAMETERS["infos"]["original name.max length on console"])
+
+SOURCE_PATH = PARAMETERS["main.source"]["sourcepath"]
 
 LOGFILE = None
 if USE_LOG_FILE:
@@ -380,11 +501,31 @@ if USE_LOG_FILE:
 
 console_first_message()
 
-if ARGS.infos:
-    display_informations_about(PARAMETERS["main.source"]["sourcepath"])
-if ARGS.select:
-    read_selections()
-    select()
+if not os.path.exists(TARGET_PATH):
+    console_w("  ! Since the destination path \"{0}\" " \
+              "doesn't exist, let's create it.".format(TARGET_PATH))
+    logfile_w("Since the destination path \"{0}\"" \
+              "doesn't exist, let's create it.".format(TARGET_PATH))
+    os.mkdir(TARGET_PATH)
 
-console_msg("=== exit === ({0}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-console_msg("duration time : {0}".format(datetime.now() - TIMESTAMP_BEGIN))
+SELECT = {} # hashid : filename
+    
+if ARGS.infos:
+    infos()
+if ARGS.select:
+    read_target_db()
+    read_sieves()
+    select()
+if ARGS.add:
+    read_target_db()
+    read_sieves()
+    select()
+    add()
+
+if USE_LOG_FILE:
+    logfile_closing()
+
+console_w("=== exit ({0}; " \
+          "duration time : {1}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                            datetime.now() - TIMESTAMP_BEGIN))
+

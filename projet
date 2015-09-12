@@ -6,6 +6,7 @@ todo :
     $$ à la fin d'un --select, proposer le --add ?
     $$ --generate_configfile
     $$ todo
+    $$ --infos : lecture du DEST.
 #
 # un principe : on ne touche pas au répertoire de départ.
 #
@@ -28,4 +29,4 @@ todo :
 # o catalogue de ces fichiers numérotés :       0 -> dir/subdir/dfs.jpg
 # o messages dirigés vers un fichier de log.
 # liste des fichiers renumérotés / détection des doublons / élimination des fichiers selon taille,name(regex)
-#
+# o --infos > log ???
