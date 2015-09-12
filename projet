@@ -1,10 +1,8 @@
 Python3
 
-    todo :
-    1/ bdd dans le répertoire dest :
-        hash - name - old path
+doc: the extension stored in SELECT does not begin with a dot.
 
-    $$ file name (garder l'extension)
+    todo :
     $$ --generate_configfile
     $$ todo
     $$ tests, en particulier sous Windows et sous OSX
@@ -12,8 +10,8 @@ Python3
     $$ _parameter
     $$ pylint
     $$ fonctions dans l'ordre alphabétique + liste dans le header
-    $$ si erreur en listant le .ini (ligne : parser.read(configfile_name)) avec un try/catch
-       attraper l'erreur; pour créer une erreur, dupliquer un source.sieve
+
+point fort du programme : monofichier + pas de dépendance externe
 
 #
 # un principe : on ne touche pas au répertoire de départ.

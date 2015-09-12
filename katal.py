@@ -24,7 +24,7 @@
         from the Ancient Greek κατάλογος "enrolment, register, catalogue"
 """
 import argparse
-import base64
+from base64 import b64encode
 from collections import namedtuple
 import configparser
 import hashlib
@@ -33,29 +33,137 @@ import os
 import re
 import shutil
 import sqlite3
+import sys
 
 PROGRAM_NAME = "katal"
 PROGRAM_VERSION = "0.0.1"
 
-SIEVES = {}
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
-TIMESTAMP_BEGIN = datetime.now()
+
+#/////////////////////////////////////////////////////////////////////////////////////////
+def remove_illegal_characters(_src):
+    """
+        remove_illegal_characters()
+        ________________________________________________________________________
+
+        Replace some illegal characters by the underscore character. Use this function
+        to create files on various plateforms.
+        ________________________________________________________________________
+
+        PARAMETER
+                o _src   : (str) the source string
+
+        RETURNED VALUE
+                the expected string, i.e. <_src> without illegal characters.
+    """
+    res = _src.replace("*", "_")
+    res = res.replace("/", "_")
+    res = res.replace("\\", "_")
+    res = res.replace(".", "_")
+    res = res.replace("\"", "_")
+    res = res.replace("[", "_")
+    res = res.replace("]", "_")
+    res = res.replace(":", "_")
+    res = res.replace(";", "_")
+    res = res.replace("|", "_")
+    res = res.replace("=", "_")
+    res = res.replace(",", "_")
+    res = res.replace("?", "_")
+    res = res.replace("<", "_")
+    res = res.replace(">", "_")
+    return res
+
+#/////////////////////////////////////////////////////////////////////////////////////////
+def create_target_name(_hashid,
+                       _sourcename_without_extens,
+                       _source_path,
+                       _source_extension,
+                       _str_size,
+                       _str_date,
+                       _database_index):
+    """
+        create_target_name()
+        ________________________________________________________________________
+
+        Create the name of a file (a target file) from various informations
+        read from an source(source) file. The function reads the string stored 
+        in PARAMETERS["target"]["name of the target files"] and replaces some 
+        keywords in the string by the parameters given to this function.
+
+           keywords                             example
+           ---------------------------------------------------------------------
+
+           HASHID                               |
+           SOURCENAME_WITHOUT_EXTENSION       | cat
+           SOURCENAME_WITHOUT_EXTENSION2      | cat_
+           SOURCE_PATH                        | /home/someone/Pictures
+           SOURCE_PATH2                       | _home_someone_Pictures
+           SOURCE_EXTENSION                   | jpg
+           SOURCE_EXTENSION2                  | jpg
+           SIZE                                 | 1234
+           DATE2                                | ****todo$$$
+           DATABASE_INDEX                       | 123
+
+           n.b. : keywords ending by "2" are builded against a set of illegal 
+                  characters replaced by "_".
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _hashid                       : (str)
+                o _sourcename_without_extens  : (str) e.g. "cat"
+                o _source_path                : (str) e.g. "/home/" or "c:\"
+                o _source_extension           : (str) e.g. "jpg" (no dot !)
+                o 
+    """
+
+    target_name  = PARAMETERS["target"]["name of the target files"]
+
+    target_name = target_name.replace("HASHID",
+                                      _hashid)
+
+    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2",
+                                      remove_illegal_characters(_sourcename_without_extens))
+    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION",
+                                      _sourcename_without_extens)
+
+    target_name = target_name.replace("SOURCE_PATH2",
+                                      remove_illegal_characters(_source_path))
+    target_name = target_name.replace("SOURCE_PATH",
+                                      _source_path)
+
+    target_name = target_name.replace("SOURCE_EXTENSION2",
+                                      remove_illegal_characters(_source_extension))
+    target_name = target_name.replace("SOURCE_EXTENSION",
+                                      _source_extension)
+
+    target_name = target_name.replace("SIZE",
+                                      str(_str_size))
+    
+    target_name = target_name.replace("DATE2",
+                                      remove_illegal_characters(str(_str_date)))
+    
+    target_name = target_name.replace("DATABASE_INDEX",
+                                      remove_illegal_characters(str(_database_index)))
+    
+    return target_name
+
+    
 
 #///////////////////////////////////////////////////////////////////////////////
 def size_as_str(size):
     """
         Return size a human-readable string.
     """
-    if size<100000:
+    if size < 100000:
         return "{0} bytes".format(size)
-    elif size<1000000:
+    elif size < 1000000:
         return "~{0:.2f} Mo ({1} bytes)".format(size/1000000.0,
                                                 size)
     else:
         return "~{0:.2f} Go ({1} bytes)".format(size/1000000000.0,
                                                 size)
-    
+
 #///////////////////////////////////////////////////////////////////////////////
 DiskUsageNTuple = namedtuple('usage', 'total used free')
 def disk_usage(path):
@@ -75,9 +183,11 @@ todo:$$$
     return DiskUsageNTuple(total, used, free)
 
 #///////////////////////////////////////////////////////////////////////////////
-def first_message():
+def first_message0():
     """
-        first_message()
+        first_message0()
+
+        before PARAMETERS
 
         $$todo$$
     """
@@ -85,8 +195,19 @@ def first_message():
                                                      PROGRAM_VERSION,
                                                      datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     msg("  = using \"{0}\" as config file".format(ARGS.configfile))
+
+#///////////////////////////////////////////////////////////////////////////////
+def first_message1():
+    """
+        first_message1()
+
+        after PARAMETERS
+
+        $$todo$$
+    """
     msg("  = source directory : \"{0}\" =".format(SOURCE_PATH))
     msg("  = target directory : \"{0}\" =".format(TARGET_PATH))
+
 
 #///////////////////////////////////////////////////////////////////////////////
 def infos():
@@ -145,18 +266,18 @@ def infos():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        msg("    : hashid                                       : (target) file name : (source) original name")
+        msg("    : hashid                                       : (target) file name : (source) source name")
         row_index = 0
-        for hashid, filename, originalname in db_cursor.execute('SELECT * FROM files'):
+        for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
             if len(filename) > TARGETFILENAME_MAXLENGTH:
                 filename = "[...]"+filename[-(TARGETFILENAME_MAXLENGTH-5):]
-            if len(originalname) > ORIGINALNAME_MAXLENGTH:
-                originalname = "[...]"+originalname[-(ORIGINALNAME_MAXLENGTH-5):]
+            if len(sourcename) > SOURCENAME_MAXLENGTH:
+                sourcename = "[...]"+sourcename[-(SOURCENAME_MAXLENGTH-5):]
 
             msg("    o {0} : {1:18} : {2}".format(hashid,
                                                   filename,
-                                                  originalname))
+                                                  sourcename))
             row_index += 1
         if row_index == 0:
             msg("    ! (empty database)")
@@ -212,14 +333,19 @@ def get_args():
 #///////////////////////////////////////////////////////////////////////////////
 def get_parameters(configfile_name):
     """
-        read the configfile and return the parser.
+        read the configfile and return the parser or None if an error occured.
     """
     if not os.path.exists(configfile_name):
-        #todo
-        raise
+        msg("    ! The config file \"{0}\" doesn't exist.".format(configfile_name))
+        return None
 
     parser = configparser.ConfigParser()
-    parser.read(configfile_name)
+    try:
+        parser.read(configfile_name)
+    except BaseException as exception:
+        msg("    ! An error occured while reading the config file \"{0}\".".format(configfile_name))
+        msg("    ! Python message : \"{0}\"".format(exception))
+        return None
 
     return parser
 
@@ -237,7 +363,7 @@ def hashfile(afile, hasher, blocksize=65536):
         buf = afile.read(blocksize)
     #return hasher.digest()
     #return hasher.hexdigest()
-    return base64.b64encode(hasher.digest()).decode()
+    return b64encode(hasher.digest()).decode()
 
 #///////////////////////////////////////////////////////////////////////////////
 def logfile_closing():
@@ -322,6 +448,12 @@ def select():
         for filename in filenames:
             complete_name = os.path.join(dirpath, filename)
             size = os.stat(complete_name).st_size
+            time = datetime.fromtimestamp(os.path.getmtime(complete_name))
+            filename_without_extension, extension = os.path.splitext(filename)
+
+            # the extension stored in SELECT does not begin with a dot.
+            if extension.startswith("."):
+                extension = extension[1:]
 
             res = the_file_can_be_added(filename, size)
             if not res:
@@ -335,7 +467,12 @@ def select():
 
                 if _hash not in TARGET_DB:
                     res = True
-                    SELECT[_hash] = complete_name
+                    SELECT[_hash] = (complete_name,
+                                     dirpath,
+                                     filename_without_extension,
+                                     extension,
+                                     size,
+                                     time.strftime("%Y_%m_%d__%H_%M_%S"))
 
                     if VERBOSITY == "high":
                         msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
@@ -367,6 +504,36 @@ def select():
     msg("    o required space : {0}; " \
         "available space on disk : {1}".format(SELECT_SIZE_IN_BYTES,
                                                available_space.free))
+
+    # let's give some examples of the target names :
+    example_index = 0
+    for index, hashid in enumerate(SELECT):
+
+        (complete_source_filename,
+         source_path,
+         filename_without_extension,
+         extension,
+         size,
+         date) = SELECT[hashid]
+
+        short_target_name = \
+                  create_target_name(_hashid=hashid,
+                                     _sourcename_without_extens=filename_without_extension,
+                                     _source_path=source_path,
+                                     _source_extension=extension,
+                                     _str_size=size,
+                                     _str_date=date,
+                                     _database_index=str(len(TARGET_DB) + index))
+
+        target_name = os.path.join(TARGET_PATH, short_target_name)
+
+        msg("    o e.g. ... \"{0}\" would be copied as \"{1}\" .".format(complete_source_filename,
+                                                                         target_name))
+
+        example_index += 1
+
+        if example_index>5:
+            break
 
 #///////////////////////////////////////////////////////////////////////////////
 def the_file_can_be_added(filename, size):
@@ -448,7 +615,7 @@ def read_target_db():
         db_cursor = db_connection.cursor()
 
         db_cursor.execute('''CREATE TABLE files
-        (hashid text, name text, originalname text)''')
+        (hashid text, name text, sourcename text)''')
 
         db_connection.commit()
 
@@ -499,18 +666,33 @@ def add():
     files_to_be_added = []
     len_select = len(SELECT)
     for index, hashid in enumerate(SELECT):
-        original_name = SELECT[hashid]
 
-        short_final_name = str(len(TARGET_DB) + index)
-        final_name = os.path.join(TARGET_PATH, short_final_name)
+        (complete_source_filename,
+         source_path,
+         filename_without_extension,
+         extension,
+         size,
+         date) = SELECT[hashid]
 
-        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index,
+        short_target_name = \
+                  create_target_name(_hashid=hashid,
+                                     _sourcename_without_extens=filename_without_extension,
+                                     _source_path=source_path,
+                                     _source_extension=extension,
+                                     _str_size=size,
+                                     _str_date=date,
+                                     _database_index=str(len(TARGET_DB) + index))
+
+        target_name = os.path.join(TARGET_PATH, short_target_name)
+
+        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
                                                                     len_select,
-                                                                    original_name,
-                                                                    final_name))
-        shutil.copyfile(original_name, final_name)
+                                                                    complete_source_filename,
+                                                                    target_name))
+        shutil.copyfile(complete_source_filename,
+                        target_name)
 
-        files_to_be_added.append((hashid, short_final_name, original_name))
+        files_to_be_added.append((hashid, short_target_name, complete_source_filename))
 
     db_cursor.executemany('INSERT INTO files VALUES (?,?,?)', files_to_be_added)
     db_connection.commit()
@@ -525,13 +707,23 @@ def add():
 ARGS = get_args()
 check_args()
 
+# a function like msg() may need this variable before its initialization (see further)
+USE_LOG_FILE = False
+
+first_message0()
+
 PARAMETERS = get_parameters(ARGS.configfile)
+if PARAMETERS is None:
+    sys.exit()  # todo: valeur renvoyée par le programme ?
+
+SIEVES = {}
+TIMESTAMP_BEGIN = datetime.now()
 USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
 VERBOSITY = PARAMETERS["log file"]["verbosity"]
 TARGET_DB = []  # a list of hashid
 TARGET_PATH = PARAMETERS["target"]["path"]
 TARGETFILENAME_MAXLENGTH = int(PARAMETERS["infos"]["target filename.max length on console"])
-ORIGINALNAME_MAXLENGTH = int(PARAMETERS["infos"]["original filename.max length on console"])
+SOURCENAME_MAXLENGTH = int(PARAMETERS["infos"]["source filename.max length on console"])
 
 SOURCE_PATH = PARAMETERS["source"]["sourcepath"]
 
@@ -539,14 +731,14 @@ LOGFILE = None
 if USE_LOG_FILE:
     LOGFILE = logfile_opening()
 
-first_message()
+first_message1()
 
 if not os.path.exists(TARGET_PATH):
     msg("  ! Since the destination path \"{0}\" " \
               "doesn't exist, let's create it.".format(TARGET_PATH))
     os.mkdir(TARGET_PATH)
 
-SELECT = {} # hashid : filename
+SELECT = {} # hashid : complete filename, source_path, filename without extension, extension, size, date
 SELECT_SIZE_IN_BYTES = 0
 
 if ARGS.infos:
