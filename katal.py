@@ -229,7 +229,7 @@ def logfile_first_message():
 
         write $$todo$$$
     """
-    logfile_w("*** {0} v.{1} ({2}) ***" \
+    logfile_w("*** {0} v.{1} (launched at {2}) ***" \
               "\n\n".format(PROGRAM_NAME,
                             PROGRAM_VERSION,
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
