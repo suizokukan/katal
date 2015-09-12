@@ -25,6 +25,7 @@
 """
 import argparse
 import base64
+from collections import namedtuple
 import configparser
 import hashlib
 from datetime import datetime
@@ -40,6 +41,22 @@ SIEVES = {}
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
 TIMESTAMP_BEGIN = datetime.now()
+
+#///////////////////////////////////////////////////////////////////////////////
+_NTUPLE_DISKUSAGE = namedtuple('usage', 'total used free')
+def disk_usage(path):
+    """Return disk usage statistics about the given path.
+
+    Returned valus is a named tuple with attributes 'total', 'used' and
+    'free', which are the amount of total, used and free space, in bytes.
+
+        confer http://stackoverflow.com/questions/787776
+    """
+    st = os.statvfs(path)
+    free = st.f_bavail * st.f_frsize
+    total = st.f_blocks * st.f_frsize
+    used = (st.f_blocks - st.f_bfree) * st.f_frsize
+    return _NTUPLE_DISKUSAGE(total, used, free)
 
 #///////////////////////////////////////////////////////////////////////////////
 def first_message():
@@ -274,7 +291,7 @@ def read_sieves():
 def select():
     """
         $$$todo
-        fill SELECT
+        fill SELECT and SELECT_SIZE
     """
     msg("  = selecting files according to the instructions " \
                 "in the config file. Please wait... =")
@@ -284,7 +301,7 @@ def select():
     msg("  o file list :")
 
     # big loop :
-    total_size_of_the_selec_files = 0
+    SELECT_SIZE = 0
     number_of_discarded_files = 0
 
     for dirpath, _, filenames in os.walk(SOURCE_PATH):
@@ -309,7 +326,7 @@ def select():
                     if VERBOSITY == "high":
                         msg("    + selected {0}".format(complete_name))
 
-                    total_size_of_the_selec_files += os.stat(complete_name).st_size
+                    SELECT_SIZE += os.stat(complete_name).st_size
                 else:
                     res = False
 
@@ -319,9 +336,9 @@ def select():
                         number_of_discarded_files += 1
 
     msg("    o size of the selected files : ~{0:.2f} Mo; ~{1:.2f} Go; " \
-              "({2} bytes)".format(total_size_of_the_selec_files/1000000.0,
-                                     total_size_of_the_selec_files/1000000000.0,
-                                     total_size_of_the_selec_files))
+              "({2} bytes)".format(SELECT_SIZE/1000000.0,
+                                     SELECT_SIZE/1000000000.0,
+                                     SELECT_SIZE))
 
     if len(SELECT) == 0:
         msg("    ! no file selected !")
@@ -332,6 +349,12 @@ def select():
                   "{2:.2f}% of all the files)".format(len(SELECT),
                                                         number_of_discarded_files,
                                                         ratio))
+
+    # let's check that the target path has sufficient free space :
+    available_space = disk_usage(TARGET_PATH)
+    msg("    o required space : {0}; " \
+        "available space on disk : {1}".format(SELECT_SIZE,
+                                               available_space.free))
 
 #///////////////////////////////////////////////////////////////////////////////
 def the_file_can_be_added(filename, size):
@@ -449,10 +472,18 @@ def add():
 
         todo : d'abord appeler select()
     """
+    msg("    = copying data =")
+
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     db_connection = sqlite3.connect(db_filename)
     db_cursor = db_connection.cursor()
 
+    # (100000 bytes for the database) :
+    available_space = disk_usage(TARGET_PATH).free
+    if available_space < SELECT_SIZE + 100000:
+        msg("    ! Not enough space on disk. Stopping the program.")
+        return # todo : return value for add()
+        
     files_to_be_added = []
     len_SELECT = len(SELECT)
     for index, hashid in enumerate(SELECT):
@@ -461,10 +492,10 @@ def add():
         short_final_name = str(len(TARGET_DB) + index)
         final_name = os.path.join(TARGET_PATH, short_final_name)
 
-        msg("... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index,
-                                                                len_SELECT,
-                                                                original_name, 
-                                                                final_name))
+        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index,
+                                                                    len_SELECT,
+                                                                    original_name, 
+                                                                    final_name))
         shutil.copyfile(original_name, final_name)
 
         files_to_be_added.append( (hashid, short_final_name, original_name) )
@@ -473,6 +504,8 @@ def add():
     db_connection.commit()
 
     db_connection.close()
+
+    return # todo : return value for add()
 
 #///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
@@ -502,6 +535,7 @@ if not os.path.exists(TARGET_PATH):
     os.mkdir(TARGET_PATH)
 
 SELECT = {} # hashid : filename
+SELECT_SIZE = 0
     
 if ARGS.infos:
     infos()

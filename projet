@@ -4,11 +4,10 @@ todo :
 
     $$ afficher la taille via une fonction dédiée
     $$ file name (garder l'extension)
-    $$ vérifier l'espace disque
     $$ --generate_configfile
     $$ todo
     $$ tests, en particulier sous Windows
-    $$ 
+    $$ python2/3 ok ?
 
 #
 # un principe : on ne touche pas au répertoire de départ.
