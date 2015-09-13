@@ -26,32 +26,40 @@
 
         functions :
 
-        o  action__add()                : add the source files to the destination
-                                          path.
-        o  actions__infos()             : display informations about the source
-                                          and the target directory
-        o  create_target_name()         : create the name of a file (a target file)
-                                          from various informations read from a
-                                          source file
-        o  fill_select                  : fill SELECT and SELECT_SIZE_IN_BYTES from
-                                          the files stored in SOURCE_PATH.
-        o  get_command_line_arguments() : read the command line arguments
-        o  get_parameters_from_cfgfile(): read the configuration file
-        o  get_disk_free_space()        : return the available space on disk
-        o  logfile_opening()            : open the log file
-        o  hashfile64()                 : return the footprint of a file, encoded
-                                          with the base 64.
-        o  msg()                        : display a message on console, write the
-                                          same message in the log file.
-        o  parameters_infos()           : display some informations about the
-                                          content of the configuration file
-        o  read_sieves()                : initialize SIEVES from the configuration file.
-        o  remove_illegal_characters()  : replace some illegal characters by the
-                                          underscore character.
-        o  size_as_str()                : return a size in bytes as a human-readable
-                                          string
-        o  welcome()                    : display a welcome message on screen
-        o  welcome_in_logfile()         : display a welcome message in the log file
+        o  action__add()                        : add the source files to the destination
+                                                  path.
+        o  actions__infos()                     : display informations about the source
+                                                  and the target directory
+        o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
+                                                  display what's going on.
+        o  create_target_name()                 : create the name of a file (a target file)
+                                                  from various informations read from a
+                                                  source file
+        o  fill_select                          : fill SELECT and SELECT_SIZE_IN_BYTES from
+                                                  the files stored in SOURCE_PATH.
+        o  get_command_line_arguments()         : read the command line arguments
+        o  get_parameters_from_cfgfile()        : read the configuration file
+        o  get_disk_free_space()                : return the available space on disk
+        o  logfile_opening()                    : open the log file
+        o  hashfile64()                         : return the footprint of a file, encoded
+                                                  with the base 64.
+        o  msg()                                : display a message on console, write the
+                                                  same message in the log file.
+        o  parameters_infos()                   : display some informations about the
+                                                  content of the configuration file
+        o  read_sieves()                        : initialize SIEVES from the configuration file.
+        o  read_target_db()                     : Read the database stored in the target
+                                                  directory and initialize TARGET_DB.
+        o  remove_illegal_characters()          : replace some illegal characters by the
+                                                  underscore character.
+        o  size_as_str()                        : return a size in bytes as a human-readable
+                                                  string
+        o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
+                                                : the target directory
+        o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
+        o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
+        o  welcome()                            : display a welcome message on screen
+        o  welcome_in_logfile()                 : display a welcome message in the log file
 """
 # Pylint :
 # disabling "Using the global statement (global-statement)"
@@ -136,7 +144,7 @@ def action__infos():
         Display informations about the source and the target directory
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE.
+        no PARAMETER, no RETURNED VALUE
     """
     msg("  = informations =")
 
@@ -213,6 +221,67 @@ def action__infos():
             msg("    ! (empty database)")
 
         db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
+def action__select():
+    """
+        action__select()
+        ________________________________________________________________________
+
+        fill SELECT and SELECT_SIZE_IN_BYTES and display what's going on.
+        This function will always be called before a call to action__add().
+        At the end of this function, if not in quiet mode (see --quiet option)
+        the functions asks the user if he wants to call action__add().
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE.
+    """
+    msg("  = selecting files according to the instructions " \
+                "in the config file. Please wait... =")
+    msg("  o sieves :")
+    for sieve_index in SIEVES:
+        msg("    o sieve #{0} : {1}".format(sieve_index,
+                                            SIEVES[sieve_index]))
+    msg("  o file list :")
+
+    # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
+    number_of_discarded_files = fill_select()
+
+    msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
+
+    if len(SELECT) == 0:
+        msg("    ! no file selected !")
+    else:
+        ratio = number_of_discarded_files/len(SELECT)*100.0
+        msg("    o number of selected files : {0} " \
+                  "(after discarding {1} file(s), " \
+                  "{2:.2f}% of all the files)".format(len(SELECT),
+                                                      number_of_discarded_files,
+                                                      ratio))
+
+    # let's check that the target path has sufficient free space :
+    available_space = get_disk_free_space(TARGET_PATH)
+    msg("    o required space : {0}; " \
+        "available space on disk : {1}".format(SELECT_SIZE_IN_BYTES,
+                                               available_space))
+
+    # let's give some examples of the target names :
+    example_index = 0
+    for index, hashid in enumerate(SELECT):
+
+        complete_source_filename = SELECT[hashid][0]    # todo... cf supra or infra, same problem.
+        short_target_name = create_target_name(_hashid=hashid,
+                                               _database_index=len(TARGET_DB) + index)
+
+        target_name = os.path.join(TARGET_PATH, short_target_name)
+
+        msg("    o e.g. ... \"{0}\" would be copied as \"{1}\" .".format(complete_source_filename,
+                                                                         target_name))
+
+        example_index += 1
+
+        if example_index > 5:
+            break
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(_hashid, _database_index):
@@ -294,7 +363,7 @@ def fill_select():
         ________________________________________________________________________
 
         Fill SELECT and SELECT_SIZE_IN_BYTES from the files stored in
-        SOURCE_PATH.
+        SOURCE_PATH. This function is used by action__select() .
         ________________________________________________________________________
 
         no PARAMETER
@@ -319,7 +388,7 @@ def fill_select():
             if extension.startswith("."):
                 extension = extension[1:]
 
-            res = the_file_can_be_added(filename, size)
+            res = the_file_has_to_be_added(filename, size)
             if not res:
                 if VERBOSITY == "high":
                     msg("    - (sieves described in the config file)" \
@@ -573,6 +642,44 @@ def read_sieves():
                                     re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["size"])
         sieve_index += 1
 
+#///////////////////////////////////////////////////////////////////////////////
+def read_target_db():
+    """
+        read_target_db()
+        ________________________________________________________________________
+
+        Read the database stored in the target directory and initialize
+        TARGET_DB.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+
+    if not os.path.exists(db_filename):
+        msg("  = creating the database in the target path...")
+
+        # let's create a new database in the target directory :
+        db_connection = sqlite3.connect(db_filename)
+        db_cursor = db_connection.cursor()
+
+        db_cursor.execute('''CREATE TABLE files
+        (hashid text, name text, sourcename text)''')
+
+        db_connection.commit()
+
+        db_connection.close()
+
+        msg("  = ... database created.")
+
+    db_connection = sqlite3.connect(db_filename)
+    db_cursor = db_connection.cursor()
+
+    for hashid, _, _ in db_cursor.execute('SELECT * FROM files'):
+        TARGET_DB.append(hashid)
+
+    db_connection.close()
+
 #/////////////////////////////////////////////////////////////////////////////////////////
 def remove_illegal_characters(_src):
     """
@@ -631,6 +738,97 @@ def size_as_str(_size):
                                                 _size)
 
 #///////////////////////////////////////////////////////////////////////////////
+def the_file_has_to_be_added(_filename, _size):
+    """
+        the_file_has_to_be_added()
+        ________________________________________________________________________
+
+        Return True if a file (_filename, _size) can be choosed and added to
+        the target directory, according to the sieves (stored in SIEVES).
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _filename     : (str) file's name
+                o _size         : (int) file's size, in bytes.
+
+        RETURNED VALUE
+                a boolean, giving the expected answer
+    """
+    # to be True, one of the sieves must match the file given as a parameter :
+    res = False
+
+    for sieve_index in SIEVES:
+        sieve = SIEVES[sieve_index]
+
+        sieve_res = True
+
+        if sieve_res and "name" in sieve:
+            sieve_res = the_file_has_to_be_added__name(sieve, _filename)
+
+        if sieve_res and "size" in sieve:
+            sieve_res = the_file_has_to_be_added__size(sieve_index, _size)
+
+        # at least, one sieve is ok with this file :
+        if sieve_res:
+            res = True
+            break
+
+    return res
+
+#///////////////////////////////////////////////////////////////////////////////
+def the_file_has_to_be_added__name(_sieve, _filename):
+    """
+        the_file_has_to_be_added__name()
+        ________________________________________________________________________
+
+        Function used by the_file_has_to_be_added() : check if the name of a
+        file matches the sieve given as a parameter.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _sieve        : a _sre.SRE_Pattern object; see how the sieves
+                                  are builded in the read_sieves() function.
+                o _filename     : (str) file's name
+    """
+    return re.match(_sieve["name"], _filename)
+
+#///////////////////////////////////////////////////////////////////////////////
+def the_file_has_to_be_added__size(_sieve_index, _size):
+    """
+        the_file_has_to_be_added__size()
+        ________________________________________________________________________
+
+        Function used by the_file_has_to_be_added() : check if the size of a
+        file matches the sieve given as a parameter.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _sieve_index  : (int)number of the sieve to be used
+                o _size         : (str) file's size
+    """
+    res = False
+
+    sieve_size = PARAMETERS["source.sieve"+str(_sieve_index)]["size"]
+
+    if sieve_size.startswith(">"):
+        if _size > int(sieve_size[1:]):
+            res = True
+    if sieve_size.startswith(">="):
+        if _size >= int(sieve_size[2:]):
+            res = True
+    if sieve_size.startswith("<"):
+        if _size < int(sieve_size[1:]):
+            res = True
+    if sieve_size.startswith("<="):
+        if _size <= int(sieve_size[2:]):
+            res = True
+    if sieve_size.startswith("="):
+        if _size == int(sieve_size[1:]):
+            res = True
+
+    return res
+
+#///////////////////////////////////////////////////////////////////////////////
 def welcome():
     """
         welcome()
@@ -645,7 +843,7 @@ def welcome():
         function)
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE.
+        no PARAMETER, no RETURNED VALUE
     """
     msg("=== {0} v.{1} (launched at {2}) ===".format(PROGRAM_NAME,
                                                      PROGRAM_VERSION,
@@ -668,7 +866,7 @@ def welcome_in_logfile():
         second in the log file.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE.
+        no PARAMETER, no RETURNED VALUE
     """
     msg(_msg="=== {0} v.{1} " \
         "(launched at {2}) ===".format(PROGRAM_NAME,
@@ -681,164 +879,6 @@ def welcome_in_logfile():
         _for_logfile=True,
         _for_console=False)
 
-#///////////////////////////////////////////////////////////////////////////////
-def select():
-    """
-        $$$todo
-        fill SELECT and SELECT_SIZE_IN_BYTES
-        ________________________________________________________________________
-        ________________________________________________________________________
-    """
-    msg("  = selecting files according to the instructions " \
-                "in the config file. Please wait... =")
-    msg("  o sieves :")
-    for sieve_index in SIEVES:
-        msg("    o sieve #{0} : {1}".format(sieve_index,
-                                            SIEVES[sieve_index]))
-    msg("  o file list :")
-
-    # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
-    number_of_discarded_files = fill_select()
-
-    msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
-
-    if len(SELECT) == 0:
-        msg("    ! no file selected !")
-    else:
-        ratio = number_of_discarded_files/len(SELECT)*100.0
-        msg("    o number of selected files : {0} " \
-                  "(after discarding {1} file(s), " \
-                  "{2:.2f}% of all the files)".format(len(SELECT),
-                                                      number_of_discarded_files,
-                                                      ratio))
-
-    # let's check that the target path has sufficient free space :
-    available_space = get_disk_free_space(TARGET_PATH)
-    msg("    o required space : {0}; " \
-        "available space on disk : {1}".format(SELECT_SIZE_IN_BYTES,
-                                               available_space))
-
-    # let's give some examples of the target names :
-    example_index = 0
-    for index, hashid in enumerate(SELECT):
-
-        complete_source_filename = SELECT[hashid][0]    # todo... cf supra or infra, same problem.
-        short_target_name = create_target_name(_hashid=hashid,
-                                               _database_index=len(TARGET_DB) + index)
-
-        target_name = os.path.join(TARGET_PATH, short_target_name)
-
-        msg("    o e.g. ... \"{0}\" would be copied as \"{1}\" .".format(complete_source_filename,
-                                                                         target_name))
-
-        example_index += 1
-
-        if example_index > 5:
-            break
-
-#///////////////////////////////////////////////////////////////////////////////
-def the_file_can_be_added(filename, size):
-    """
-                return (bool)res
-        ________________________________________________________________________
-        ________________________________________________________________________
-    """
-    # to be True, one of the sieves must match the file given as a parameter :
-    res = False
-
-    for sieve_index in SIEVES:
-        sieve = SIEVES[sieve_index]
-
-        sieve_res = True
-
-        if sieve_res and "name" in sieve:
-            sieve_res = the_file_can_be_added__name(sieve, filename)
-
-        if sieve_res and "size" in sieve:
-            sieve_res = the_file_can_be_added__size(sieve_index, size)
-
-        # at least, one sieve is ok with this file :
-        if sieve_res:
-            res = True
-            break
-
-    return res
-
-#///////////////////////////////////////////////////////////////////////////////
-def the_file_can_be_added__name(sieve, filename):
-    """
-        the_file_can_be_added__name()
-        ________________________________________________________________________
-        ________________________________________________________________________
-
-        apply a sieve based on the name to <filename>.
-    """
-    return re.match(sieve["name"], filename)
-
-#///////////////////////////////////////////////////////////////////////////////
-def the_file_can_be_added__size(sieve_index, size):
-    """
-        the_file_can_be_added__size()
-        ________________________________________________________________________
-        ________________________________________________________________________
-
-        apply a sieve based on the size on <size>.
-    """
-    res = False
-
-    sieve_size = PARAMETERS["source.sieve"+str(sieve_index)]["size"]
-
-    if sieve_size.startswith(">"):
-        if size > int(sieve_size[1:]):
-            res = True
-    if sieve_size.startswith(">="):
-        if size >= int(sieve_size[2:]):
-            res = True
-    if sieve_size.startswith("<"):
-        if size < int(sieve_size[1:]):
-            res = True
-    if sieve_size.startswith("<="):
-        if size <= int(sieve_size[2:]):
-            res = True
-    if sieve_size.startswith("="):
-        if size == int(sieve_size[1:]):
-            res = True
-
-    return res
-
-#///////////////////////////////////////////////////////////////////////////////
-def read_target_db():
-    """
-        read the database stored in the target directory and initialize
-        TARGET_DB.
-        ________________________________________________________________________
-        ________________________________________________________________________
-    """
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-
-    if not os.path.exists(db_filename):
-        msg("  = creating the database in the target path...")
-
-        # let's create a new database in the target directory :
-        db_connection = sqlite3.connect(db_filename)
-        db_cursor = db_connection.cursor()
-
-        db_cursor.execute('''CREATE TABLE files
-        (hashid text, name text, sourcename text)''')
-
-        db_connection.commit()
-
-        db_connection.close()
-
-        msg("  = ... database created.")
-
-    db_connection = sqlite3.connect(db_filename)
-    db_cursor = db_connection.cursor()
-
-    for hashid, _, _ in db_cursor.execute('SELECT * FROM files'):
-        TARGET_DB.append(hashid)
-
-    db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
 def check_args():
@@ -903,7 +943,7 @@ try:
     if ARGS.select:
         read_target_db()
         read_sieves()
-        select()
+        action__select()
 
         if not ARGS.quiet:
             ANSWER = input("\nDo you want to add the selected " \
@@ -916,7 +956,7 @@ try:
     if ARGS.add:
         read_target_db()
         read_sieves()
-        select()
+        action__select()
         action__add()
         action__infos()
 
