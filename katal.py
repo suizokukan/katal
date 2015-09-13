@@ -19,19 +19,51 @@
 #    along with Katal.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 """
-        Katal project
+        Katal by suizokukan (suizokukan AT orange DOT fr)
 
-        from the Ancient Greek κατάλογος "enrolment, register, catalogue"
+        A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional
+        modules than the ones installed with Python3.
+        ________________________________________________________________________
+
+        Read a directory, select some files according to a configuration file
+        (leaving aside the doubloons), copy the selected files in a target
+        directory.
+        Once the target directory is filled with some files, a database is added
+        to the directory to avoid future doubloons. You can add new files to
+        the target directory by using Katal one more time, with a different
+        source directory.
+        ________________________________________________________________________
+
+        The name Katal comes from the Ancient Greek κατάλογος ("enrolment, 
+        register, catalogue").
+        ________________________________________________________________________
+
+        v.0.0.1 : first try, no tests, pylint=10.0
+        ________________________________________________________________________
+
+        exit codes :
+
+                 0      : success
+                -1      : can't read the parameters from the configuration file
+                -2      : a ProjectError exception has been raised
+                -3      : an unexpected BaseException exception has been raised
+                -4      : something happens that halted the program without
+                          raising a ProjectError or a BaseException exception.
+        ________________________________________________________________________
+
+        SELECT format
+                todo
         ________________________________________________________________________
 
         functions :
 
         o  action__add()                        : add the source files to the destination
                                                   path.
-        o  actions__infos()                     : display informations about the source
+        o  action__infos()                      : display informations about the source
                                                   and the target directory
         o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                                   display what's going on.
+        o  check_args()                         : check the arguments of the command line.
         o  create_target_name()                 : create the name of a file (a target file)
                                                   from various informations read from a
                                                   source file
@@ -82,6 +114,21 @@ PROGRAM_VERSION = "0.0.1"
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
 
+################################################################################
+class ProjectError(BaseException):
+    """
+        ProjectError class
+
+        A very basic class called when an error is raised by the program.
+    """
+    #///////////////////////////////////////////////////////////////////////////
+    def __init__(self, value):
+        BaseException.__init__(self)
+        self.value = value
+    #///////////////////////////////////////////////////////////////////////////
+    def __str__(self):
+        return repr(self.value)
+
 #///////////////////////////////////////////////////////////////////////////////
 def action__add():
     """
@@ -105,7 +152,7 @@ def action__add():
     # (100000 bytes for the database) :
     if get_disk_free_space(TARGET_PATH) < SELECT_SIZE_IN_BYTES + 100000:
         msg("    ! Not enough space on disk. Stopping the program.")
-        # returned value : -1 = success
+        # returned value : -1 = error
         return -1
 
     files_to_be_added = []
@@ -144,7 +191,10 @@ def action__infos():
         Display informations about the source and the target directory
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        no PARAMETER
+
+        RETURNED VALUE
+                (int) 0 if ok, -1 if an error occured
     """
     msg("  = informations =")
 
@@ -152,13 +202,11 @@ def action__infos():
     # source path
     #...........................................................................
     if not os.path.exists(SOURCE_PATH):
-        # todo : error
         msg("Can't read source path {0}.".format(SOURCE_PATH))
-        return
+        return -1
     if not os.path.isdir(SOURCE_PATH):
-        # error (todo)
         msg("(source path) {0} isn't a directory.".format(SOURCE_PATH))
-        return
+        return -1
 
     msg("  = informations about the \"{0}\" (source) directory =".format(SOURCE_PATH))
 
@@ -183,11 +231,10 @@ def action__infos():
     #...........................................................................
     if not os.path.exists(TARGET_PATH):
         msg("Can't read target path {0}.".format(TARGET_PATH))
-        return
+        return -1
     if not os.path.isdir(TARGET_PATH):
-        # error (todo)
         msg("(target path) {0} isn't a directory.".format(TARGET_PATH))
-        return
+        return -1
 
     msg("  = informations about the \"{0}\" (target) directory =".format(TARGET_PATH))
 
@@ -221,6 +268,8 @@ def action__infos():
             msg("    ! (empty database)")
 
         db_connection.close()
+
+    return 0
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__select():
@@ -283,6 +332,22 @@ def action__select():
         if example_index > 5:
             break
 
+#///////////////////////////////////////////////////////////////////////////////
+def check_args():
+    """
+        check_args()
+        ________________________________________________________________________
+
+        check the arguments of the command line. Raise an exception if something
+        is wrong.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    # --select and --add can't be used simultaneously.
+    if ARGS.add == True and ARGS.select == True:
+        raise ProjectError("--select and --add can't be used simultaneously")
+
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(_hashid, _database_index):
     """
@@ -296,15 +361,15 @@ def create_target_name(_hashid, _database_index):
 
            keywords                             example
            -----------------------------------+---------------------------------
-           HASHID                             | $$todo$$$
-           SOURCENAME_WITHOUT_EXTENSION       | cat
-           SOURCENAME_WITHOUT_EXTENSION2      | cat_
+           HASHID                             | YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1=91A
+           SOURCENAME_WITHOUT_EXTENSION       | c.t
+           SOURCENAME_WITHOUT_EXTENSION2      | c_t
            SOURCE_PATH                        | /home/someone/Pictures
            SOURCE_PATH2                       | _home_someone_Pictures
            SOURCE_EXTENSION                   | jpg
            SOURCE_EXTENSION2                  | jpg
            SIZE                               | 1234
-           DATE2                              | ****todo$$$
+           DATE2                              | 2015_09_13__19_07_49
            DATABASE_INDEX                     | 123
 
            n.b. : keywords ending by "2" are builded against a set of illegal
@@ -372,7 +437,7 @@ def fill_select():
                 (int) the number of discard files
     """
     global SELECT, SELECT_SIZE_IN_BYTES
-    SELECT = {} # see documentation (todo)
+    SELECT = {} # see the SELECT format in the documentation
     SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
 
@@ -517,7 +582,7 @@ def get_parameters_from_cfgfile(_configfile_name):
 
     try:
         parser.read(_configfile_name)
-    except BaseException as exception:  # todo : autre exception
+    except BaseException as exception:
         msg("    ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
         msg("    ! Python message : \"{0}\"".format(exception))
@@ -879,22 +944,6 @@ def welcome_in_logfile():
         _for_logfile=True,
         _for_console=False)
 
-
-#///////////////////////////////////////////////////////////////////////////////
-def check_args():
-    """
-        check_args()
-
-        Check $todo
-        ________________________________________________________________________
-        ________________________________________________________________________
-    """
-
-    # --select and --add can't be used simultaneously.
-    if ARGS.add == True and ARGS.select == True:
-        # $$$ todo $$$
-        raise
-
 #///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
@@ -909,7 +958,7 @@ try:
 
     PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
     if PARAMETERS is None:
-        sys.exit()  # todo: valeur renvoyée par le programme ?
+        sys.exit(-1)
 
     HASHER = hashlib.sha256()
     SIEVES = {}
@@ -935,7 +984,7 @@ try:
                   "doesn't exist, let's create it.".format(TARGET_PATH))
         os.mkdir(TARGET_PATH)
 
-    SELECT = {} # see documentation (todo) : où dans la doc ??
+    SELECT = {} # see the SELECT format in the documentation
     SELECT_SIZE_IN_BYTES = 0
 
     if ARGS.infos:
@@ -967,6 +1016,17 @@ try:
     if USE_LOG_FILE:
         LOGFILE.close()
 
+    sys.exit(0)
+
+except ProjectError as exception:
+    print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
+                                                                          exception))
+    sys.exit(-2)
+
 except BaseException as exception:
-    print("({0}) !!!! an error occured : \"{1}\"".format(PROGRAM_NAME,
-                                                         exception))
+    print("({0}) ! an unexpected critical error occured.\nError message : {1}".format(PROGRAM_NAME,
+                                                                                      exception))
+    sys.exit(-3)
+
+else:
+    sys.exit(-4)

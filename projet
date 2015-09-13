@@ -6,10 +6,8 @@ doc: the extension stored in SELECT does not begin with a dot.
     $$ --generate_configfile
     $$ todo
     $$ tests, en particulier sous Windows et sous OSX
-    $$ doc (header, fonctions)
-    $$ _parameter
+    $$ doc (projet, README.md)
     $$ pylint
-    $$ fonctions dans l'ordre alphabétique + liste dans le header
 
 point fort du programme : monofichier + pas de dépendance externe
 
