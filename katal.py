@@ -1,47 +1,62 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ################################################################################
-#    katal Copyright (C) 2012 Suizokukan
+#    Katal Copyright (C) 2012 Suizokukan
 #    Contact: suizokukan _A.T._ orange dot fr
 #
-#    This file is part of katal.
-#    katal is free software: you can redistribute it and/or modify
+#    This file is part of Katal.
+#    Katal is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    katal is distributed in the hope that it will be useful,
+#    Katal is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with katal.  If not, see <http://www.gnu.org/licenses/>.
+#    along with Katal.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 """
-        katal project
+        Katal project
 
         from the Ancient Greek κατάλογος "enrolment, register, catalogue"
         ________________________________________________________________________
 
         functions :
 
+        o  action__add()                : add the source files to the destination
+                                          path.
         o  actions__infos()             : display informations about the source
                                           and the target directory
         o  create_target_name()         : create the name of a file (a target file)
                                           from various informations read from a
                                           source file
+        o  fill_select                  : fill SELECT and SELECT_SIZE_IN_BYTES from
+                                          the files stored in SOURCE_PATH.
         o  get_command_line_arguments() : read the command line arguments
         o  get_parameters_from_cfgfile(): read the configuration file
         o  get_disk_free_space()        : return the available space on disk
+        o  logfile_opening()            : open the log file
+        o  hashfile64()                 : return the footprint of a file, encoded
+                                          with the base 64.
+        o  msg()                        : display a message on console, write the
+                                          same message in the log file.
         o  parameters_infos()           : display some informations about the
                                           content of the configuration file
+        o  read_sieves()                : initialize SIEVES from the configuration file.
         o  remove_illegal_characters()  : replace some illegal characters by the
                                           underscore character.
         o  size_as_str()                : return a size in bytes as a human-readable
                                           string
-        o  welcome()                    : display a welcome message
+        o  welcome()                    : display a welcome message on screen
+        o  welcome_in_logfile()         : display a welcome message in the log file
 """
+# Pylint :
+# disabling "Using the global statement (global-statement)"
+# pylint: disable=W0603
+
 import argparse
 from base64 import b64encode
 import configparser
@@ -53,11 +68,64 @@ import shutil
 import sqlite3
 import sys
 
-PROGRAM_NAME = "katal"
+PROGRAM_NAME = "Katal"
 PROGRAM_VERSION = "0.0.1"
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
+
+#///////////////////////////////////////////////////////////////////////////////
+def action__add():
+    """
+        action__add()
+        ________________________________________________________________________
+
+        Add the source files to the destination path.
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE
+                (int) 0 if success, -1 if an error occured.
+    """
+    msg("  = copying data =")
+
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+    db_connection = sqlite3.connect(db_filename)
+    db_cursor = db_connection.cursor()
+
+    # (100000 bytes for the database) :
+    if get_disk_free_space(TARGET_PATH) < SELECT_SIZE_IN_BYTES + 100000:
+        msg("    ! Not enough space on disk. Stopping the program.")
+        # returned value : -1 = success
+        return -1
+
+    files_to_be_added = []
+    len_select = len(SELECT)
+    for index, hashid in enumerate(SELECT):
+
+        short_target_name = create_target_name(_hashid=hashid,
+                                               _database_index=len(TARGET_DB) + index)
+
+        complete_source_filename = SELECT[hashid][0]  # todo : utiliser collection.namedtuple
+        target_name = os.path.join(TARGET_PATH, short_target_name)
+
+        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
+                                                                    len_select,
+                                                                    complete_source_filename,
+                                                                    target_name))
+        shutil.copyfile(complete_source_filename,
+                        target_name)
+
+        files_to_be_added.append((hashid, short_target_name, complete_source_filename))
+
+    db_cursor.executemany('INSERT INTO files VALUES (?,?,?)', files_to_be_added)
+    db_connection.commit()
+
+    db_connection.close()
+
+    # returned value : 0 = success
+    return 0
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__infos():
@@ -122,11 +190,13 @@ def action__infos():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        # the number 39 is here to align the rows' names and is linked to the
+        # the number 37 is here to align the rows' names and is linked to the
         # footprint's length.
-        msg("    : hashid{0}: (target) file name{1}:" \
-            " (source) source name".format(" "*39,
-                                           " "*(SOURCENAME_MAXLENGTH-17)))
+        msg("      : hashid{0}: (target) file name{1}:" \
+            " (source) source name".format(" "*37,
+                                           " "*(TARGETFILENAME_MAXLENGTH-17)))
+
+        msg("      " + "-"*(SOURCENAME_MAXLENGTH + TARGETFILENAME_MAXLENGTH + 50))
         row_index = 0
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
@@ -135,7 +205,7 @@ def action__infos():
             if len(sourcename) > SOURCENAME_MAXLENGTH:
                 sourcename = "[...]"+sourcename[-(SOURCENAME_MAXLENGTH-5):]
 
-            msg("    o {0} : {1:18} : {2}".format(hashid,
+            msg("      {0} : {1:16} : {2}".format(hashid,
                                                   filename,
                                                   sourcename))
             row_index += 1
@@ -145,19 +215,13 @@ def action__infos():
         db_connection.close()
 
 #/////////////////////////////////////////////////////////////////////////////////////////
-def create_target_name(_hashid,
-                       _sourcename_without_extens,
-                       _source_path,
-                       _source_extension,
-                       _str_size,
-                       _str_date,
-                       _database_index):
+def create_target_name(_hashid, _database_index):
     """
         create_target_name()
         ________________________________________________________________________
 
         Create the name of a file (a target file) from various informations
-        read from a source file. The function reads the string stored in
+        stored in SELECT. The function reads the string stored in
         PARAMETERS["target"]["name of the target files"] and replaces some
         keywords in the string by the parameters given to this function.
 
@@ -180,46 +244,114 @@ def create_target_name(_hashid,
 
         PARAMETERS
                 o _hashid                       : (str)
-                o _sourcename_without_extens  : (str) e.g. "cat"
-                o _source_path                : (str) e.g. "/home/" or "c:\"
-                o _source_extension           : (str) e.g. "jpg" (no dot !)
-                o _str_size                   : (str) e.g. "1234"
-                o _str_date                   : (str) e.g. "todo$$$"
-                o _database_index             : (int) e.g. 123
+                o _database_index               : (int)
 
         RETURNED VALUE
                 the expected string
     """
+    (_,
+     source_path,
+     sourcename_without_extens,
+     source_extension,
+     size,
+     str_date) = SELECT[_hashid]
+
     target_name = PARAMETERS["target"]["name of the target files"]
 
     target_name = target_name.replace("HASHID",
                                       _hashid)
 
     target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2",
-                                      remove_illegal_characters(_sourcename_without_extens))
+                                      remove_illegal_characters(sourcename_without_extens))
     target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION",
-                                      _sourcename_without_extens)
+                                      sourcename_without_extens)
 
     target_name = target_name.replace("SOURCE_PATH2",
-                                      remove_illegal_characters(_source_path))
+                                      remove_illegal_characters(source_path))
     target_name = target_name.replace("SOURCE_PATH",
-                                      _source_path)
+                                      source_path)
 
     target_name = target_name.replace("SOURCE_EXTENSION2",
-                                      remove_illegal_characters(_source_extension))
+                                      remove_illegal_characters(source_extension))
     target_name = target_name.replace("SOURCE_EXTENSION",
-                                      _source_extension)
+                                      source_extension)
 
     target_name = target_name.replace("SIZE",
-                                      _str_size)
+                                      str(size))
 
     target_name = target_name.replace("DATE2",
-                                      remove_illegal_characters(_str_date))
+                                      remove_illegal_characters(str_date))
 
     target_name = target_name.replace("DATABASE_INDEX",
                                       remove_illegal_characters(str(_database_index)))
 
     return target_name
+
+#///////////////////////////////////////////////////////////////////////////////
+def fill_select():
+    """
+        fill_select()
+        ________________________________________________________________________
+
+        Fill SELECT and SELECT_SIZE_IN_BYTES from the files stored in
+        SOURCE_PATH.
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE
+                (int) the number of discard files
+    """
+    global SELECT, SELECT_SIZE_IN_BYTES
+    SELECT = {} # see documentation (todo)
+    SELECT_SIZE_IN_BYTES = 0
+    number_of_discarded_files = 0
+
+    for dirpath, _, filenames in os.walk(SOURCE_PATH):
+        for filename in filenames:
+
+            complete_name = os.path.join(dirpath, filename)
+            size = os.stat(complete_name).st_size
+            time = datetime.fromtimestamp(os.path.getmtime(complete_name))
+            filename_without_extension, extension = os.path.splitext(filename)
+
+            # the extension stored in SELECT does not begin with a dot.
+            if extension.startswith("."):
+                extension = extension[1:]
+
+            res = the_file_can_be_added(filename, size)
+            if not res:
+                if VERBOSITY == "high":
+                    msg("    - (sieves described in the config file)" \
+                              " discarded \"{0}\"".format(complete_name))
+                    number_of_discarded_files += 1
+            else:
+                # is filename already stored in <TARGET_DB> ?
+                _hash = hashfile64(open(complete_name, 'rb'))
+
+                if _hash not in TARGET_DB and _hash not in SELECT:
+                    res = True
+                    SELECT[_hash] = (complete_name,
+                                     dirpath,
+                                     filename_without_extension,
+                                     extension,
+                                     size,
+                                     time.strftime("%Y_%m_%d__%H_%M_%S"))
+
+                    if VERBOSITY == "high":
+                        msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
+                                                                               len(SELECT)))
+
+                    SELECT_SIZE_IN_BYTES += os.stat(complete_name).st_size
+                else:
+                    res = False
+
+                    if VERBOSITY == "high":
+                        msg("    - (similar hashid) " \
+                                  " discarded \"{0}\"".format(complete_name))
+                        number_of_discarded_files += 1
+
+    return number_of_discarded_files
 
 #///////////////////////////////////////////////////////////////////////////////
 def get_command_line_arguments():
@@ -275,7 +407,7 @@ def get_command_line_arguments():
     return parser.parse_args()
 
 #///////////////////////////////////////////////////////////////////////////////
-def get_disk_free_space(path):
+def get_disk_free_space(_path):
     """
         get_disk_free_space()
         ________________________________________________________________________
@@ -290,38 +422,112 @@ def get_disk_free_space(path):
         RETURNED VALUE
                 the expected int(eger)
     """
-    stat = os.statvfs(path)
+    stat = os.statvfs(_path)
     return stat.f_bavail * stat.f_frsize
 
 #///////////////////////////////////////////////////////////////////////////////
-def get_parameters_from_cfgfile(configfile_name):
+def get_parameters_from_cfgfile(_configfile_name):
     """
         get_parameters_from_cfgfile()
         ________________________________________________________________________
 
         Read the configfile and return the parser or None if an error occured.
         ________________________________________________________________________
-        
+
         PARAMETER
-                o configfile_name       : (str) config file name (e.g. katal.ini)
+                o _configfile_name       : (str) config file name (e.g. katal.ini)
         RETURNED VALUE
                 None if an error occured while reading the configuration file
                 or the expected configparser.ConfigParser object.
     """
-    if not os.path.exists(configfile_name):
-        msg("    ! The config file \"{0}\" doesn't exist.".format(configfile_name))
+    if not os.path.exists(_configfile_name):
+        msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
         return None
 
     parser = configparser.ConfigParser()
 
     try:
-        parser.read(configfile_name)
+        parser.read(_configfile_name)
     except BaseException as exception:  # todo : autre exception
-        msg("    ! An error occured while reading the config file \"{0}\".".format(configfile_name))
+        msg("    ! An error occured while reading " \
+            "the config file \"{0}\".".format(_configfile_name))
         msg("    ! Python message : \"{0}\"".format(exception))
         return None
 
     return parser
+
+#///////////////////////////////////////////////////////////////////////////////
+def hashfile64(_afile):
+    """
+        hashfile64()
+        ________________________________________________________________________
+
+        return the footprint of a file, encoded with the base 64.
+        ________________________________________________________________________
+
+        PARAMETER
+                o _afile : a _io.BufferedReader object, created by calling
+                          the open() function.
+
+        RETURNED VALUE
+                the expected string. If you use sha256 as a hasher, the
+                resulting string will be 42 bytes long. E.g. :
+                        "YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1A91A"
+    """
+    buf = _afile.read(65536)
+    while len(buf) > 0:
+        HASHER.update(buf)
+        buf = _afile.read(65536)
+    return b64encode(HASHER.digest()).decode()
+
+#///////////////////////////////////////////////////////////////////////////////
+def logfile_opening():
+    """
+        logfile_opening()
+        ________________________________________________________________________
+
+        Open the log file and return the result of the called to open().
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE
+                the _io.BufferedReader object returned by the call to open()
+    """
+    if PARAMETERS["log file"]["overwrite"] == "True":
+        # overwrite :
+        log_mode = "w"
+    else:
+        # let's append :
+        log_mode = "a"
+
+    logfile = open(PARAMETERS["log file"]["name"], log_mode)
+
+    return logfile
+
+#///////////////////////////////////////////////////////////////////////////////
+def msg(_msg, _for_console=True, _for_logfile=True):
+    """
+        msg()
+        ________________________________________________________________________
+
+        Display a message on console, write the same message in the log file
+        The messagfe isn't displayed on console if ARGS.quiet has been set to
+        True (see --quiet argument)
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _msg          : (str) the message to be written
+                o _for_console  : (bool) authorization to write on console
+                o _for_logfile  : (bool) authorization to write in the log file
+
+        no RETURNED VALUE
+    """
+    if USE_LOG_FILE and _for_logfile:
+        LOGFILE.write(_msg+"\n")
+
+    if not ARGS.quiet and _for_console:
+        print(_msg)
 
 #///////////////////////////////////////////////////////////////////////////////
 def parameters_infos():
@@ -338,6 +544,34 @@ def parameters_infos():
     """
     msg("  = source directory : \"{0}\" =".format(SOURCE_PATH))
     msg("  = target directory : \"{0}\" =".format(TARGET_PATH))
+
+#///////////////////////////////////////////////////////////////////////////////
+def read_sieves():
+    """
+        read_sieves()
+        ________________________________________________________________________
+
+        Initialize SIEVES from the configuration file.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    stop = False
+    sieve_index = 1
+
+    while not stop:
+        if not PARAMETERS.has_section("source.sieve"+str(sieve_index)):
+            stop = True
+        else:
+            SIEVES[sieve_index] = dict()
+
+            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "name"):
+                SIEVES[sieve_index]["name"] = \
+                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"])
+            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "size"):
+                SIEVES[sieve_index]["size"] = \
+                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["size"])
+        sieve_index += 1
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 def remove_illegal_characters(_src):
@@ -405,6 +639,10 @@ def welcome():
         Display a welcome message with some very broad informations about the
         program. This function may be called before reading the configuration
         file (confer the variable PARAMETERS).
+
+        This function is called before the opening of the log file; hence, all
+        the messages are only displayed on console (see welcome_in_logfile
+        function)
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE.
@@ -415,87 +653,41 @@ def welcome():
     msg("  = using \"{0}\" as config file".format(ARGS.configfile))
 
 #///////////////////////////////////////////////////////////////////////////////
-def hashfile(afile, hasher, blocksize=65536):
+def welcome_in_logfile():
     """
-        return the footprint of a file.
+        welcome_in_logfile()
+        ________________________________________________________________________
 
-        e.g. :
-                _hash = hashfile(open(complete_name, 'rb'), hashlib.sha256())
+        The function writes in the log file a welcome message with some very
+        broad informations about the program.
+
+        This function has to be called after the opening of the log file.
+        This function doesn't write anything on the console.
+        See welcome() function for more informations since welcome() and
+        welcome_in_logfile() do the same job, the first on console, the
+        second in the log file.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE.
     """
-    buf = afile.read(blocksize)
-    while len(buf) > 0:
-        hasher.update(buf)
-        buf = afile.read(blocksize)
-    #return hasher.digest()
-    #return hasher.hexdigest()
-    return b64encode(hasher.digest()).decode()
+    msg(_msg="=== {0} v.{1} " \
+        "(launched at {2}) ===".format(PROGRAM_NAME,
+                                       PROGRAM_VERSION,
+                                       datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+        _for_logfile=True,
+        _for_console=False)
 
-#///////////////////////////////////////////////////////////////////////////////
-def logfile_closing():
-    """
-        logfile_closing()
-
-        close the log file
-    """
-    LOGFILE.close()
-
-#///////////////////////////////////////////////////////////////////////////////
-def logfile_opening():
-    """
-        logfile_opening()
-
-        open the log file and return the result of the called to open().
-    """
-    if PARAMETERS["log file"]["overwrite"] == "True":
-        # overwrite :
-        log_mode = "w"
-    else:
-        # let's append :
-        log_mode = "a"
-
-    logfile = open(PARAMETERS["log file"]["name"], log_mode)
-
-    return logfile
-
-#///////////////////////////////////////////////////////////////////////////////
-def msg(_msg, for_console=True, for_logfile=True):
-    """
-        msg()
-
-        Write <_msg> into the $$$
-    """
-    if USE_LOG_FILE and for_console:
-        LOGFILE.write(_msg+"\n")
-
-    if not ARGS.quiet and for_logfile:
-        print(_msg)
-
-#///////////////////////////////////////////////////////////////////////////////
-def read_sieves():
-    """
-        initialize SIEVES
-    """
-    stop = False
-    sieve_index = 1
-    while not stop:
-        if not PARAMETERS.has_section("source.sieve"+str(sieve_index)):
-            stop = True
-        else:
-            SIEVES[sieve_index] = dict()
-
-            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "name"):
-                SIEVES[sieve_index]["name"] = \
-                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"])
-            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "size"):
-                SIEVES[sieve_index]["size"] = \
-                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["size"])
-        sieve_index += 1
+    msg("  = using \"{0}\" as config file".format(ARGS.configfile),
+        _for_logfile=True,
+        _for_console=False)
 
 #///////////////////////////////////////////////////////////////////////////////
 def select():
     """
         $$$todo
         fill SELECT and SELECT_SIZE_IN_BYTES
+        ________________________________________________________________________
+        ________________________________________________________________________
     """
     msg("  = selecting files according to the instructions " \
                 "in the config file. Please wait... =")
@@ -505,52 +697,8 @@ def select():
                                             SIEVES[sieve_index]))
     msg("  o file list :")
 
-    # big loop :
-    SELECT_SIZE_IN_BYTES = 0
-    number_of_discarded_files = 0
-
-    for dirpath, _, filenames in os.walk(SOURCE_PATH):
-        for filename in filenames:
-            complete_name = os.path.join(dirpath, filename)
-            size = os.stat(complete_name).st_size
-            time = datetime.fromtimestamp(os.path.getmtime(complete_name))
-            filename_without_extension, extension = os.path.splitext(filename)
-
-            # the extension stored in SELECT does not begin with a dot.
-            if extension.startswith("."):
-                extension = extension[1:]
-
-            res = the_file_can_be_added(filename, size)
-            if not res:
-                if VERBOSITY == "high":
-                    msg("    - (sieves described in the config file)" \
-                              " discarded \"{0}\"".format(complete_name))
-                    number_of_discarded_files += 1
-            else:
-                # is filename already stored in <TARGET_DB> ?
-                _hash = hashfile(open(complete_name, 'rb'), hashlib.sha256())
-
-                if _hash not in TARGET_DB and _hash not in SELECT:
-                    res = True
-                    SELECT[_hash] = (complete_name,
-                                     dirpath,
-                                     filename_without_extension,
-                                     extension,
-                                     size,
-                                     time.strftime("%Y_%m_%d__%H_%M_%S"))
-
-                    if VERBOSITY == "high":
-                        msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
-                                                                               len(SELECT)))
-
-                    SELECT_SIZE_IN_BYTES += os.stat(complete_name).st_size
-                else:
-                    res = False
-
-                    if VERBOSITY == "high":
-                        msg("    - (similar hashid) " \
-                                  " discarded \"{0}\"".format(complete_name))
-                        number_of_discarded_files += 1
+    # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
+    number_of_discarded_files = fill_select()
 
     msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
@@ -574,21 +722,9 @@ def select():
     example_index = 0
     for index, hashid in enumerate(SELECT):
 
-        (complete_source_filename,
-         source_path,
-         filename_without_extension,
-         extension,
-         size,
-         date) = SELECT[hashid]
-
-        short_target_name = \
-                  create_target_name(_hashid=hashid,
-                                     _sourcename_without_extens=filename_without_extension,
-                                     _source_path=source_path,
-                                     _source_extension=extension,
-                                     _str_size=str(size),
-                                     _str_date=date,
-                                     _database_index=str(len(TARGET_DB) + index))
+        complete_source_filename = SELECT[hashid][0]    # todo... cf supra or infra, same problem.
+        short_target_name = create_target_name(_hashid=hashid,
+                                               _database_index=len(TARGET_DB) + index)
 
         target_name = os.path.join(TARGET_PATH, short_target_name)
 
@@ -604,6 +740,8 @@ def select():
 def the_file_can_be_added(filename, size):
     """
                 return (bool)res
+        ________________________________________________________________________
+        ________________________________________________________________________
     """
     # to be True, one of the sieves must match the file given as a parameter :
     res = False
@@ -630,6 +768,8 @@ def the_file_can_be_added(filename, size):
 def the_file_can_be_added__name(sieve, filename):
     """
         the_file_can_be_added__name()
+        ________________________________________________________________________
+        ________________________________________________________________________
 
         apply a sieve based on the name to <filename>.
     """
@@ -639,6 +779,8 @@ def the_file_can_be_added__name(sieve, filename):
 def the_file_can_be_added__size(sieve_index, size):
     """
         the_file_can_be_added__size()
+        ________________________________________________________________________
+        ________________________________________________________________________
 
         apply a sieve based on the size on <size>.
     """
@@ -669,6 +811,8 @@ def read_target_db():
     """
         read the database stored in the target directory and initialize
         TARGET_DB.
+        ________________________________________________________________________
+        ________________________________________________________________________
     """
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
 
@@ -702,6 +846,8 @@ def check_args():
         check_args()
 
         Check $todo
+        ________________________________________________________________________
+        ________________________________________________________________________
     """
 
     # --select and --add can't be used simultaneously.
@@ -710,127 +856,77 @@ def check_args():
         raise
 
 #///////////////////////////////////////////////////////////////////////////////
-def add():
-    """
-        Add the source files to the destination path.
-
-        todo : d'abord appeler select()
-    """
-    msg("  = copying data =")
-
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    db_connection = sqlite3.connect(db_filename)
-    db_cursor = db_connection.cursor()
-
-    # (100000 bytes for the database) :
-    available_space = get_disk_free_space(TARGET_PATH)
-    if available_space < SELECT_SIZE_IN_BYTES + 100000:
-        msg("    ! Not enough space on disk. Stopping the program.")
-        return # todo : return value for add()
-
-    files_to_be_added = []
-    len_select = len(SELECT)
-    for index, hashid in enumerate(SELECT):
-
-        (complete_source_filename,
-         source_path,
-         filename_without_extension,
-         extension,
-         size,
-         date) = SELECT[hashid]
-
-        short_target_name = \
-                  create_target_name(_hashid=hashid,
-                                     _sourcename_without_extens=filename_without_extension,
-                                     _source_path=source_path,
-                                     _source_extension=extension,
-                                     _str_size=str(size),
-                                     _str_date=date,
-                                     _database_index=str(len(TARGET_DB) + index))
-
-        target_name = os.path.join(TARGET_PATH, short_target_name)
-
-        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
-                                                                    len_select,
-                                                                    complete_source_filename,
-                                                                    target_name))
-        shutil.copyfile(complete_source_filename,
-                        target_name)
-
-        files_to_be_added.append((hashid, short_target_name, complete_source_filename))
-
-    db_cursor.executemany('INSERT INTO files VALUES (?,?,?)', files_to_be_added)
-    db_connection.commit()
-
-    db_connection.close()
-
-    return # todo : return value for add()
-
-#///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
-ARGS = get_command_line_arguments()
-check_args()
+try:
+    ARGS = get_command_line_arguments()
+    check_args()
 
-# a function like msg() may need this variable before its initialization (see further)
-USE_LOG_FILE = False
+    # a function like msg() may need this variable before its initialization (see further)
+    USE_LOG_FILE = False
 
-welcome()
+    welcome()
 
-PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
-if PARAMETERS is None:
-    sys.exit()  # todo: valeur renvoyée par le programme ?
+    PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
+    if PARAMETERS is None:
+        sys.exit()  # todo: valeur renvoyée par le programme ?
 
-SIEVES = {}
-TIMESTAMP_BEGIN = datetime.now()
-USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
-VERBOSITY = PARAMETERS["log file"]["verbosity"]
-TARGET_DB = []  # a list of hashid
-TARGET_PATH = PARAMETERS["target"]["path"]
-TARGETFILENAME_MAXLENGTH = int(PARAMETERS["infos"]["target filename.max length on console"])
-SOURCENAME_MAXLENGTH = int(PARAMETERS["infos"]["source filename.max length on console"])
+    HASHER = hashlib.sha256()
+    SIEVES = {}
+    TIMESTAMP_BEGIN = datetime.now()
+    USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
+    VERBOSITY = PARAMETERS["log file"]["verbosity"]
+    TARGET_DB = []  # a list of hashid
+    TARGET_PATH = PARAMETERS["target"]["path"]
+    TARGETFILENAME_MAXLENGTH = int(PARAMETERS["infos"]["target filename.max length on console"])
+    SOURCENAME_MAXLENGTH = int(PARAMETERS["infos"]["source filename.max length on console"])
 
-SOURCE_PATH = PARAMETERS["source"]["sourcepath"]
+    SOURCE_PATH = PARAMETERS["source"]["sourcepath"]
 
-LOGFILE = None
-if USE_LOG_FILE:
-    LOGFILE = logfile_opening()
+    LOGFILE = None
+    if USE_LOG_FILE:
+        LOGFILE = logfile_opening()
+        welcome_in_logfile()
 
-parameters_infos()
+    parameters_infos()
 
-if not os.path.exists(TARGET_PATH):
-    msg("  ! Since the destination path \"{0}\" " \
-              "doesn't exist, let's create it.".format(TARGET_PATH))
-    os.mkdir(TARGET_PATH)
+    if not os.path.exists(TARGET_PATH):
+        msg("  ! Since the destination path \"{0}\" " \
+                  "doesn't exist, let's create it.".format(TARGET_PATH))
+        os.mkdir(TARGET_PATH)
 
-SELECT = {} # see documentation
-SELECT_SIZE_IN_BYTES = 0
+    SELECT = {} # see documentation (todo) : où dans la doc ??
+    SELECT_SIZE_IN_BYTES = 0
 
-if ARGS.infos:
-    action__infos()
-if ARGS.select:
-    read_target_db()
-    read_sieves()
-    select()
+    if ARGS.infos:
+        action__infos()
+    if ARGS.select:
+        read_target_db()
+        read_sieves()
+        select()
 
-    if not ARGS.quiet:
-        ANSWER = input("\nDo you want to add the selected files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+        if not ARGS.quiet:
+            ANSWER = input("\nDo you want to add the selected " \
+                           "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
 
-        if ANSWER in ("y", "yes"):
-            add()
-            action__infos()
+            if ANSWER in ("y", "yes"):
+                action__add()
+                action__infos()
 
-if ARGS.add:
-    read_target_db()
-    read_sieves()
-    select()
-    add()
-    action__infos()
+    if ARGS.add:
+        read_target_db()
+        read_sieves()
+        select()
+        action__add()
+        action__infos()
 
-msg("=== exit (stopped at {0}; " \
-          "total duration time : {1}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                                  datetime.now() - TIMESTAMP_BEGIN))
+    msg("=== exit (stopped at {0}; " \
+              "total duration time : {1}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                      datetime.now() - TIMESTAMP_BEGIN))
 
-if USE_LOG_FILE:
-    logfile_closing()
+    if USE_LOG_FILE:
+        LOGFILE.close()
 
+except BaseException as exception:
+    print("({0}) !!!! an error occured : \"{1}\"".format(PROGRAM_NAME,
+                                                         exception))
