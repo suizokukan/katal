@@ -13,8 +13,34 @@
         source directory.
         ________________________________________________________________________
 
+        arguments
+    
+          -h, --help            show this help message and exit
+          --add                 select files according to what is described in the
+                                configuration file then add them to the target
+                                directoryThis option can't be used the --select one.
+                                (default: False)
+          --configfile CONFIGFILE
+                                config file, e.g. config.ini (default: katal.ini)
+          --infos               display informations about the source directory given
+                                in the configuration file (default: False)
+          --select              select files according to what is described in the
+                                configuration file without adding them to the target
+                                directory. This option can't be used the --add one.
+                                (default: False)
+          --quiet               no output to the console; no question asked on the
+                                console (default: False)
+          --version             show the version and exit
+        ________________________________________________________________________
+
         The name Katal comes from the Ancient Greek κατάλογος ("enrolment, 
         register, catalogue").
+        ________________________________________________________________________
+
+        history :
+
+        v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
+                               remain.
         ________________________________________________________________________
 
         exit codes :
@@ -68,4 +94,3 @@
         o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
         o  welcome()                            : display a welcome message on screen
         o  welcome_in_logfile()                 : display a welcome message in the log file
-

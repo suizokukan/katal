@@ -34,67 +34,9 @@
         source directory.
         ________________________________________________________________________
 
-        The name Katal comes from the Ancient Greek κατάλογος ("enrolment, 
-        register, catalogue").
-        ________________________________________________________________________
-
-        v.0.0.1 : first try, no tests, pylint=10.0
-        ________________________________________________________________________
-
-        exit codes :
-
-                 0      : success
-                -1      : can't read the parameters from the configuration file
-                -2      : a ProjectError exception has been raised
-                -3      : an unexpected BaseException exception has been raised
-                -4      : something happens that halted the program without
-                          raising a ProjectError or a BaseException exception.
-        ________________________________________________________________________
-
-        SELECT format
-                todo
-        ________________________________________________________________________
-
-        functions :
-
-        o  action__add()                        : add the source files to the destination
-                                                  path.
-        o  action__infos()                      : display informations about the source
-                                                  and the target directory
-        o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
-                                                  display what's going on.
-        o  check_args()                         : check the arguments of the command line.
-        o  create_target_name()                 : create the name of a file (a target file)
-                                                  from various informations read from a
-                                                  source file
-        o  fill_select                          : fill SELECT and SELECT_SIZE_IN_BYTES from
-                                                  the files stored in SOURCE_PATH.
-        o  get_command_line_arguments()         : read the command line arguments
-        o  get_parameters_from_cfgfile()        : read the configuration file
-        o  get_disk_free_space()                : return the available space on disk
-        o  logfile_opening()                    : open the log file
-        o  hashfile64()                         : return the footprint of a file, encoded
-                                                  with the base 64.
-        o  msg()                                : display a message on console, write the
-                                                  same message in the log file.
-        o  parameters_infos()                   : display some informations about the
-                                                  content of the configuration file
-        o  read_sieves()                        : initialize SIEVES from the configuration file.
-        o  read_target_db()                     : Read the database stored in the target
-                                                  directory and initialize TARGET_DB.
-        o  remove_illegal_characters()          : replace some illegal characters by the
-                                                  underscore character.
-        o  size_as_str()                        : return a size in bytes as a human-readable
-                                                  string
-        o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
-                                                : the target directory
-        o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
-        o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
-        o  welcome()                            : display a welcome message on screen
-        o  welcome_in_logfile()                 : display a welcome message in the log file
+        see README.md for more documentation.
 """
-# Pylint :
-# disabling "Using the global statement (global-statement)"
+# Pylint : disabling the "Using the global statement (global-statement)" warning
 # pylint: disable=W0603
 
 import argparse
@@ -226,7 +168,7 @@ def action__infos():
     msg("    o total size : {0}".format(size_as_str(total_size)))
     msg("    o list of all extensions : {0}".format(tuple(extensions)))
 
-   #...........................................................................
+    #...........................................................................
     # target path
     #...........................................................................
     if not os.path.exists(TARGET_PATH):
@@ -245,13 +187,21 @@ def action__infos():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        # the number 37 is here to align the rows' names and is linked to the
-        # footprint's length.
-        msg("      : hashid{0}: (target) file name{1}:" \
-            " (source) source name".format(" "*37,
+        # the following magic numbers are here to align the rows' names and are
+        # linked to the footprint's length and rows' names' length.
+        msg("      " + \
+            "-"*45 + "+" + \
+            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
+            "-"*(TARGETFILENAME_MAXLENGTH+1))
+
+        msg("      hashid{0}| (target) file name{1}|" \
+            " (source) source name".format(" "*39,
                                            " "*(TARGETFILENAME_MAXLENGTH-17)))
 
-        msg("      " + "-"*(SOURCENAME_MAXLENGTH + TARGETFILENAME_MAXLENGTH + 50))
+        msg("      " + \
+            "-"*45 + "+" + \
+            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
+            "-"*(TARGETFILENAME_MAXLENGTH+1))
         row_index = 0
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
@@ -260,7 +210,7 @@ def action__infos():
             if len(sourcename) > SOURCENAME_MAXLENGTH:
                 sourcename = "[...]"+sourcename[-(SOURCENAME_MAXLENGTH-5):]
 
-            msg("      {0} : {1:16} : {2}".format(hashid,
+            msg("      {0} | {1:16} | {2}".format(hashid,
                                                   filename,
                                                   sourcename))
             row_index += 1
@@ -605,7 +555,7 @@ def hashfile64(_afile):
 
         RETURNED VALUE
                 the expected string. If you use sha256 as a hasher, the
-                resulting string will be 42 bytes long. E.g. :
+                resulting string will be 44 bytes long. E.g. :
                         "YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1A91A"
     """
     buf = _afile.read(65536)
@@ -961,7 +911,7 @@ try:
         sys.exit(-1)
 
     HASHER = hashlib.sha256()
-    SIEVES = {}
+    SIEVES = {} # todo : see documentation
     TIMESTAMP_BEGIN = datetime.now()
     USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
     VERBOSITY = PARAMETERS["log file"]["verbosity"]
