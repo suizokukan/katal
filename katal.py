@@ -41,6 +41,7 @@
 
 import argparse
 from base64 import b64encode
+from collections import namedtuple
 import configparser
 import hashlib
 from datetime import datetime
@@ -51,10 +52,19 @@ import sqlite3
 import sys
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.0.1"
+PROGRAM_VERSION = "0.0.2"
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
+
+# SELECT is made of SELECTELEMENT objects, where data about the original files
+# are stored.
+SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
+                                             "path",
+                                             "filename_no_extens",
+                                             "extension",
+                                             "size",
+                                             "date"])
 
 ################################################################################
 class ProjectError(BaseException):
@@ -104,7 +114,7 @@ def action__add():
         short_target_name = create_target_name(_hashid=hashid,
                                                _database_index=len(TARGET_DB) + index)
 
-        complete_source_filename = SELECT[hashid][0]  # todo : utiliser collection.namedtuple
+        complete_source_filename = SELECT[hashid].complete_name
         target_name = os.path.join(TARGET_PATH, short_target_name)
 
         msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
@@ -214,6 +224,7 @@ def action__infos():
                                                   filename,
                                                   sourcename))
             row_index += 1
+
         if row_index == 0:
             msg("    ! (empty database)")
 
@@ -268,7 +279,7 @@ def action__select():
     example_index = 0
     for index, hashid in enumerate(SELECT):
 
-        complete_source_filename = SELECT[hashid][0]    # todo... cf supra or infra, same problem.
+        complete_source_filename = SELECT[hashid].complete_name
         short_target_name = create_target_name(_hashid=hashid,
                                                _database_index=len(TARGET_DB) + index)
 
@@ -333,38 +344,31 @@ def create_target_name(_hashid, _database_index):
         RETURNED VALUE
                 the expected string
     """
-    (_,
-     source_path,
-     sourcename_without_extens,
-     source_extension,
-     size,
-     str_date) = SELECT[_hashid]
-
     target_name = PARAMETERS["target"]["name of the target files"]
 
     target_name = target_name.replace("HASHID",
                                       _hashid)
 
     target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2",
-                                      remove_illegal_characters(sourcename_without_extens))
+                                      remove_illegal_characters(SELECT[_hashid].filename_no_extens))
     target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION",
-                                      sourcename_without_extens)
+                                      SELECT[_hashid].filename_no_extens)
 
     target_name = target_name.replace("SOURCE_PATH2",
-                                      remove_illegal_characters(source_path))
+                                      remove_illegal_characters(SELECT[_hashid].path))
     target_name = target_name.replace("SOURCE_PATH",
-                                      source_path)
+                                      SELECT[_hashid].path)
 
     target_name = target_name.replace("SOURCE_EXTENSION2",
-                                      remove_illegal_characters(source_extension))
+                                      remove_illegal_characters(SELECT[_hashid].extension))
     target_name = target_name.replace("SOURCE_EXTENSION",
-                                      source_extension)
+                                      SELECT[_hashid].extension)
 
     target_name = target_name.replace("SIZE",
-                                      str(size))
+                                      str(SELECT[_hashid].size))
 
     target_name = target_name.replace("DATE2",
-                                      remove_illegal_characters(str_date))
+                                      remove_illegal_characters(SELECT[_hashid].date))
 
     target_name = target_name.replace("DATABASE_INDEX",
                                       remove_illegal_characters(str(_database_index)))
@@ -397,7 +401,7 @@ def fill_select():
             complete_name = os.path.join(dirpath, filename)
             size = os.stat(complete_name).st_size
             time = datetime.fromtimestamp(os.path.getmtime(complete_name))
-            filename_without_extension, extension = os.path.splitext(filename)
+            filename_no_extens, extension = os.path.splitext(filename)
 
             # the extension stored in SELECT does not begin with a dot.
             if extension.startswith("."):
@@ -415,12 +419,12 @@ def fill_select():
 
                 if _hash not in TARGET_DB and _hash not in SELECT:
                     res = True
-                    SELECT[_hash] = (complete_name,
-                                     dirpath,
-                                     filename_without_extension,
-                                     extension,
-                                     size,
-                                     time.strftime("%Y_%m_%d__%H_%M_%S"))
+                    SELECT[_hash] = SELECTELEMENT(complete_name=complete_name,
+                                                  path=dirpath,
+                                                  filename_no_extens=filename_no_extens,
+                                                  extension=extension,
+                                                  size=size,
+                                                  date=time.strftime("%Y_%m_%d__%H_%M_%S"))
 
                     if VERBOSITY == "high":
                         msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
@@ -939,6 +943,7 @@ try:
 
     if ARGS.infos:
         action__infos()
+
     if ARGS.select:
         read_target_db()
         read_sieves()
@@ -966,8 +971,6 @@ try:
     if USE_LOG_FILE:
         LOGFILE.close()
 
-    sys.exit(0)
-
 except ProjectError as exception:
     print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
                                                                           exception))
@@ -980,3 +983,5 @@ except BaseException as exception:
 
 else:
     sys.exit(-4)
+
+sys.exit(0)
