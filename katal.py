@@ -949,10 +949,10 @@ try:
     LOG_VERBOSITY = PARAMETERS["log file"]["verbosity"]
     TARGET_DB = []  # a list of hashid
     TARGET_PATH = PARAMETERS["target"]["path"]
-    TARGETFILENAME_MAXLENGTH = int(PARAMETERS["infos"]["target filename.max length on console"])
-    SOURCENAME_MAXLENGTH = int(PARAMETERS["infos"]["source filename.max length on console"])
+    TARGETFILENAME_MAXLENGTH = int(PARAMETERS["display"]["target filename.max length on console"])
+    SOURCENAME_MAXLENGTH = int(PARAMETERS["display"]["source filename.max length on console"])
 
-    SOURCE_PATH = PARAMETERS["source"]["sourcepath"]
+    SOURCE_PATH = PARAMETERS["source"]["path"]
 
     LOGFILE = None
     if USE_LOG_FILE:

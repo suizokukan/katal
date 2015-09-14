@@ -1,8 +1,6 @@
-essayer de déclencher une erreur avec un mauvais argument : l'affichage n'a pas l'air terrible.
+doc: the extension stored in SELECT does not begin with a dot.
 
-    doc: the extension stored in SELECT does not begin with a dot.
-
-doc: (dict)SIVES : index -> ["name"],["size"] : e.g. for name : re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"]) mais aller chercher la doc pour le nom / pour la date
+doc: (dict)SIEVES : index -> ["name"],["size"] : e.g. for name : re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"]) mais aller chercher la doc pour le nom / pour la date
 
     todo :
     $$ --generate_configfile
@@ -15,17 +13,6 @@ point fort du programme : monofichier + pas de dépendance externe
 
 #
 # un principe : on ne touche pas au répertoire de départ.
-#
-
-# -h --help
-# --version
-# --configfile
-# --select / --add (=select+add)
-# --infos        (liste des extensions, ..., taille cumulée, nombre de fichiers)
-# --quiet
-
-# prend un répertoire plein de nombreux répertoires avec des fichiers...
-#       crée un répertoire avec les fichiers renommés (sans s'occuper des 
 #
 
 # exclure tout répertoire qui...
