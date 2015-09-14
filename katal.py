@@ -411,7 +411,7 @@ def fill_select():
 
             res = the_file_has_to_be_added(filename, size)
             if not res:
-                if VERBOSITY == "high":
+                if LOG_VERBOSITY == "high":
                     msg("    - (sieves described in the config file)" \
                               " discarded \"{0}\"".format(complete_name))
                     number_of_discarded_files += 1
@@ -428,7 +428,7 @@ def fill_select():
                                                   size=size,
                                                   date=time.strftime("%Y_%m_%d__%H_%M_%S"))
 
-                    if VERBOSITY == "high":
+                    if LOG_VERBOSITY == "high":
                         msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
                                                                                len(SELECT)))
 
@@ -436,7 +436,7 @@ def fill_select():
                 else:
                     res = False
 
-                    if VERBOSITY == "high":
+                    if LOG_VERBOSITY == "high":
                         msg("    - (similar hashid) " \
                                   " discarded \"{0}\"".format(complete_name))
                         number_of_discarded_files += 1
@@ -960,7 +960,7 @@ try:
     SIEVES = {} # todo : see documentation
     TIMESTAMP_BEGIN = datetime.now()
     USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
-    VERBOSITY = PARAMETERS["log file"]["verbosity"]
+    LOG_VERBOSITY = PARAMETERS["log file"]["verbosity"]
     TARGET_DB = []  # a list of hashid
     TARGET_PATH = PARAMETERS["target"]["path"]
     TARGETFILENAME_MAXLENGTH = int(PARAMETERS["infos"]["target filename.max length on console"])
