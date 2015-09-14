@@ -38,6 +38,8 @@
 """
 # Pylint : disabling the "Using the global statement (global-statement)" warning
 # pylint: disable=W0603
+# Pylint : disabling the "Too many lines in module" error
+# pylint: disable=C0302
 
 import argparse
 from base64 import b64encode
@@ -52,7 +54,7 @@ import sqlite3
 import sys
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.0.2"
+PROGRAM_VERSION = "0.0.3"
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
