@@ -102,3 +102,24 @@
         o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
         o  welcome()                            : display a welcome message on screen
         o  welcome_in_logfile()                 : display a welcome message in the log file
+
+
+
+
+from create_target_name():
+
+           keywords                             example
+           -----------------------------------+---------------------------------
+           HASHID                             | YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1=91A
+           SOURCENAME_WITHOUT_EXTENSION       | c.t
+           SOURCENAME_WITHOUT_EXTENSION2      | c_t
+           SOURCE_PATH                        | /home/someone/Pictures
+           SOURCE_PATH2                       | _home_someone_Pictures
+           SOURCE_EXTENSION                   | jpg
+           SOURCE_EXTENSION2                  | jpg
+           SIZE                               | 1234
+           DATE2                              | 2015_09_13__19_07_49
+           DATABASE_INDEX                     | 123
+
+           n.b. : keywords ending by "2" are builded against a set of illegal
+                  characters replaced by "_".

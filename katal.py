@@ -322,21 +322,7 @@ def create_target_name(_hashid, _database_index):
         PARAMETERS["target"]["name of the target files"] and replaces some
         keywords in the string by the parameters given to this function.
 
-           keywords                             example
-           -----------------------------------+---------------------------------
-           HASHID                             | YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1=91A
-           SOURCENAME_WITHOUT_EXTENSION       | c.t
-           SOURCENAME_WITHOUT_EXTENSION2      | c_t
-           SOURCE_PATH                        | /home/someone/Pictures
-           SOURCE_PATH2                       | _home_someone_Pictures
-           SOURCE_EXTENSION                   | jpg
-           SOURCE_EXTENSION2                  | jpg
-           SIZE                               | 1234
-           DATE2                              | 2015_09_13__19_07_49
-           DATABASE_INDEX                     | 123
-
-           n.b. : keywords ending by "2" are builded against a set of illegal
-                  characters replaced by "_".
+        see the available keywords in the documentation. (todo)
         ________________________________________________________________________
 
         PARAMETERS
