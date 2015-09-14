@@ -240,7 +240,7 @@ def action__select():
 
         fill SELECT and SELECT_SIZE_IN_BYTES and display what's going on.
         This function will always be called before a call to action__add().
-        At the end of this function, if not in quiet mode (see --quiet option)
+        At the end of this function, if not in mute mode (see --mute option)
         the functions asks the user if he wants to call action__add().
         ________________________________________________________________________
 
@@ -487,9 +487,14 @@ def get_command_line_arguments():
                              "without adding them to the target directory. " \
                              "This option can't be used the --add one.")
 
-    parser.add_argument('--quiet',
+    parser.add_argument('--mute',
                         action="store_true",
                         help="no output to the console; no question asked on the console")
+
+    parser.add_argument('--quiet',
+                        action="store_true",
+                        help="no welcome/goodbye/informations about the parameters/ messages " \
+                             "on console")
 
     parser.add_argument('--version',
                         action='version',
@@ -549,6 +554,24 @@ def get_parameters_from_cfgfile(_configfile_name):
     return parser
 
 #///////////////////////////////////////////////////////////////////////////////
+def goodbye():
+    """
+        goodbye()
+        ________________________________________________________________________
+
+        If not in quiet mode (see --quiet option), display a goodbye message.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    if ARGS.quiet:
+        return
+
+    msg("=== exit (stopped at {0}; " \
+        "total duration time : {1}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                                datetime.now() - TIMESTAMP_BEGIN))
+
+#///////////////////////////////////////////////////////////////////////////////
 def hashfile64(_afile):
     """
         hashfile64()
@@ -604,8 +627,8 @@ def msg(_msg, _for_console=True, _for_logfile=True):
         ________________________________________________________________________
 
         Display a message on console, write the same message in the log file
-        The messagfe isn't displayed on console if ARGS.quiet has been set to
-        True (see --quiet argument)
+        The messagfe isn't displayed on console if ARGS.mute has been set to
+        True (see --mute argument)
         ________________________________________________________________________
 
         PARAMETERS
@@ -618,7 +641,7 @@ def msg(_msg, _for_console=True, _for_logfile=True):
     if USE_LOG_FILE and _for_logfile:
         LOGFILE.write(_msg+"\n")
 
-    if not ARGS.quiet and _for_console:
+    if not ARGS.mute and _for_console:
         print(_msg)
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -634,6 +657,9 @@ def parameters_infos():
 
         no PARAMETER, no RETURNED VALUE
     """
+    if ARGS.quiet:
+        return
+
     msg("  = source directory : \"{0}\" =".format(SOURCE_PATH))
     msg("  = target directory : \"{0}\" =".format(TARGET_PATH))
 
@@ -887,6 +913,9 @@ def welcome():
 
         no PARAMETER, no RETURNED VALUE
     """
+    if ARGS.quiet:
+        return
+
     msg("=== {0} v.{1} (launched at {2}) ===".format(PROGRAM_NAME,
                                                      PROGRAM_VERSION,
                                                      datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
@@ -975,7 +1004,7 @@ try:
         read_sieves()
         action__select()
 
-        if not ARGS.quiet:
+        if not ARGS.mute:
             ANSWER = input("\nDo you want to add the selected " \
                            "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
 
@@ -990,9 +1019,7 @@ try:
         action__add()
         action__infos()
 
-    msg("=== exit (stopped at {0}; " \
-              "total duration time : {1}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                                      datetime.now() - TIMESTAMP_BEGIN))
+    goodbye()
 
     if USE_LOG_FILE:
         LOGFILE.close()

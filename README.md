@@ -79,6 +79,7 @@
         o  get_command_line_arguments()         : read the command line arguments
         o  get_parameters_from_cfgfile()        : read the configuration file
         o  get_disk_free_space()                : return the available space on disk
+        o  goodbye()                            : display the goodbye message
         o  logfile_opening()                    : open the log file
         o  hashfile64()                         : return the footprint of a file, encoded
                                                   with the base 64.
