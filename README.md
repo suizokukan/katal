@@ -22,14 +22,17 @@
                                 (default: False)
           --configfile CONFIGFILE
                                 config file, e.g. config.ini (default: katal.ini)
+          --hashid HASHID       return the hash id of the given file (default: None)
           --infos               display informations about the source directory given
                                 in the configuration file (default: False)
           --select              select files according to what is described in the
                                 configuration file without adding them to the target
                                 directory. This option can't be used the --add one.
                                 (default: False)
-          --quiet               no output to the console; no question asked on the
+          --mute                no output to the console; no question asked on the
                                 console (default: False)
+          --quiet               no welcome/goodbye/informations about the parameters/
+                                messages on console (default: False)
           --version             show the version and exit
         ________________________________________________________________________
 
@@ -53,9 +56,7 @@
                  0      : success
                 -1      : can't read the parameters from the configuration file
                 -2      : a ProjectError exception has been raised
-                -3      : an unexpected BaseException exception has been raised
-                -4      : something happens that halted the program without
-                          raising a ProjectError or a BaseException exception.
+                -3      : an unexpected exception exception has been raised
         ________________________________________________________________________
 
         SELECT format

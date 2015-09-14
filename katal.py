@@ -1018,13 +1018,7 @@ except ProjectError as exception:
     print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
                                                                           exception))
     sys.exit(-2)
-
-except BaseException as exception:
-    print("({0}) ! an unexpected critical error occured.\nError message : {1}".format(PROGRAM_NAME,
-                                                                                      exception))
-    sys.exit(-3)
-
 else:
-    sys.exit(-4)
+    sys.exit(-3)
 
 sys.exit(0)
