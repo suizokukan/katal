@@ -39,6 +39,11 @@
 
         history :
 
+        v.0.0.2 (2015_09_14) :
+            - added SELECTELEMENT type
+            - the call to sys.exit(0) is now at the very end of the file
+            - no tests, pylint=10.0, some todos remain.
+
         v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
                                remain.
         ________________________________________________________________________
