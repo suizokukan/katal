@@ -558,7 +558,7 @@ def goodbye():
     """
         goodbye()
         ________________________________________________________________________
-
+q
         If not in quiet mode (see --quiet option), display a goodbye message.
         ________________________________________________________________________
 
@@ -745,21 +745,9 @@ def remove_illegal_characters(_src):
         RETURNED VALUE
                 the expected string, i.e. <_src> without illegal characters.
     """
-    res = _src.replace("*", "_")
-    res = res.replace("/", "_")
-    res = res.replace("\\", "_")
-    res = res.replace(".", "_")
-    res = res.replace("\"", "_")
-    res = res.replace("[", "_")
-    res = res.replace("]", "_")
-    res = res.replace(":", "_")
-    res = res.replace(";", "_")
-    res = res.replace("|", "_")
-    res = res.replace("=", "_")
-    res = res.replace(",", "_")
-    res = res.replace("?", "_")
-    res = res.replace("<", "_")
-    res = res.replace(">", "_")
+    res = _src
+    for char in ("*", "/", "\\", ".", "[", "]", ":", ";", "|", "=", ",", "?", "<", ">"):
+        res = res.replace(char, "_")
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
