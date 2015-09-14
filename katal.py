@@ -240,8 +240,6 @@ def action__select():
 
         fill SELECT and SELECT_SIZE_IN_BYTES and display what's going on.
         This function will always be called before a call to action__add().
-        At the end of this function, if not in mute mode (see --mute option)
-        the functions asks the user if he wants to call action__add().
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE.
@@ -275,23 +273,25 @@ def action__select():
         "available space on disk : {1}".format(SELECT_SIZE_IN_BYTES,
                                                available_space))
 
-    # let's give some examples of the target names :
-    example_index = 0
-    for index, hashid in enumerate(SELECT):
+    # if there's no --add option, let's give some examples of the target names :
+    if not ARGS.add:
+        example_index = 0
+        for index, hashid in enumerate(SELECT):
 
-        complete_source_filename = SELECT[hashid].complete_name
-        short_target_name = create_target_name(_hashid=hashid,
-                                               _database_index=len(TARGET_DB) + index)
+            complete_source_filename = SELECT[hashid].complete_name
+            short_target_name = create_target_name(_hashid=hashid,
+                                                   _database_index=len(TARGET_DB) + index)
 
-        target_name = os.path.join(TARGET_PATH, short_target_name)
+            target_name = os.path.join(TARGET_PATH, short_target_name)
 
-        msg("    o e.g. ... \"{0}\" would be copied as \"{1}\" .".format(complete_source_filename,
-                                                                         target_name))
+            msg("    o e.g. ... \"{0}\" " \
+                "would be copied as \"{1}\" .".format(complete_source_filename,
+                                                      target_name))
 
-        example_index += 1
+            example_index += 1
 
-        if example_index > 5:
-            break
+            if example_index > 5:
+                break
 
 #///////////////////////////////////////////////////////////////////////////////
 def check_args():
