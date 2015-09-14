@@ -1,4 +1,6 @@
-doc: the extension stored in SELECT does not begin with a dot.
+essayer de déclencher une erreur avec un mauvais argument : l'affichage n'a pas l'air terrible.
+
+    doc: the extension stored in SELECT does not begin with a dot.
 
 doc: (dict)SIVES : index -> ["name"],["size"] : e.g. for name : re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"]) mais aller chercher la doc pour le nom / pour la date
 

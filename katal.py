@@ -471,6 +471,10 @@ def get_command_line_arguments():
                         default=DEFAULT_CONFIGFILE_NAME,
                         help="config file, e.g. config.ini")
 
+    parser.add_argument('--hashid',
+                        type=str,
+                        help="return the hash id of the given file")
+
     parser.add_argument('--infos',
                         action="store_true",
                         help="display informations about the source directory " \
@@ -733,6 +737,25 @@ def remove_illegal_characters(_src):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
+def show_hashid_of_a_file(filename):
+    """
+        show_hashid_of_a_file()
+        ________________________________________________________________________
+
+        The function gives the hashid of a file.
+        ________________________________________________________________________
+
+        PARAMETER
+                o filename : (str) source filename
+
+        no RETURNED VALUE
+    """
+    with open(filename, "rb") as afile:
+        _hash = hashfile64(afile)
+    msg("  = hashid of \"{0}\" : \"{1}\"".format(filename,
+                                                 _hash))
+
+#///////////////////////////////////////////////////////////////////////////////
 def size_as_str(_size):
     """
         size_as_str()
@@ -943,6 +966,9 @@ try:
 
     if ARGS.infos:
         action__infos()
+
+    if ARGS.hashid:
+        show_hashid_of_a_file(ARGS.hashid)
 
     if ARGS.select:
         read_target_db()
