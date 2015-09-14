@@ -929,82 +929,83 @@ def welcome_in_logfile():
 #///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
-try:
-    ARGS = get_command_line_arguments()
-    check_args()
+if __name__ == '__main__':
+    try:
+        ARGS = get_command_line_arguments()
+        check_args()
 
-    # a function like msg() may need this variable before its initialization (see further)
-    USE_LOG_FILE = False
+        # a function like msg() may need this variable before its initialization (see further)
+        USE_LOG_FILE = False
 
-    welcome()
+        welcome()
 
-    PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
-    if PARAMETERS is None:
-        sys.exit(-1)
+        PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
+        if PARAMETERS is None:
+            sys.exit(-1)
 
-    HASHER = hashlib.sha256()
-    SIEVES = {} # todo : see documentation
-    TIMESTAMP_BEGIN = datetime.now()
-    USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
-    LOG_VERBOSITY = PARAMETERS["log file"]["verbosity"]
-    TARGET_DB = []  # a list of hashid
-    TARGET_PATH = PARAMETERS["target"]["path"]
-    TARGETFILENAME_MAXLENGTH = int(PARAMETERS["display"]["target filename.max length on console"])
-    SOURCENAME_MAXLENGTH = int(PARAMETERS["display"]["source filename.max length on console"])
+        HASHER = hashlib.sha256()
+        SIEVES = {} # todo : see documentation
+        TIMESTAMP_BEGIN = datetime.now()
+        USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
+        LOG_VERBOSITY = PARAMETERS["log file"]["verbosity"]
+        TARGET_DB = []  # a list of hashid
+        TARGET_PATH = PARAMETERS["target"]["path"]
+        TARGETFILENAME_MAXLENGTH = int(PARAMETERS["display"]["target filename.max length on console"])
+        SOURCENAME_MAXLENGTH = int(PARAMETERS["display"]["source filename.max length on console"])
 
-    SOURCE_PATH = PARAMETERS["source"]["path"]
+        SOURCE_PATH = PARAMETERS["source"]["path"]
 
-    LOGFILE = None
-    if USE_LOG_FILE:
-        LOGFILE = logfile_opening()
-        welcome_in_logfile()
+        LOGFILE = None
+        if USE_LOG_FILE:
+            LOGFILE = logfile_opening()
+            welcome_in_logfile()
 
-    parameters_infos()
+        parameters_infos()
 
-    if not os.path.exists(TARGET_PATH):
-        msg("  ! Since the destination path \"{0}\" " \
-                  "doesn't exist, let's create it.".format(TARGET_PATH))
-        os.mkdir(TARGET_PATH)
+        if not os.path.exists(TARGET_PATH):
+            msg("  ! Since the destination path \"{0}\" " \
+                      "doesn't exist, let's create it.".format(TARGET_PATH))
+            os.mkdir(TARGET_PATH)
 
-    SELECT = {} # see the SELECT format in the documentation
-    SELECT_SIZE_IN_BYTES = 0
+        SELECT = {} # see the SELECT format in the documentation
+        SELECT_SIZE_IN_BYTES = 0
 
-    if ARGS.infos:
-        action__infos()
+        if ARGS.infos:
+            action__infos()
 
-    if ARGS.hashid:
-        show_hashid_of_a_file(ARGS.hashid)
+        if ARGS.hashid:
+            show_hashid_of_a_file(ARGS.hashid)
 
-    if ARGS.select:
-        read_target_db()
-        read_sieves()
-        action__select()
+        if ARGS.select:
+            read_target_db()
+            read_sieves()
+            action__select()
 
-        if not ARGS.mute:
-            ANSWER = input("\nDo you want to add the selected " \
-                           "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+            if not ARGS.mute:
+                ANSWER = input("\nDo you want to add the selected " \
+                               "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
 
-            if ANSWER in ("y", "yes"):
-                action__add()
-                action__infos()
+                if ANSWER in ("y", "yes"):
+                    action__add()
+                    action__infos()
 
-    if ARGS.add:
-        read_target_db()
-        read_sieves()
-        action__select()
-        action__add()
-        action__infos()
+        if ARGS.add:
+            read_target_db()
+            read_sieves()
+            action__select()
+            action__add()
+            action__infos()
 
-    goodbye()
+        goodbye()
 
-    if USE_LOG_FILE:
-        LOGFILE.close()
+        if USE_LOG_FILE:
+            LOGFILE.close()
 
-except ProjectError as exception:
-    print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
-                                                                          exception))
-    sys.exit(-2)
-else:
-    sys.exit(-3)
+    except ProjectError as exception:
+        print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
+                                                                              exception))
+        sys.exit(-2)
+    else:
+        sys.exit(-3)
 
-sys.exit(0)
+    sys.exit(0)
