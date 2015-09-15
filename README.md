@@ -106,6 +106,8 @@
 (1) configuration file
 The informations stored in the configuration file are written in the PARAMETERS global variable.
 PARAMETERS is filled by get_parameters_from_cfgfile() and is a configparser.Configparser object.
+The default name of the configuration file is set by the DEFAULT_CONFIGFILE_NAME global variable
+and may be set by the commande line (see --configfile option).
 
 [log file]    : parameters about the logfile
 use log file  : True/False; if False, all the messages are written only to the console.
@@ -174,4 +176,6 @@ This dict may be empty or contain the following keys/values :
 SIEVES is filled by read_sieves().
 
 (4) database
-TARGET_DB is filled by read_target_db().
+In every target directory a database is created and filled. Its name is set by the
+global variable DATABASE_NAME.
+TARGET_DB is a list of hashids and initialized by read_target_db().
