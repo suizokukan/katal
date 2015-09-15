@@ -68,6 +68,24 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
                                              "size",
                                              "date"])
 
+# a function like msg() may need this variable before its initialization (see further)
+USE_LOG_FILE = False
+PARAMETERS=None # todo
+HASHER = hashlib.sha256()
+SIEVES = {} # todo : see documentation
+TIMESTAMP_BEGIN = datetime.now()
+TARGET_DB = []  # a list of hashid
+LOGFILE=None
+USE_LOG_FILE = False
+LOG_VERBOSITY = "high"
+TARGET_PATH = ""
+TARGETFILENAME_MAXLENGTH = 0
+SOURCENAME_MAXLENGTH = 0
+SOURCE_PATH = ""
+LOGFILE = None
+SELECT = {} # see the SELECT format in the documentation
+SELECT_SIZE_IN_BYTES = 0
+
 ################################################################################
 class ProjectError(BaseException):
     """
@@ -103,7 +121,7 @@ def action__add():
     db_connection = sqlite3.connect(db_filename)
     db_cursor = db_connection.cursor()
 
-    # (100000 bytes for the database) :
+    # (+100000 bytes for the database) :
     if get_disk_free_space(TARGET_PATH) < SELECT_SIZE_IN_BYTES + 100000:
         msg("    ! Not enough space on disk. Stopping the program.")
         # returned value : -1 = error
@@ -162,7 +180,7 @@ def action__infos():
         msg("(source path) {0} isn't a directory.".format(SOURCE_PATH))
         return -1
 
-    msg("  = informations about the \"{0}\" (source) directory =".format(SOURCE_PATH))
+    msg("  = searching informations about the \"{0}\" (source) directory ... =".format(SOURCE_PATH))
 
     total_size = 0
     files_number = 0
@@ -275,10 +293,17 @@ def action__select():
                                                       ratio))
 
     # let's check that the target path has sufficient free space :
+    # 100000 bytes are added to the select size of bytes since a database will be added into
+    # the target directory.
     available_space = get_disk_free_space(TARGET_PATH)
+    if available_space>SELECT_SIZE_IN_BYTES+100000:
+        size_ok="ok"
+    else:
+        size_ok="!!! problem !!!"
     msg("    o required space : {0}; " \
-        "available space on disk : {1}".format(SELECT_SIZE_IN_BYTES,
-                                               available_space))
+        "available space on disk : {1} ({2})".format(SELECT_SIZE_IN_BYTES,
+                                                     available_space,
+                                                     size_ok))
 
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add:
@@ -939,28 +964,19 @@ if __name__ == '__main__':
         ARGS = get_command_line_arguments()
         check_args()
 
-        # a function like msg() may need this variable before its initialization (see further)
-        USE_LOG_FILE = False
-
         welcome()
 
         PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
         if PARAMETERS is None:
             sys.exit(-1)
 
-        HASHER = hashlib.sha256()
-        SIEVES = {} # todo : see documentation
-        TIMESTAMP_BEGIN = datetime.now()
         USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
         LOG_VERBOSITY = PARAMETERS["log file"]["verbosity"]
-        TARGET_DB = []  # a list of hashid
         TARGET_PATH = PARAMETERS["target"]["path"]
         TARGETFILENAME_MAXLENGTH = int(PARAMETERS["display"]["target filename.max length on console"])
         SOURCENAME_MAXLENGTH = int(PARAMETERS["display"]["source filename.max length on console"])
-
         SOURCE_PATH = PARAMETERS["source"]["path"]
 
-        LOGFILE = None
         if USE_LOG_FILE:
             LOGFILE = logfile_opening()
             welcome_in_logfile()
@@ -971,9 +987,6 @@ if __name__ == '__main__':
             msg("  ! Since the destination path \"{0}\" " \
                       "doesn't exist, let's create it.".format(TARGET_PATH))
             os.mkdir(TARGET_PATH)
-
-        SELECT = {} # see the SELECT format in the documentation
-        SELECT_SIZE_IN_BYTES = 0
 
         if ARGS.infos:
             action__infos()

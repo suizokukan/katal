@@ -1,5 +1,6 @@
-todo : db size & row (if row=0...)
-todo : réorganiser le code pour permettre un appel depuis l'extérieur
+todo : réorganiser le code pour permettre un appel depuis l'extérieur	
+
+point fort : un seul fichier
 
 doc: the extension stored in SELECT does not begin with a dot.
 
