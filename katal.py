@@ -214,6 +214,7 @@ def action__infos():
             "-"*45 + "+" + \
             "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
             "-"*(TARGETFILENAME_MAXLENGTH+1))
+
         row_index = 0
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
@@ -260,7 +261,7 @@ def action__select():
     msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
     if len(SELECT) == 0:
-        msg("    ! no file selected !")
+        msg("    ! no file selected ! You have to modify the config file to get some files selected.")
     else:
         ratio = number_of_discarded_files/len(SELECT)*100.0
         msg("    o number of selected files : {0} " \
