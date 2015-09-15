@@ -252,9 +252,10 @@ def action__infos():
             if len(sourcename) > SOURCENAME_MAXLENGTH:
                 sourcename = "[...]"+sourcename[-(SOURCENAME_MAXLENGTH-5):]
 
-            msg("      {0} | {1:18} | {2}".format(hashid,
-                                                  filename,
-                                                  sourcename))
+            msg("      {0} | {1}{2}| {3}".format(hashid,
+                                                 filename,
+                                                 " "*(SOURCENAME_MAXLENGTH-len(filename)+1),
+                                                 sourcename))
             row_index += 1
 
         # see above : it's not possible to place this code before the table.
