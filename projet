@@ -1,3 +1,6 @@
+todo : db size & row (if row=0...)
+todo : réorganiser le code pour permettre un appel depuis l'extérieur
+
 doc: the extension stored in SELECT does not begin with a dot.
 
 doc: (dict)SIEVES : index -> ["name"],["size"] : e.g. for name : re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"]) mais aller chercher la doc pour le nom / pour la date
@@ -15,13 +18,7 @@ point fort du programme : monofichier + pas de dépendance externe
 # un principe : on ne touche pas au répertoire de départ.
 #
 
-# exclure tout répertoire qui...
-# exclure tout fichier qui...
 
-# o liste de tous les fichiers dans un répertoire avec différents critères (nom du fichier/taille)
-# o catalogue de ces fichiers numérotés :       0 -> dir/subdir/dfs.jpg
-# o messages dirigés vers un fichier de log.
-# liste des fichiers renumérotés / détection des doublons / élimination des fichiers selon taille,name(regex)
 
 
 doc : SELECT:# hashid : complete filename, source_path, filename without extension, extension, size, date

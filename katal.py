@@ -215,6 +215,9 @@ def action__infos():
             "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
             "-"*(TARGETFILENAME_MAXLENGTH+1))
 
+        # there's no easy way to know the size of a table in a database.
+        # So we can't display the warning "empty database" before the following
+        # code which created the table.
         row_index = 0
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
@@ -228,6 +231,7 @@ def action__infos():
                                                   sourcename))
             row_index += 1
 
+        # see above : it's not possible to place this code before the table.
         if row_index == 0:
             msg("    ! (empty database)")
 
