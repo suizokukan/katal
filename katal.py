@@ -66,15 +66,6 @@ TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of 
 # (see the action__informations() function)
 HASHER = hashlib.sha256()
 
-# SELECT is made of SELECTELEMENT objects, where data about the original files
-# are stored.
-SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
-                                             "path",
-                                             "filename_no_extens",
-                                             "extension",
-                                             "size",
-                                             "date"])
-
 PARAMETERS = None # see documentation:configuration file
 
 SOURCE_PATH = ""  # initialized from the configuration file.
@@ -89,6 +80,15 @@ TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOG_FILE = False  # (bool) initialized from the configuration file
 LOG_VERBOSITY = "high"  # initialized from the configuration file (see documentation:logfile)
+
+# SELECT is made of SELECTELEMENT objects, where data about the original files
+# are stored.
+SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
+                                             "path",
+                                             "filename_no_extens",
+                                             "extension",
+                                             "size",
+                                             "date"])
 
 SELECT = {} # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()

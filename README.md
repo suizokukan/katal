@@ -51,9 +51,11 @@
                 --add option
 
         v.0.0.2 (2015_09_14) :
-            o added SELECTELEMENT type
-            o the call to sys.exit(0) is now at the very end of the file
-            o no tests, pylint=10.0, some todos remain.
+            o  added SELECTELEMENT type
+            o  the call to sys.exit(0) is now at the very end of the file
+            o  no tests, pylint=10.0, some todos remain.
+              
+                no tests, pylint=10.0, some todos remain.
 
         v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
                                remain.
@@ -66,9 +68,6 @@
                 -2      : a ProjectError exception has been raised
                 -3      : an unexpected exception exception has been raised
         ________________________________________________________________________
-
-        SELECT format
-                todo
         ________________________________________________________________________
 
         functions :
