@@ -847,7 +847,7 @@ def the_file_has_to_be_added(_filename, _size):
             sieve_res = the_file_has_to_be_added__name(sieve, _filename)
 
         if sieve_res and "size" in sieve:
-            sieve_res = the_file_has_to_be_added__size(sieve_index, _size)
+            sieve_res = the_file_has_to_be_added__size(sieve, _size)
 
         # at least, one sieve is ok with this file :
         if sieve_res:
@@ -867,14 +867,13 @@ def the_file_has_to_be_added__name(_sieve, _filename):
         ________________________________________________________________________
 
         PARAMETERS
-                o _sieve        : a _sre.SRE_Pattern object; see how the sieves
-                                  are builded in the read_sieves() function.
+                o _sieve        : a dict object; see documentation:selection
                 o _filename     : (str) file's name
     """
     return re.match(_sieve["name"], _filename)
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_has_to_be_added__size(_sieve_index, _size):
+def the_file_has_to_be_added__size(_sieve, _size):
     """
         the_file_has_to_be_added__size()
         ________________________________________________________________________
@@ -884,12 +883,12 @@ def the_file_has_to_be_added__size(_sieve_index, _size):
         ________________________________________________________________________
 
         PARAMETERS
-                o _sieve_index  : (int)number of the sieve to be used
+                o _sieve        : a dict object; see documentation:selection
                 o _size         : (str) file's size
     """
     res = False
 
-    sieve_size = PARAMETERS["source.sieve"+str(_sieve_index)]["size"]
+    sieve_size = _sieve["size"] # a string like ">999" : see documentation:selection
 
     if sieve_size.startswith(">"):
         if _size > int(sieve_size[1:]):
