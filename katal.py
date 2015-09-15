@@ -72,6 +72,9 @@ TARGETFILENAME_MAXLENGTH = 0  # initialized from the configuration file : this v
                               # fixed the way source filenames are displayed.
 TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 
+# maximal length of the hashids displayed. Can't be greater than 44.
+HASHID_MAXLENGTH = 20
+
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOG_FILE = False  # (bool) initialized from the configuration file
 LOG_VERBOSITY = "high"  # initialized from the configuration file (see documentation:logfile)
@@ -163,7 +166,7 @@ def action__infos():
         action__infos()
         ________________________________________________________________________
 
-        Display informations about the source and the target directory
+        Display informations about the source and the f directory
         ________________________________________________________________________
 
         no PARAMETER
@@ -223,16 +226,16 @@ def action__infos():
         # the following magic numbers are here to align the rows' names and are
         # linked to the footprint's length and rows' names' length.
         msg("      " + \
-            "-"*45 + "+" + \
+            "-"*(HASHID_MAXLENGTH+1) + "+" + \
             "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
             "-"*(TARGETFILENAME_MAXLENGTH+1))
 
         msg("      hashid{0}| (target) file name{1}|" \
-            " (source) source name".format(" "*39,
+            " (source) source name".format(" "*(HASHID_MAXLENGTH-5),
                                            " "*(TARGETFILENAME_MAXLENGTH-17)))
 
         msg("      " + \
-            "-"*45 + "+" + \
+            "-"*(HASHID_MAXLENGTH+1) + "+" + \
             "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
             "-"*(TARGETFILENAME_MAXLENGTH+1))
 
@@ -242,12 +245,14 @@ def action__infos():
         row_index = 0
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
+            if len(hashid) > HASHID_MAXLENGTH:
+                hashid = "[...]"+hashid[-(HASHID_MAXLENGTH-5):]
             if len(filename) > TARGETFILENAME_MAXLENGTH:
                 filename = "[...]"+filename[-(TARGETFILENAME_MAXLENGTH-5):]
             if len(sourcename) > SOURCENAME_MAXLENGTH:
                 sourcename = "[...]"+sourcename[-(SOURCENAME_MAXLENGTH-5):]
 
-            msg("      {0} | {1:16} | {2}".format(hashid,
+            msg("      {0} | {1:18} | {2}".format(hashid,
                                                   filename,
                                                   sourcename))
             row_index += 1
@@ -691,7 +696,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         TARGETFILENAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
-
+        HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
     except BaseException as exception:
         msg("    ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
