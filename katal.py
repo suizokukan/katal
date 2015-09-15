@@ -255,17 +255,10 @@ def action__infos():
         row_index = 0
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
-            if len(hashid) > HASHID_MAXLENGTH:
-                hashid = "[...]"+hashid[-(HASHID_MAXLENGTH-5):]
-            if len(filename) > TARGETFILENAME_MAXLENGTH:
-                filename = "[...]"+filename[-(TARGETFILENAME_MAXLENGTH-5):]
-            if len(sourcename) > SOURCENAME_MAXLENGTH:
-                sourcename = "[...]"+sourcename[-(SOURCENAME_MAXLENGTH-5):]
-
-            msg("      {0} | {1}{2}| {3}".format(hashid,
-                                                 filename,
+            msg("      {0} | {1}{2}| {3}".format(shortened_str(hashid, HASHID_MAXLENGTH),
+                                                 shortened_str(filename, TARGETFILENAME_MAXLENGTH),
                                                  " "*(SOURCENAME_MAXLENGTH-len(filename)+1),
-                                                 sourcename))
+                                                 shortened_str(sourcename, SOURCENAME_MAXLENGTH)))
             row_index += 1
 
         # see above : it's not possible to place this code before the table.
@@ -802,6 +795,26 @@ def remove_illegal_characters(_src):
     for char in ("*", "/", "\\", ".", "[", "]", ":", ";", "|", "=", ",", "?", "<", ">"):
         res = res.replace(char, "_")
     return res
+
+#///////////////////////////////////////////////////////////////////////////////
+def shortened_str(_str, _max_length):
+    """
+        shortened_str
+        ________________________________________________________________________
+
+        The function the shortened version of a string.
+        ________________________________________________________________________
+
+        PARAMETER
+                o _str          : (src) the source string
+                o _max_length   : (int) the maximal length of the string
+
+        RETURNED VALUE
+                the expected string
+    """
+    if len(_str) > _max_length:
+        return "[...]"+_str[-(_max_length-5):]
+    return _str
 
 #///////////////////////////////////////////////////////////////////////////////
 def show_hashid_of_a_file(filename):

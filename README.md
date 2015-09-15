@@ -113,6 +113,7 @@
                                                   directory and initialize TARGET_DB.
         o  remove_illegal_characters()          : replace some illegal characters by the
                                                   underscore character.
+        o  shortened_str()                      : shorten a string
         o  show_hashid_of_a_file()              : The function gives the hashid of a file.
         o  size_as_str()                        : return a size in bytes as a human-readable
                                                   string
