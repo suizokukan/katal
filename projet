@@ -1,23 +1,11 @@
-todo : renommer get_* en read_*
 todo : appliquer un tag (à un ensemble de fichier(s))
 todo : sieve1 AND/OR sieve2
 todo : supprimer un fichier/le renommer/...
+todo : sieve par date.
 
-doc: the extension stored in SELECT does not begin with a dot.
-
-doc: (dict)SIEVES : index -> ["name"],["size"] : e.g. for name : re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"]) mais aller chercher la doc pour le nom / pour la date
-
-	$$ doc
     $$ tests, en particulier sous Windows et sous OSX
     $$ pylint
 
 point fort du programme : monofichier + pas de dépendance externe
-
-#
 # un principe : on ne touche pas au répertoire de départ.
 #
-
-
-
-
-doc : SELECT:# hashid : complete filename, source_path, filename without extension, extension, size, date

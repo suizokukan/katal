@@ -84,8 +84,6 @@
                                                   source file
         o  fill_select                          : fill SELECT and SELECT_SIZE_IN_BYTES from
                                                   the files stored in SOURCE_PATH.
-        o  get_command_line_arguments()         : read the command line arguments
-        o  get_parameters_from_cfgfile()        : read the configuration file
         o  get_disk_free_space()                : return the available space on disk
         o  goodbye()                            : display the goodbye message
         o  logfile_opening()                    : open the log file
@@ -95,7 +93,9 @@
                                                   same message in the log file.
         o  parameters_infos()                   : display some informations about the
                                                   content of the configuration file
-        o  read_sieves()                        : initialize SIEVES from the configuration file.
+        o  read_command_line_arguments()        : read the command line arguments
+        o  read_parameters_from_cfgfile()       : read the configuration file
+        o  read_sieves()                        : initialize SIEVES from the configuration file
         o  read_target_db()                     : Read the database stored in the target
                                                   directory and initialize TARGET_DB.
         o  remove_illegal_characters()          : replace some illegal characters by the
@@ -112,7 +112,7 @@
 
 (1) configuration file
 The informations stored in the configuration file are written in the PARAMETERS global variable.
-PARAMETERS is filled by get_parameters_from_cfgfile() and is a configparser.Configparser object.
+PARAMETERS is filled by read_parameters_from_cfgfile() and is a configparser.Configparser object.
 The default name of the configuration file is set by the DEFAULT_CONFIGFILE_NAME global variable
 and may be set by the commande line (see --configfile option).
 
@@ -175,6 +175,8 @@ Definition of SELECTELEMENT :
                                                "extension",
                                                "size",
                                                "date"])
+
+  !!! an "extension" stored in SELECTELEMENT does not start with a dot (".") !!!
 
 SIEVES is a dictionary with a (int)sieve_index as a key and a dict as values.
 This dict may be empty or contain the following keys/values : 

@@ -464,68 +464,6 @@ def fill_select():
     return number_of_discarded_files
 
 #///////////////////////////////////////////////////////////////////////////////
-def get_command_line_arguments():
-    """
-        get_command_line_arguments()
-        ________________________________________________________________________
-
-        Read the command line arguments.
-        ________________________________________________________________________
-
-        no PARAMETER
-
-        RETURNED VALUE
-                return the argparse object.
-    """
-    parser = argparse.ArgumentParser(description="{0} v. {1}".format(PROGRAM_NAME, PROGRAM_VERSION),
-                                     epilog="by suizokukan AT orange DOT fr",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument('--add',
-                        action="store_true",
-                        help="select files according to what is described " \
-                             "in the configuration file " \
-                             "then add them to the target directory" \
-                             "This option can't be used the --select one.")
-
-    parser.add_argument('--configfile',
-                        type=str,
-                        default=DEFAULT_CONFIGFILE_NAME,
-                        help="config file, e.g. config.ini")
-
-    parser.add_argument('--hashid',
-                        type=str,
-                        help="return the hash id of the given file")
-
-    parser.add_argument('--infos',
-                        action="store_true",
-                        help="display informations about the source directory " \
-                             "given in the configuration file")
-
-    parser.add_argument('--select',
-                        action="store_true",
-                        help="select files according to what is described " \
-                             "in the configuration file " \
-                             "without adding them to the target directory. " \
-                             "This option can't be used the --add one.")
-
-    parser.add_argument('--mute',
-                        action="store_true",
-                        help="no output to the console; no question asked on the console")
-
-    parser.add_argument('--quiet',
-                        action="store_true",
-                        help="no welcome/goodbye/informations about the parameters/ messages " \
-                             "on console")
-
-    parser.add_argument('--version',
-                        action='version',
-                        version="{0} v. {1}".format(PROGRAM_NAME, PROGRAM_VERSION),
-                        help="show the version and exit")
-
-    return parser.parse_args()
-
-#///////////////////////////////////////////////////////////////////////////////
 def get_disk_free_space(_path):
     """
         get_disk_free_space()
@@ -543,49 +481,6 @@ def get_disk_free_space(_path):
     """
     stat = os.statvfs(_path)
     return stat.f_bavail * stat.f_frsize
-
-#///////////////////////////////////////////////////////////////////////////////
-def get_parameters_from_cfgfile(_configfile_name):
-    """
-        get_parameters_from_cfgfile()
-        ________________________________________________________________________
-
-        Read the configfile and return the parser or None if an error occured.
-        ________________________________________________________________________
-
-        PARAMETER
-                o _configfile_name       : (str) config file name (e.g. katal.ini)
-
-        RETURNED VALUE
-                None if an error occured while reading the configuration file
-                or the expected configparser.ConfigParser object=.
-    """
-    global USE_LOG_FILE, LOG_VERBOSITY
-    global TARGET_PATH, TARGETFILENAME_MAXLENGTH
-    global SOURCE_PATH, SOURCENAME_MAXLENGTH
-
-    if not os.path.exists(_configfile_name):
-        msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
-        return None
-
-    parser = configparser.ConfigParser()
-
-    try:
-        parser.read(_configfile_name)
-        USE_LOG_FILE = parser["log file"]["use log file"] == "True"
-        LOG_VERBOSITY = parser["log file"]["verbosity"]
-        TARGET_PATH = parser["target"]["path"]
-        TARGETFILENAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
-        SOURCE_PATH = parser["source"]["path"]
-        SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
-
-    except BaseException as exception:
-        msg("    ! An error occured while reading " \
-            "the config file \"{0}\".".format(_configfile_name))
-        msg("    ! Python message : \"{0}\"".format(exception))
-        return None
-
-    return parser
 
 #///////////////////////////////////////////////////////////////////////////////
 def goodbye():
@@ -699,6 +594,111 @@ def parameters_infos():
 
     msg("  = source directory : \"{0}\" =".format(SOURCE_PATH))
     msg("  = target directory : \"{0}\" =".format(TARGET_PATH))
+
+#///////////////////////////////////////////////////////////////////////////////
+def read_command_line_arguments():
+    """
+        read_command_line_arguments()
+        ________________________________________________________________________
+
+        Read the command line arguments.
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE
+                return the argparse object.
+    """
+    parser = argparse.ArgumentParser(description="{0} v. {1}".format(PROGRAM_NAME, PROGRAM_VERSION),
+                                     epilog="by suizokukan AT orange DOT fr",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument('--add',
+                        action="store_true",
+                        help="select files according to what is described " \
+                             "in the configuration file " \
+                             "then add them to the target directory" \
+                             "This option can't be used the --select one.")
+
+    parser.add_argument('--configfile',
+                        type=str,
+                        default=DEFAULT_CONFIGFILE_NAME,
+                        help="config file, e.g. config.ini")
+
+    parser.add_argument('--hashid',
+                        type=str,
+                        help="return the hash id of the given file")
+
+    parser.add_argument('--infos',
+                        action="store_true",
+                        help="display informations about the source directory " \
+                             "given in the configuration file")
+
+    parser.add_argument('--select',
+                        action="store_true",
+                        help="select files according to what is described " \
+                             "in the configuration file " \
+                             "without adding them to the target directory. " \
+                             "This option can't be used the --add one.")
+
+    parser.add_argument('--mute',
+                        action="store_true",
+                        help="no output to the console; no question asked on the console")
+
+    parser.add_argument('--quiet',
+                        action="store_true",
+                        help="no welcome/goodbye/informations about the parameters/ messages " \
+                             "on console")
+
+    parser.add_argument('--version',
+                        action='version',
+                        version="{0} v. {1}".format(PROGRAM_NAME, PROGRAM_VERSION),
+                        help="show the version and exit")
+
+    return parser.parse_args()
+
+#///////////////////////////////////////////////////////////////////////////////
+def read_parameters_from_cfgfile(_configfile_name):
+    """
+        read_parameters_from_cfgfile()
+        ________________________________________________________________________
+
+        Read the configfile and return the parser or None if an error occured.
+        ________________________________________________________________________
+
+        PARAMETER
+                o _configfile_name       : (str) config file name (e.g. katal.ini)
+
+        RETURNED VALUE
+                None if an error occured while reading the configuration file
+                or the expected configparser.ConfigParser object=.
+    """
+    global USE_LOG_FILE, LOG_VERBOSITY
+    global TARGET_PATH, TARGETFILENAME_MAXLENGTH
+    global SOURCE_PATH, SOURCENAME_MAXLENGTH
+
+    if not os.path.exists(_configfile_name):
+        msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
+        return None
+
+    parser = configparser.ConfigParser()
+
+    try:
+        parser.read(_configfile_name)
+        USE_LOG_FILE = parser["log file"]["use log file"] == "True"
+        LOG_VERBOSITY = parser["log file"]["verbosity"]
+        TARGET_PATH = parser["target"]["path"]
+        TARGETFILENAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
+        SOURCE_PATH = parser["source"]["path"]
+        SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
+
+    except BaseException as exception:
+        msg("    ! An error occured while reading " \
+            "the config file \"{0}\".".format(_configfile_name))
+        msg("    ! Python message : \"{0}\"".format(exception))
+        return None
+
+    return parser
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_sieves():
@@ -977,12 +977,12 @@ def welcome_in_logfile():
 #///////////////////////////////////////////////////////////////////////////////
 if __name__ == '__main__':
     try:
-        ARGS = get_command_line_arguments()
+        ARGS = read_command_line_arguments()
         check_args()
 
         welcome()
 
-        PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
+        PARAMETERS = read_parameters_from_cfgfile(ARGS.configfile)
         if PARAMETERS is None:
             sys.exit(-1)
 

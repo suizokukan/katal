@@ -47,7 +47,7 @@ class Tests(unittest.TestCase):
 			Test of the katal.py::fill_select() function.
 		"""
 		katal.ARGS.configfile=os.path.join("tests", "cfgfile1.ini")
-		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
+		katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
 		katal.read_sieves()
 		katal.fill_select()
 
@@ -64,7 +64,7 @@ class Tests(unittest.TestCase):
 			Test of the katal.py::fill_select() function.
 		"""
 		katal.ARGS.configfile=os.path.join("tests", "cfgfile2.ini")
-		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
+		katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
 		katal.read_sieves()
 		katal.fill_select()
 
@@ -81,7 +81,7 @@ class Tests(unittest.TestCase):
 			Test of the katal.py::fill_select() function.
 		"""
 		katal.ARGS.configfile=os.path.join("tests", "cfgfile3.ini")
-		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
+		katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
 		katal.read_sieves()
 		katal.fill_select()
 			
