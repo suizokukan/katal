@@ -835,7 +835,9 @@ def size_as_str(_size):
         RETURNED VALUE
                 a str(ing)
     """
-    if _size < 100000:
+    if _size == 0:
+        return "0 byte"
+    elif _size < 100000:
         return "{0} bytes".format(_size)
     elif _size < 1000000:
         return "~{0:.2f} Mo ({1} bytes)".format(_size/1000000.0,
