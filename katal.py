@@ -560,10 +560,15 @@ def get_parameters_from_cfgfile(_configfile_name):
 
         PARAMETER
                 o _configfile_name       : (str) config file name (e.g. katal.ini)
+
         RETURNED VALUE
                 None if an error occured while reading the configuration file
                 or the expected configparser.ConfigParser object=.
     """
+    global USE_LOG_FILE, LOG_VERBOSITY
+    global TARGET_PATH, TARGETFILENAME_MAXLENGTH
+    global SOURCE_PATH, SOURCENAME_MAXLENGTH
+
     if not os.path.exists(_configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
         return None
@@ -572,6 +577,13 @@ def get_parameters_from_cfgfile(_configfile_name):
 
     try:
         parser.read(_configfile_name)
+        USE_LOG_FILE = parser["log file"]["use log file"] == "True"
+        LOG_VERBOSITY = parser["log file"]["verbosity"]
+        TARGET_PATH = parser["target"]["path"]
+        TARGETFILENAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
+        SOURCE_PATH = parser["source"]["path"]
+        SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
+
     except BaseException as exception:
         msg("    ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -975,13 +987,6 @@ if __name__ == '__main__':
         PARAMETERS = get_parameters_from_cfgfile(ARGS.configfile)
         if PARAMETERS is None:
             sys.exit(-1)
-
-        USE_LOG_FILE = PARAMETERS["log file"]["use log file"] == "True"
-        LOG_VERBOSITY = PARAMETERS["log file"]["verbosity"]
-        TARGET_PATH = PARAMETERS["target"]["path"]
-        TARGETFILENAME_MAXLENGTH = int(PARAMETERS["display"]["target filename.max length on console"])
-        SOURCENAME_MAXLENGTH = int(PARAMETERS["display"]["source filename.max length on console"])
-        SOURCE_PATH = PARAMETERS["source"]["path"]
 
         if USE_LOG_FILE:
             LOGFILE = logfile_opening()

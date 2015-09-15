@@ -1,4 +1,4 @@
-todo : documenter les déclaration de variables globales
+todo : renommer get_* en read_*
 
 doc: the extension stored in SELECT does not begin with a dot.
 
