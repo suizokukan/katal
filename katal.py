@@ -190,19 +190,29 @@ def action__infos():
 
     total_size = 0
     files_number = 0
-    extensions = set()
+    extensions = dict()  # (str)extension : [number of files, total size] 
     for dirpath, _, fnames in os.walk(SOURCE_PATH):
         for filename in fnames:
             complete_name = os.path.join(dirpath, filename)
+            size = os.stat(complete_name).st_size
+            extension = os.path.splitext(filename)[1]
 
-            extensions.add(os.path.splitext(filename)[1])
+            if extension in extensions:
+                extensions[extension][0] += 1 
+                extensions[extension][1] += size
+            else:
+                extensions[extension] = [1, size]
 
-            total_size += os.stat(complete_name).st_size
+            total_size += size
             files_number += 1
 
     msg("    o files number : {0}".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
-    msg("    o list of all extensions : {0}".format(tuple(extensions)))
+    msg("    o list of all extensions : ")
+    for extension in extensions:
+        msg("      - {0:15} : {1} files, {2}".format(extension,
+                                                     extensions[extension][0],
+                                                     size_as_str(extensions[extension][1])))
 
     #...........................................................................
     # target path
