@@ -123,3 +123,20 @@ from create_target_name():
 
            n.b. : keywords ending by "2" are builded against a set of illegal
                   characters replaced by "_".
+
+(1) configuration file
+The informations stored in the configuration file are written in the PARAMETERS global variable.
+PARAMETERS if filled by get_parameters_from_cfgfile() and is a configparser.Configparser object.
+
+todo : reprendre tous les champs du fichier
+
+(2) logfile
+Can be filled with many informations (verbosity="high") or less informations (verbosity="low"). See in documentation:configuration file the explanations about the log verbosity.
+
+(3) selection
+
+SELECT
+SIEVES : read_sieves()
+
+(4) database
+TARGET_DB is filled by read_target_db().

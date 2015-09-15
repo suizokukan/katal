@@ -59,6 +59,13 @@ PROGRAM_VERSION = "0.0.3"
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
 
+TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
+
+# hasher used by the hashfile64() function. The SHA256 is a good choice;
+# if you change the hasher, please modify the way the hashids are displayed
+# (see the action__informations() function)
+HASHER = hashlib.sha256()
+
 # SELECT is made of SELECTELEMENT objects, where data about the original files
 # are stored.
 SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
@@ -68,23 +75,24 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
                                              "size",
                                              "date"])
 
-# a function like msg() may need this variable before its initialization (see further)
-USE_LOG_FILE = False
-PARAMETERS=None # todo
-HASHER = hashlib.sha256()
-SIEVES = {} # todo : see documentation
-TIMESTAMP_BEGIN = datetime.now()
-TARGET_DB = []  # a list of hashid
-LOGFILE=None
-USE_LOG_FILE = False
-LOG_VERBOSITY = "high"
-TARGET_PATH = ""
-TARGETFILENAME_MAXLENGTH = 0
-SOURCENAME_MAXLENGTH = 0
-SOURCE_PATH = ""
-LOGFILE = None
-SELECT = {} # see the SELECT format in the documentation
-SELECT_SIZE_IN_BYTES = 0
+PARAMETERS = None # see documentation:configuration file
+
+SOURCE_PATH = ""  # initialized from the configuration file.
+SOURCENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
+                          # fixed the way source filenames are displayed. 
+
+TARGET_PATH = ""  # initialized from the configuration file.
+TARGETFILENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
+                              # fixed the way source filenames are displayed.
+TARGET_DB = []  # see documentation:database; initializd by read_target_db()
+
+LOGFILE = None  # the file descriptor, initialized by logfile_opening()
+USE_LOG_FILE = False  # (bool) initialized from the configuration file
+LOG_VERBOSITY = "high"  # initialized from the configuration file (see documentation:logfile)
+
+SELECT = {} # see documentation:selection; initialized by action__select()
+SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
+SIEVES = {}  # see documentation:selection; initialized by read_sieves()
 
 ################################################################################
 class ProjectError(BaseException):
@@ -352,7 +360,8 @@ def create_target_name(_hashid, _database_index):
         PARAMETERS["target"]["name of the target files"] and replaces some
         keywords in the string by the parameters given to this function.
 
-        see the available keywords in the documentation. (todo)
+        see the available keywords in the documentation. 
+            (see documentation:configuration file)
         ________________________________________________________________________
 
         PARAMETERS
@@ -553,7 +562,7 @@ def get_parameters_from_cfgfile(_configfile_name):
                 o _configfile_name       : (str) config file name (e.g. katal.ini)
         RETURNED VALUE
                 None if an error occured while reading the configuration file
-                or the expected configparser.ConfigParser object.
+                or the expected configparser.ConfigParser object=.
     """
     if not os.path.exists(_configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
@@ -634,9 +643,7 @@ def logfile_opening():
         # let's append :
         log_mode = "a"
 
-    logfile = open(PARAMETERS["log file"]["name"], log_mode)
-
-    return logfile
+    return open(PARAMETERS["log file"]["name"], log_mode)
 
 #///////////////////////////////////////////////////////////////////////////////
 def msg(_msg, _for_console=True, _for_logfile=True):

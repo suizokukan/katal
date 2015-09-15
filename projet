@@ -1,5 +1,4 @@
-todo : réorganiser le code pour permettre un appel depuis l'extérieur	
-
+todo : documenter les déclaration de variables globales
 point fort : un seul fichier
 
 doc: the extension stored in SELECT does not begin with a dot.
