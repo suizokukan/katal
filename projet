@@ -1,5 +1,7 @@
 todo : renommer get_* en read_*
 todo : appliquer un tag (à un ensemble de fichier(s))
+todo : sieve1 AND/OR sieve2
+todo : supprimer un fichier/le renommer/...
 
 doc: the extension stored in SELECT does not begin with a dot.
 

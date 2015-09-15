@@ -32,14 +32,51 @@ import katal
 katal.ARGS = namedtuple("ARGS", ("configfile", "mute",))
 
 class Tests(unittest.TestCase):
-	def test__fill_select(self):
-		katal.ARGS.configfile=os.path.join("tests", "cfgfile1.ini")
+#	def test__fill_select1(self):
+#		katal.ARGS.configfile=os.path.join("tests", "cfgfile1.ini")
+#		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
+#		katal.read_sieves()
+#		katal.fill_select()
+#
+#		self.assertEqual(len(katal.SELECT), 1)
+#
+#		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
+#		self.assertTrue(hashid in katal.SELECT)
+#		self.assertEqual(katal.SELECT[hashid].complete_name, 
+#					     os.path.join("tests","data1","b.2"))
+
+	def test__fill_select2(self):
+		katal.ARGS.configfile=os.path.join("tests", "cfgfile2.ini")
 		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
 		katal.read_sieves()
 		katal.fill_select()
 
-		hashid="O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
-		self.assertEqual(len(katal.SELECT), 1)
+		self.assertEqual(len(katal.SELECT), 2)
+		print(katal.SELECT)
+		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
 		self.assertTrue(hashid in katal.SELECT)
 		self.assertEqual(katal.SELECT[hashid].complete_name, 
 					     os.path.join("tests","data1","b.2"))
+
+		hashid = "gcxbFwGGdLQBtC81uge7eeIRI5wjv/5ljaFXfj5kaHc="
+		self.assertTrue(hashid in katal.SELECT)
+		self.assertEqual(katal.SELECT[hashid].complete_name, 
+					     os.path.join("tests","data1","b.3"))
+
+#	def test__fill_select3(self):
+#		katal.ARGS.configfile=os.path.join("tests", "cfgfile3.ini")
+#		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
+#		katal.read_sieves()
+#		katal.fill_select()
+#			
+#		self.assertEqual(len(katal.SELECT), 6)
+#
+#		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
+#		self.assertTrue(hashid in katal.SELECT)
+#		self.assertEqual(katal.SELECT[hashid].complete_name, 
+#					     os.path.join("tests","data1","b.2"))
+#
+#		hashid = "gcxbFwGGdLQBtC81uge7eeIRI5wjv/5ljaFXfj5kaHc="
+#		self.assertTrue(hashid in katal.SELECT)
+#		self.assertEqual(katal.SELECT[hashid].complete_name, 
+#					     os.path.join("tests","data1","b.3"))

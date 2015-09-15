@@ -61,11 +61,6 @@ DATABASE_NAME = "katal.db"
 
 TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
 
-# hasher used by the hashfile64() function. The SHA256 is a good choice;
-# if you change the hasher, please modify the way the hashids are displayed
-# (see the action__informations() function)
-HASHER = hashlib.sha256()
-
 PARAMETERS = None # see documentation:configuration file
 
 SOURCE_PATH = ""  # initialized from the configuration file.
@@ -627,12 +622,17 @@ def hashfile64(_filename):
                 resulting string will be 44 bytes long. E.g. :
                         "YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1A91A"
     """
+    # hasher used by the hashfile64() function. The SHA256 is a good choice;
+    # if you change the hasher, please modify the way the hashids are displayed
+    # (see the action__informations() function)
+    hasher = hashlib.sha256()
+
     with open(_filename, "rb") as afile:
         buf = afile.read(65536)
         while len(buf) > 0:
-            HASHER.update(buf)
+            hasher.update(buf)
             buf = afile.read(65536)
-    return b64encode(HASHER.digest()).decode()
+    return b64encode(hasher.digest()).decode()
 
 #///////////////////////////////////////////////////////////////////////////////
 def logfile_opening():
