@@ -294,8 +294,8 @@ def action__select():
         msg("    ! no file selected ! You have to modify the config file to get some files selected.")
     else:
         ratio = number_of_discarded_files/len(SELECT)*100.0
-        msg("    o number of selected files : {0} " \
-                  "(after discarding {1} file(s), " \
+        msg("    o number of selected files " \
+                  "(after discarding {1} file(s) : {0}, " \
                   "{2:.2f}% of all the files)".format(len(SELECT),
                                                       number_of_discarded_files,
                                                       ratio))
