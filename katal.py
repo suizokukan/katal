@@ -56,6 +56,10 @@ import sys
 PROGRAM_NAME = "Katal"
 PROGRAM_VERSION = "0.0.4"
 
+# when the program verifies that there's enough free space on disk, it multiplies
+# the required amount of space by these coefficient
+FREESPACE_MARGIN = 1.1
+
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
 
@@ -127,8 +131,7 @@ def action__add():
     db_connection = sqlite3.connect(db_filename)
     db_cursor = db_connection.cursor()
 
-    # (+100000 bytes for the database) :
-    if get_disk_free_space(TARGET_PATH) < SELECT_SIZE_IN_BYTES + 100000:
+    if get_disk_free_space(TARGET_PATH) < SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
         msg("    ! Not enough space on disk. Stopping the program.")
         # returned value : -1 = error
         return -1
@@ -215,10 +218,8 @@ def action__select():
                                                          ratio))
 
     # let's check that the target path has sufficient free space :
-    # 100000 bytes are added to the select size of bytes since a database will be added into
-    # the target directory.
     available_space = get_disk_free_space(TARGET_PATH)
-    if available_space > SELECT_SIZE_IN_BYTES+100000:
+    if available_space > SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
         size_ok = "ok"
     else:
         size_ok = "!!! problem !!!"
