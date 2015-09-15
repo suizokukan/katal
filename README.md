@@ -42,6 +42,19 @@
 
         history :
 
+        v.0.0.4 (2015_09_15) :
+            o  Tests class (three tests ok)
+            o  fixed a bug in hashfile64() : the hasher is now created every time 
+               the function is called
+            o  modified the SIEVES format for "size"
+            o  moved the declaration of global variables at the beginning of the file
+            o  added a block : if __name__ == '__main__', allowing to call the script
+               from another script.
+            o  improved the way the program catches the exceptions
+            o  updated .gitignore 
+            o  "VERBOSITY" > "LOG_VERBOSITY"
+            o  renamed some functions (get_* > read_*)
+
         v.0.0.3 (2015_09_14) :
             o  --quiet and --mute options
             o  --hashid option (and show_hashid_of_a_file() function)

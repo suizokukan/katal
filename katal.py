@@ -54,7 +54,7 @@ import sqlite3
 import sys
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.0.3"
+PROGRAM_VERSION = "0.0.4"
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"

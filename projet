@@ -1,3 +1,4 @@
+todo : 100000 à placer dans une constante (marge avant de remplir le disque plutôt que marge pour bdd)
 todo : optimiser la BDD (type de champ=text ???)
 todo : appliquer un tag (à un ensemble de fichier(s))
 todo : sieve1 AND/OR sieve2
