@@ -418,7 +418,7 @@ def fill_select():
                 (int) the number of discard files
     """
     global SELECT, SELECT_SIZE_IN_BYTES
-    SELECT = {} # see the SELECT format in the documentation
+    SELECT = {} # see the SELECT format in the documentation:selection
     SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
 
@@ -712,8 +712,8 @@ def read_sieves():
                 SIEVES[sieve_index]["name"] = \
                                     re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"])
             if PARAMETERS.has_option("source.sieve"+str(sieve_index), "size"):
-                SIEVES[sieve_index]["size"] = \
-                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["size"])
+                SIEVES[sieve_index]["size"] = PARAMETERS["source.sieve"+str(sieve_index)]["size"]
+
         sieve_index += 1
 
 #///////////////////////////////////////////////////////////////////////////////

@@ -103,40 +103,75 @@
         o  welcome()                            : display a welcome message on screen
         o  welcome_in_logfile()                 : display a welcome message in the log file
 
-
-
-
-from create_target_name():
-
-           keywords                             example
-           -----------------------------------+---------------------------------
-           HASHID                             | YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1=91A
-           SOURCENAME_WITHOUT_EXTENSION       | c.t
-           SOURCENAME_WITHOUT_EXTENSION2      | c_t
-           SOURCE_PATH                        | /home/someone/Pictures
-           SOURCE_PATH2                       | _home_someone_Pictures
-           SOURCE_EXTENSION                   | jpg
-           SOURCE_EXTENSION2                  | jpg
-           SIZE                               | 1234
-           DATE2                              | 2015_09_13__19_07_49
-           DATABASE_INDEX                     | 123
-
-           n.b. : keywords ending by "2" are builded against a set of illegal
-                  characters replaced by "_".
-
 (1) configuration file
 The informations stored in the configuration file are written in the PARAMETERS global variable.
-PARAMETERS if filled by get_parameters_from_cfgfile() and is a configparser.Configparser object.
+PARAMETERS is filled by get_parameters_from_cfgfile() and is a configparser.Configparser object.
 
-todo : reprendre tous les champs du fichier
+[log file]    : parameters about the logfile
+use log file  : True/False; if False, all the messages are written only to the console.
+name          : no quotation mark here !
+overwrite     : True/False; if False, the log file will grow after each execution.
+verbosity     : log verbosity="high" or "low"; turn if off (=low) if the log message is too big 
+                or too verbose.
+
+[display]         : parameters about the way informations are displayed
+target filename.max length on console : >=17 (max length of the file names displayed)
+source filename.max length on console : (max length of the file names displayed)
+
+[source]          : parameters about source directory 
+path              : a string without any quotation mark.
+
+[source.sieveN]   : N is an integer greater or equal to  1; [source.sieve1], [source.sieve2], ...
+name              : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
+size              : a symbol plus an integer
+                    e.g., either >999, either <999, either =999, either <=999 either >=999
+
+[target]                  : parameters about target directory 
+path                      : a string without any quotation mark.
+
+name of the target files  : a string using keywords which will be replaced by their value
+                            see the create_target_name() function.
+
+                                  known keywords :
+
+                                   HASHID
+                                   SOURCENAME_WITHOUT_EXTENSION
+                                   SOURCENAME_WITHOUT_EXTENSION2
+                                   SOURCE_PATH
+                                   SOURCE_PATH2
+                                   SOURCE_EXTENSION
+                                   SOURCE_EXTENSION2
+                                   SIZE
+                                   DATE2
+                                   DATABASE_INDEX
+
+                                   n.b. : keywords ending by "2" are builded 
+                                          against a set of illegal characters
+                                          replaced by "_".
 
 (2) logfile
 Can be filled with many informations (verbosity="high") or less informations (verbosity="low"). See in documentation:configuration file the explanations about the log verbosity.
 
+The logfile is opened by logfile_opening. The program writes in it via msg() if _for_logfile is
+set to True.
+
 (3) selection
 
-SELECT
-SIEVES : read_sieves()
+SELECT is filled by fill_select(), a function called by action__select(). SELECT is a dictionary with hashid as keys and SELECTELEMENT as values.
+
+Definition of SELECTELEMENT :
+  SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
+                                               "path",
+                                               "filename_no_extens",
+                                               "extension",
+                                               "size",
+                                               "date"])
+
+SIEVES is a dictionary with a (int)sieve_index as a key and a dict as values.
+This dict may be empty or contain the following keys/values : 
+  SIEVES["name"] = re.compile(...)
+  SIEVES["size"] = a string like ">999"
+SIEVES is filled by read_sieves().
 
 (4) database
 TARGET_DB is filled by read_target_db().

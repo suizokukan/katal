@@ -1,15 +1,11 @@
 todo : documenter les déclaration de variables globales
-point fort : un seul fichier
 
 doc: the extension stored in SELECT does not begin with a dot.
 
 doc: (dict)SIEVES : index -> ["name"],["size"] : e.g. for name : re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"]) mais aller chercher la doc pour le nom / pour la date
 
-    todo :
-    $$ --generate_configfile
-    $$ todo
+	$$ doc
     $$ tests, en particulier sous Windows et sous OSX
-    $$ doc (projet, README.md)
     $$ pylint
 
 point fort du programme : monofichier + pas de dépendance externe
