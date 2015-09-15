@@ -442,7 +442,7 @@ def fill_select():
                     number_of_discarded_files += 1
             else:
                 # is filename already stored in <TARGET_DB> ?
-                _hash = hashfile64(open(complete_name, 'rb'))
+                _hash = hashfile64(complete_name)
 
                 if _hash not in TARGET_DB and _hash not in SELECT:
                     res = True
@@ -611,7 +611,7 @@ q
                                                 datetime.now() - TIMESTAMP_BEGIN))
 
 #///////////////////////////////////////////////////////////////////////////////
-def hashfile64(_afile):
+def hashfile64(_filename):
     """
         hashfile64()
         ________________________________________________________________________
@@ -620,18 +620,18 @@ def hashfile64(_afile):
         ________________________________________________________________________
 
         PARAMETER
-                o _afile : a _io.BufferedReader object, created by calling
-                          the open() function.
+                o _filename : (str) file's name
 
         RETURNED VALUE
                 the expected string. If you use sha256 as a hasher, the
                 resulting string will be 44 bytes long. E.g. :
                         "YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1A91A"
     """
-    buf = _afile.read(65536)
-    while len(buf) > 0:
-        HASHER.update(buf)
-        buf = _afile.read(65536)
+    with open(_filename, "rb") as afile:
+        buf = afile.read(65536)
+        while len(buf) > 0:
+            HASHER.update(buf)
+            buf = afile.read(65536)
     return b64encode(HASHER.digest()).decode()
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -801,10 +801,8 @@ def show_hashid_of_a_file(filename):
 
         no RETURNED VALUE
     """
-    with open(filename, "rb") as afile:
-        _hash = hashfile64(afile)
     msg("  = hashid of \"{0}\" : \"{1}\"".format(filename,
-                                                 _hash))
+                                                 hashfile64(filename)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def size_as_str(_size):
