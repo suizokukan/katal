@@ -31,52 +31,64 @@ import unittest
 import katal
 katal.ARGS = namedtuple("ARGS", ("configfile", "mute",))
 
+################################################################################
 class Tests(unittest.TestCase):
-#	def test__fill_select1(self):
-#		katal.ARGS.configfile=os.path.join("tests", "cfgfile1.ini")
-#		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
-#		katal.read_sieves()
-#		katal.fill_select()
-#
-#		self.assertEqual(len(katal.SELECT), 1)
-#
-#		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
-#		self.assertTrue(hashid in katal.SELECT)
-#		self.assertEqual(katal.SELECT[hashid].complete_name, 
-#					     os.path.join("tests","data1","b.2"))
+	"""
+		Tests class
 
+		Testing the katal.py script
+	"""
+
+	#//////////////////////////////////////////////////////////////////////////
+	def test__fill_select1(self):
+		"""
+			Tests.test__fill_select1()
+
+			Test of the katal.py::fill_select() function.
+		"""
+		katal.ARGS.configfile=os.path.join("tests", "cfgfile1.ini")
+		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
+		katal.read_sieves()
+		katal.fill_select()
+
+		self.assertEqual(len(katal.SELECT), 1)
+
+		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
+		self.assertTrue(hashid in katal.SELECT)
+
+	#//////////////////////////////////////////////////////////////////////////
 	def test__fill_select2(self):
+		"""
+			Tests.test__fill_select2()
+
+			Test of the katal.py::fill_select() function.
+		"""
 		katal.ARGS.configfile=os.path.join("tests", "cfgfile2.ini")
 		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
 		katal.read_sieves()
 		katal.fill_select()
 
-		self.assertEqual(len(katal.SELECT), 2)
-		print(katal.SELECT)
+		self.assertEqual(len(katal.SELECT), 1)
+
 		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
 		self.assertTrue(hashid in katal.SELECT)
-		self.assertEqual(katal.SELECT[hashid].complete_name, 
-					     os.path.join("tests","data1","b.2"))
 
-		hashid = "gcxbFwGGdLQBtC81uge7eeIRI5wjv/5ljaFXfj5kaHc="
+	#//////////////////////////////////////////////////////////////////////////
+	def test__fill_select3(self):
+		"""
+			Tests.test__fill_select3()
+
+			Test of the katal.py::fill_select() function.
+		"""
+		katal.ARGS.configfile=os.path.join("tests", "cfgfile3.ini")
+		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
+		katal.read_sieves()
+		katal.fill_select()
+			
+		self.assertEqual(len(katal.SELECT), 2)
+
+		hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
 		self.assertTrue(hashid in katal.SELECT)
-		self.assertEqual(katal.SELECT[hashid].complete_name, 
-					     os.path.join("tests","data1","b.3"))
 
-#	def test__fill_select3(self):
-#		katal.ARGS.configfile=os.path.join("tests", "cfgfile3.ini")
-#		katal.PARAMETERS = katal.get_parameters_from_cfgfile(katal.ARGS.configfile)
-#		katal.read_sieves()
-#		katal.fill_select()
-#			
-#		self.assertEqual(len(katal.SELECT), 6)
-#
-#		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
-#		self.assertTrue(hashid in katal.SELECT)
-#		self.assertEqual(katal.SELECT[hashid].complete_name, 
-#					     os.path.join("tests","data1","b.2"))
-#
-#		hashid = "gcxbFwGGdLQBtC81uge7eeIRI5wjv/5ljaFXfj5kaHc="
-#		self.assertTrue(hashid in katal.SELECT)
-#		self.assertEqual(katal.SELECT[hashid].complete_name, 
-#					     os.path.join("tests","data1","b.3"))
+		hashid = "rc2y98HRxM0xEpm9nouE60nVk4TUq3ec9sr10UEwpnY="
+		self.assertTrue(hashid in katal.SELECT)
