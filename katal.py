@@ -65,7 +65,7 @@ PARAMETERS = None # see documentation:configuration file
 
 SOURCE_PATH = ""  # initialized from the configuration file.
 SOURCENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
-                          # fixed the way source filenames are displayed. 
+                          # fixed the way source filenames are displayed.
 
 TARGET_PATH = ""  # initialized from the configuration file.
 TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
@@ -166,7 +166,7 @@ def action__infos():
         action__infos()
         ________________________________________________________________________
 
-        Display informations about the source and the f directory
+        Display informations about the source and the target directory
         ________________________________________________________________________
 
         no PARAMETER
@@ -175,99 +175,8 @@ def action__infos():
                 (int) 0 if ok, -1 if an error occured
     """
     msg("  = informations =")
-
-    #...........................................................................
-    # source path
-    #...........................................................................
-    if not os.path.exists(SOURCE_PATH):
-        msg("Can't read source path {0}.".format(SOURCE_PATH))
-        return -1
-    if not os.path.isdir(SOURCE_PATH):
-        msg("(source path) {0} isn't a directory.".format(SOURCE_PATH))
-        return -1
-
-    msg("  = searching informations about the \"{0}\" (source) directory ... =".format(SOURCE_PATH))
-
-    total_size = 0
-    files_number = 0
-    extensions = dict()  # (str)extension : [number of files, total size] 
-    for dirpath, _, fnames in os.walk(SOURCE_PATH):
-        for filename in fnames:
-            complete_name = os.path.join(dirpath, filename)
-            size = os.stat(complete_name).st_size
-            extension = os.path.splitext(filename)[1]
-
-            if extension in extensions:
-                extensions[extension][0] += 1 
-                extensions[extension][1] += size
-            else:
-                extensions[extension] = [1, size]
-
-            total_size += size
-            files_number += 1
-
-    msg("    o files number : {0}".format(files_number))
-    msg("    o total size : {0}".format(size_as_str(total_size)))
-    msg("    o list of all extensions : ")
-    for extension in extensions:
-        msg("      - {0:15} : {1} files, {2}".format(extension,
-                                                     extensions[extension][0],
-                                                     size_as_str(extensions[extension][1])))
-
-    #...........................................................................
-    # target path
-    #...........................................................................
-    if not os.path.exists(TARGET_PATH):
-        msg("Can't read target path {0}.".format(TARGET_PATH))
-        return -1
-    if not os.path.isdir(TARGET_PATH):
-        msg("(target path) {0} isn't a directory.".format(TARGET_PATH))
-        return -1
-
-    msg("  = informations about the \"{0}\" (target) directory =".format(TARGET_PATH))
-
-    if not os.path.exists(os.path.join(TARGET_PATH, DATABASE_NAME)):
-        msg("    o no database in the target directory o")
-    else:
-        db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-        db_connection = sqlite3.connect(db_filename)
-        db_cursor = db_connection.cursor()
-
-        # the following magic numbers are here to align the rows' names and are
-        # linked to the footprint's length and rows' names' length.
-        msg("      " + \
-            "-"*(HASHID_MAXLENGTH+1) + "+" + \
-            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
-            "-"*(TARGETNAME_MAXLENGTH+1))
-
-        msg("      hashid{0}| (target) file name{1}|" \
-            " (source) source name".format(" "*(HASHID_MAXLENGTH-5),
-                                           " "*(TARGETNAME_MAXLENGTH-17)))
-
-        msg("      " + \
-            "-"*(HASHID_MAXLENGTH+1) + "+" + \
-            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
-            "-"*(TARGETNAME_MAXLENGTH+1))
-
-        # there's no easy way to know the size of a table in a database.
-        # So we can't display the warning "empty database" before the following
-        # code which created the table.
-        row_index = 0
-        for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
-
-            msg("      {0} | {1}{2}| {3}".format(shortened_str(hashid, HASHID_MAXLENGTH),
-                                                 shortened_str(filename, TARGETNAME_MAXLENGTH),
-                                                 " "*(SOURCENAME_MAXLENGTH-len(filename)+1),
-                                                 shortened_str(sourcename, SOURCENAME_MAXLENGTH)))
-            row_index += 1
-
-        # see above : it's not possible to place this code before the table.
-        if row_index == 0:
-            msg("    ! (empty database)")
-
-        db_connection.close()
-
-    return 0
+    show_infos_about_source_path()
+    return show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__select():
@@ -295,23 +204,24 @@ def action__select():
     msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
     if len(SELECT) == 0:
-        msg("    ! no file selected ! You have to modify the config file to get some files selected.")
+        msg("    ! no file selected ! " \
+            "You have to modify the config file to get some files selected.")
     else:
         ratio = len(SELECT)/(len(SELECT)+number_of_discarded_files)*100.0
         msg("    o number of selected files " \
                   "(after discarding {1} file(s)) : {0}, " \
                   "{2:.2f}% of the source files.".format(len(SELECT),
-                                                      number_of_discarded_files,
-                                                      ratio))
+                                                         number_of_discarded_files,
+                                                         ratio))
 
     # let's check that the target path has sufficient free space :
     # 100000 bytes are added to the select size of bytes since a database will be added into
     # the target directory.
     available_space = get_disk_free_space(TARGET_PATH)
-    if available_space>SELECT_SIZE_IN_BYTES+100000:
-        size_ok="ok"
+    if available_space > SELECT_SIZE_IN_BYTES+100000:
+        size_ok = "ok"
     else:
-        size_ok="!!! problem !!!"
+        size_ok = "!!! problem !!!"
     msg("    o required space : {0}; " \
         "available space on disk : {1} ({2})".format(SELECT_SIZE_IN_BYTES,
                                                      available_space,
@@ -364,7 +274,7 @@ def create_target_name(_hashid, _database_index):
         PARAMETERS["target"]["name of the target files"] and replaces some
         keywords in the string by the parameters given to this function.
 
-        see the available keywords in the documentation. 
+        see the available keywords in the documentation.
             (see documentation:configuration file)
         ________________________________________________________________________
 
@@ -685,6 +595,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     global USE_LOG_FILE, LOG_VERBOSITY
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
+    global HASHID_MAXLENGTH
 
     if not os.path.exists(_configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
@@ -795,6 +706,118 @@ def remove_illegal_characters(_src):
     for char in ("*", "/", "\\", ".", "[", "]", ":", ";", "|", "=", ",", "?", "<", ">"):
         res = res.replace(char, "_")
     return res
+
+#///////////////////////////////////////////////////////////////////////////////
+def show_infos_about_source_path():
+    """
+        show_infos_about_source_path()
+        ________________________________________________________________________
+
+        Display informations about the source directory
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    if not os.path.exists(SOURCE_PATH):
+        msg("Can't read source path {0}.".format(SOURCE_PATH))
+        return -1
+    if not os.path.isdir(SOURCE_PATH):
+        msg("(source path) {0} isn't a directory.".format(SOURCE_PATH))
+        return -1
+
+    msg("  = searching informations about the \"{0}\" (source) directory ... =".format(SOURCE_PATH))
+
+    total_size = 0
+    files_number = 0
+    extensions = dict()  # (str)extension : [number of files, total size]
+    for dirpath, _, fnames in os.walk(SOURCE_PATH):
+        for filename in fnames:
+            complete_name = os.path.join(dirpath, filename)
+            size = os.stat(complete_name).st_size
+            extension = os.path.splitext(filename)[1]
+
+            if extension in extensions:
+                extensions[extension][0] += 1
+                extensions[extension][1] += size
+            else:
+                extensions[extension] = [1, size]
+
+            total_size += size
+            files_number += 1
+
+    msg("    o files number : {0}".format(files_number))
+    msg("    o total size : {0}".format(size_as_str(total_size)))
+    msg("    o list of all extensions : ")
+    for extension in extensions:
+        msg("      - {0:15} : {1} files, {2}".format(extension,
+                                                     extensions[extension][0],
+                                                     size_as_str(extensions[extension][1])))
+
+#///////////////////////////////////////////////////////////////////////////////
+def show_infos_about_target_path():
+    """
+        show_infos_about_target_path
+        ________________________________________________________________________
+
+        Display informations about the the target directory
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE
+                (int) 0 if ok, -1 if an error occured
+    """
+    if not os.path.exists(TARGET_PATH):
+        msg("Can't read target path {0}.".format(TARGET_PATH))
+        return -1
+    if not os.path.isdir(TARGET_PATH):
+        msg("(target path) {0} isn't a directory.".format(TARGET_PATH))
+        return -1
+
+    msg("  = informations about the \"{0}\" (target) directory =".format(TARGET_PATH))
+
+    if not os.path.exists(os.path.join(TARGET_PATH, DATABASE_NAME)):
+        msg("    o no database in the target directory o")
+    else:
+        db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+        db_connection = sqlite3.connect(db_filename)
+        db_cursor = db_connection.cursor()
+
+        # the following magic numbers are here to align the rows' names and are
+        # linked to the footprint's length and rows' names' length.
+        msg("      " + \
+            "-"*(HASHID_MAXLENGTH+1) + "+" + \
+            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
+            "-"*(TARGETNAME_MAXLENGTH+1))
+
+        msg("      hashid{0}| (target) file name{1}|" \
+            " (source) source name".format(" "*(HASHID_MAXLENGTH-5),
+                                           " "*(TARGETNAME_MAXLENGTH-17)))
+
+        msg("      " + \
+            "-"*(HASHID_MAXLENGTH+1) + "+" + \
+            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
+            "-"*(TARGETNAME_MAXLENGTH+1))
+
+        # there's no easy way to know the size of a table in a database.
+        # So we can't display the warning "empty database" before the following
+        # code which created the table.
+        row_index = 0
+        for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
+
+            msg("      {0} | {1}{2}| {3}".format(shortened_str(hashid, HASHID_MAXLENGTH),
+                                                 shortened_str(filename, TARGETNAME_MAXLENGTH),
+                                                 " "*(SOURCENAME_MAXLENGTH-len(filename)+1),
+                                                 shortened_str(sourcename, SOURCENAME_MAXLENGTH)))
+            row_index += 1
+
+        # see above : it's not possible to place this code before the table.
+        if row_index == 0:
+            msg("    ! (empty database)")
+
+        db_connection.close()
+
+    return 0
 
 #///////////////////////////////////////////////////////////////////////////////
 def shortened_str(_str, _max_length):
@@ -1040,8 +1063,9 @@ if __name__ == '__main__':
             action__select()
 
             if not ARGS.mute:
-                ANSWER = input("\nDo you want to add the selected " \
-                               "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+                ANSWER = \
+                    input("\nDo you want to add the selected " \
+                          "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
 
                 if ANSWER in ("y", "yes"):
                     action__add()

@@ -109,12 +109,14 @@
         o  read_command_line_arguments()        : read the command line arguments
         o  read_parameters_from_cfgfile()       : read the configuration file
         o  read_sieves()                        : initialize SIEVES from the configuration file
-        o  read_target_db()                     : Read the database stored in the target
+        o  read_target_db()                     : read the database stored in the target
                                                   directory and initialize TARGET_DB.
         o  remove_illegal_characters()          : replace some illegal characters by the
                                                   underscore character.
         o  shortened_str()                      : shorten a string
-        o  show_hashid_of_a_file()              : The function gives the hashid of a file.
+        o  show_hashid_of_a_file()              : the function gives the hashid of a file.
+        o  show_infos_about_source_path()       : display informations about source path
+        o  show_infos_about_target_path()       : display informations about target path
         o  size_as_str()                        : return a size in bytes as a human-readable
                                                   string
         o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
