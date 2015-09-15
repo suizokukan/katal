@@ -38,7 +38,8 @@ class Tests(unittest.TestCase):
 		katal.read_sieves()
 		katal.fill_select()
 
+		hashid="O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
 		self.assertEqual(len(katal.SELECT), 1)
-		self.assertTrue("O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8=" in katal.SELECT)
-		self.assertEqual(katal.SELECT["O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="].complete_name, 
-				         os.path.join("tests","data1","b.2"))
+		self.assertTrue(hashid in katal.SELECT)
+		self.assertEqual(katal.SELECT[hashid].complete_name, 
+					     os.path.join("tests","data1","b.2"))
