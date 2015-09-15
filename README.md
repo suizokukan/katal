@@ -42,10 +42,18 @@
 
         history :
 
+        v.0.0.3 (2015_09_14) :
+            o  --quiet and --mute options
+            o  --hashid option (and show_hashid_of_a_file() function)
+            o  fixed the error in the shebang line
+            o  rewrote remove_illegal_character()
+            o  improved action__select() : no useless messages are displayed with the
+                --add option
+
         v.0.0.2 (2015_09_14) :
-            - added SELECTELEMENT type
-            - the call to sys.exit(0) is now at the very end of the file
-            - no tests, pylint=10.0, some todos remain.
+            o added SELECTELEMENT type
+            o the call to sys.exit(0) is now at the very end of the file
+            o no tests, pylint=10.0, some todos remain.
 
         v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
                                remain.
