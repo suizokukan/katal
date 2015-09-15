@@ -68,8 +68,8 @@ SOURCENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed. 
 
 TARGET_PATH = ""  # initialized from the configuration file.
-TARGETFILENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
-                              # fixed the way source filenames are displayed.
+TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
+                          # fixed the way source filenames are displayed.
 TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 
 # maximal length of the hashids displayed. Can't be greater than 44.
@@ -238,16 +238,16 @@ def action__infos():
         msg("      " + \
             "-"*(HASHID_MAXLENGTH+1) + "+" + \
             "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
-            "-"*(TARGETFILENAME_MAXLENGTH+1))
+            "-"*(TARGETNAME_MAXLENGTH+1))
 
         msg("      hashid{0}| (target) file name{1}|" \
             " (source) source name".format(" "*(HASHID_MAXLENGTH-5),
-                                           " "*(TARGETFILENAME_MAXLENGTH-17)))
+                                           " "*(TARGETNAME_MAXLENGTH-17)))
 
         msg("      " + \
             "-"*(HASHID_MAXLENGTH+1) + "+" + \
             "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
-            "-"*(TARGETFILENAME_MAXLENGTH+1))
+            "-"*(TARGETNAME_MAXLENGTH+1))
 
         # there's no easy way to know the size of a table in a database.
         # So we can't display the warning "empty database" before the following
@@ -256,7 +256,7 @@ def action__infos():
         for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
 
             msg("      {0} | {1}{2}| {3}".format(shortened_str(hashid, HASHID_MAXLENGTH),
-                                                 shortened_str(filename, TARGETFILENAME_MAXLENGTH),
+                                                 shortened_str(filename, TARGETNAME_MAXLENGTH),
                                                  " "*(SOURCENAME_MAXLENGTH-len(filename)+1),
                                                  shortened_str(sourcename, SOURCENAME_MAXLENGTH)))
             row_index += 1
@@ -683,7 +683,7 @@ def read_parameters_from_cfgfile(_configfile_name):
                 or the expected configparser.ConfigParser object=.
     """
     global USE_LOG_FILE, LOG_VERBOSITY
-    global TARGET_PATH, TARGETFILENAME_MAXLENGTH
+    global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
 
     if not os.path.exists(_configfile_name):
@@ -697,7 +697,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         USE_LOG_FILE = parser["log file"]["use log file"] == "True"
         LOG_VERBOSITY = parser["log file"]["verbosity"]
         TARGET_PATH = parser["target"]["path"]
-        TARGETFILENAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
+        TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])

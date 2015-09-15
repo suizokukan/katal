@@ -23,7 +23,6 @@
 
        tests.py
 """
-
 import os
 from collections import namedtuple
 import unittest

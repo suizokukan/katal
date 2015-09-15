@@ -1,4 +1,3 @@
-todo : réécrire à l'aide d'une fonction l'abrègement des chaînes de caractères
 todo : renommer SOURCE_MAX > SOURCEFILENAME à l'instar de TARGET_MAX
 todo : pour la liste des extensions : préciser combien de fichiers sont concernés.
 todo : 100000 à placer dans une constante (marge avant de remplir le disque plutôt que marge pour bdd)
