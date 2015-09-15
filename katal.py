@@ -671,7 +671,7 @@ def read_target_db():
         db_cursor = db_connection.cursor()
 
         db_cursor.execute('''CREATE TABLE files
-        (hashid varchar(44), name text, sourcename text)''')
+        (hashid text PRIMARY KEY, name text, sourcename text)''')
 
         db_connection.commit()
 
