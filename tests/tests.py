@@ -23,6 +23,10 @@
 
        tests.py
 """
+# Pylint : disabling the "Class 'ARGS' has no 'configfile' member" error
+#          since there IS a 'configfile' member for the ARGS class.
+# pylint: disable=E1101
+
 import os
 from collections import namedtuple
 import unittest
@@ -32,62 +36,62 @@ katal.ARGS = namedtuple("ARGS", ("configfile", "mute",))
 
 ################################################################################
 class Tests(unittest.TestCase):
-	"""
-		Tests class
+    """
+        Tests class
 
-		Testing the katal.py script
-	"""
+	Testing the katal.py script
+    """
 
-	#//////////////////////////////////////////////////////////////////////////
-	def test__fill_select1(self):
-		"""
-			Tests.test__fill_select1()
+    #//////////////////////////////////////////////////////////////////////////
+    def test__fill_select1(self):
+        """
+		Tests.test__fill_select1()
 
-			Test of the katal.py::fill_select() function.
-		"""
-		katal.ARGS.configfile=os.path.join("tests", "cfgfile1.ini")
-		katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
-		katal.read_sieves()
-		katal.fill_select()
+		Test of the katal.py::fill_select() function.
+        """
+        katal.ARGS.configfile = os.path.join("tests", "cfgfile1.ini")
+        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.read_sieves()
+        katal.fill_select()
 
-		self.assertEqual(len(katal.SELECT), 1)
+        self.assertEqual(len(katal.SELECT), 1)
 
-		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
-		self.assertTrue(hashid in katal.SELECT)
+        hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
+        self.assertTrue(hashid in katal.SELECT)
 
-	#//////////////////////////////////////////////////////////////////////////
-	def test__fill_select2(self):
-		"""
-			Tests.test__fill_select2()
+    #//////////////////////////////////////////////////////////////////////////
+    def test__fill_select2(self):
+        """
+		Tests.test__fill_select2()
 
-			Test of the katal.py::fill_select() function.
-		"""
-		katal.ARGS.configfile=os.path.join("tests", "cfgfile2.ini")
-		katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
-		katal.read_sieves()
-		katal.fill_select()
+		Test of the katal.py::fill_select() function.
+        """
+        katal.ARGS.configfile = os.path.join("tests", "cfgfile2.ini")
+        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.read_sieves()
+        katal.fill_select()
 
-		self.assertEqual(len(katal.SELECT), 1)
+        self.assertEqual(len(katal.SELECT), 1)
 
-		hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
-		self.assertTrue(hashid in katal.SELECT)
+        hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
+        self.assertTrue(hashid in katal.SELECT)
 
-	#//////////////////////////////////////////////////////////////////////////
-	def test__fill_select3(self):
-		"""
-			Tests.test__fill_select3()
+    #//////////////////////////////////////////////////////////////////////////
+    def test__fill_select3(self):
+        """
+		Tests.test__fill_select3()
 
-			Test of the katal.py::fill_select() function.
-		"""
-		katal.ARGS.configfile=os.path.join("tests", "cfgfile3.ini")
-		katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
-		katal.read_sieves()
-		katal.fill_select()
-			
-		self.assertEqual(len(katal.SELECT), 2)
+		Test of the katal.py::fill_select() function.
+        """
+        katal.ARGS.configfile = os.path.join("tests", "cfgfile3.ini")
+        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.read_sieves()
+        katal.fill_select()
 
-		hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
-		self.assertTrue(hashid in katal.SELECT)
+        self.assertEqual(len(katal.SELECT), 2)
 
-		hashid = "rc2y98HRxM0xEpm9nouE60nVk4TUq3ec9sr10UEwpnY="
-		self.assertTrue(hashid in katal.SELECT)
+        hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+        self.assertTrue(hashid in katal.SELECT)
+
+        hashid = "rc2y98HRxM0xEpm9nouE60nVk4TUq3ec9sr10UEwpnY="
+        self.assertTrue(hashid in katal.SELECT)
