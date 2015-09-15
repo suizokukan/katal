@@ -224,8 +224,8 @@ def action__select():
     else:
         size_ok = "!!! problem !!!"
     msg("    o required space : {0}; " \
-        "available space on disk : {1} ({2})".format(SELECT_SIZE_IN_BYTES,
-                                                     available_space,
+        "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
+                                                     size_as_str(available_space),
                                                      size_ok))
 
     # if there's no --add option, let's give some examples of the target names :
