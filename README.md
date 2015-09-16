@@ -90,7 +90,7 @@ verbosity     : log verbosity="high" or "low"; turn if off (=low) if the log mes
                 or too verbose.
 
 [display]         : parameters about the way informations are displayed
-target filename.max length on console : >=17 (max length of the file names displayed)
+target filename.max length on console : (max length of the file names displayed)
 source filename.max length on console : (max length of the file names displayed)
 
 [source]          : parameters about source directory 

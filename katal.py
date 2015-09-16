@@ -867,13 +867,52 @@ def show_infos_about_target_path():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
-    def draw_table_separation_line():
-        "draw the first line(s) and the last one of the table"
-        msg(" "*6 + \
-            "-"*(HASHID_MAXLENGTH+1) + "+" + \
-            "-"*(TARGETNAME_MAXLENGTH+2) + "+" + \
-            "-"*(TAG_MAXLENGTH+2) + "+" + \
-            "-"*(SOURCENAME_MAXLENGTH+2))
+    def draw_table(_rows, _data):
+        """
+                Draw a table with some <_rows> and fill it with _data.
+        rows= ( ((str)row_name, (int)max length for this row), )
+        e.g. :
+        rows= ( ("hashid", HASHID_MAXLENGTH), )
+
+        _data : ( (str)row_content1, (str)row_content2, ...)
+        """
+
+        def draw_line():
+            " draw a simple line made of + and -"
+            string = " "*6 + "+"
+            for _, row_maxlength in rows:
+                string += "-"*(row_maxlength+2) + "+"
+            msg(string)
+
+        # real rows' widths : it may happen that a row's width is greater than
+        # the maximal value given in _rows since the row name is longer than
+        # this maximal value.
+        rows = []
+        for row_name, row_maxlength in _rows:
+            rows.append((row_name, max(len(row_name), row_maxlength)))
+
+        # header :
+        draw_line()
+
+        string = " "*6 + "|"
+        for row_name, row_maxlength in rows:
+            string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + "|"
+        msg(string)
+
+        draw_line()
+
+        # data :
+        for linedata in _data:
+            string = "      |"
+            for row_index, row_content in enumerate(linedata):
+                text = shortstr(row_content, _rows[row_index][1])
+                string += " " + \
+                          text + \
+                          " "*(rows[row_index][1]-len(text)) + \
+                          " |"
+            msg(string)  # let's write the computed line
+
+        draw_line()
 
     if not os.path.exists(TARGET_PATH):
         msg("Can't read target path {0}.".format(TARGET_PATH))
@@ -891,38 +930,23 @@ def show_infos_about_target_path():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        draw_table_separation_line()
-
-        msg(" "*6 + \
-            "hashid{0}|" \
-            " (target) name{1}|" \
-            " (target) tag{2}|" \
-            " (source) file name".format(" "*(HASHID_MAXLENGTH-5),
-                                         " "*(TARGETNAME_MAXLENGTH-12),
-                                         " "*(TAG_MAXLENGTH-11)))
-
-        draw_table_separation_line()
-
-        # there's no easy way to know the size of a table in a database.
-        # So we can't display the warning "empty database" before the following
-        # code which created the table.
+        # there's no easy way to know the size of a table in a database,
+        # so we can't display the "empty database" warning before the following
+        # code which reads the table.
+        rows_data = []
         row_index = 0
         for hashid, filename, sourcename, tag in db_cursor.execute('SELECT * FROM dbfiles'):
-
-            msg("      " + \
-                "{0} | {1}{2} | {3}{4} | {5}".format(shortstr(hashid, HASHID_MAXLENGTH),
-                                                     shortstr(filename, TARGETNAME_MAXLENGTH),
-                                                     " "*(TARGETNAME_MAXLENGTH-len(filename)),
-                                                     shortstr(tag, TAG_MAXLENGTH),
-                                                     " "*(TAG_MAXLENGTH-len(tag)),
-                                                     shortstr(sourcename, SOURCENAME_MAXLENGTH)))
+            rows_data.append((hashid, filename, tag, sourcename))
             row_index += 1
 
-        draw_table_separation_line()
-
-        # see above : it's not possible to place this code before the table.
         if row_index == 0:
             msg("    ! (empty database)")
+        else:
+            draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH),
+                              ("(target) name", TARGETNAME_MAXLENGTH),
+                              ("(target) tag", TAG_MAXLENGTH),
+                              ("(source) name", SOURCENAME_MAXLENGTH)),
+                       _data=rows_data)
 
         db_connection.close()
 
