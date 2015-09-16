@@ -647,7 +647,7 @@ def read_command_line_arguments():
 
     parser.add_argument('-ti', '--targetinfos',
                         action="store_true",
-                        help="display informations about the target directory")
+                        help="display informations about the target directory in --quiet mode")
 
     parser.add_argument('-m', '--mute',
                         action="store_true",
@@ -1141,6 +1141,9 @@ if __name__ == '__main__':
     try:
         ARGS = read_command_line_arguments()
         check_args()
+
+        if ARGS.targetinfos:
+            ARGS.quiet = True
 
         welcome()
 

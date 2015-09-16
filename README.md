@@ -203,21 +203,26 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         configuration file then add them to the target
                         directoryThis option can't be used the --select one.
                         (default: False)
-  --configfile CONFIGFILE
+  -c CONFIGFILE, --configfile CONFIGFILE
                         config file, e.g. config.ini (default: katal.ini)
   --hashid HASHID       return the hash id of the given file (default: None)
   --infos               display informations about the source directory given
                         in the configuration file (default: False)
-  --select              select files according to what is described in the
+  -s, --select          select files according to what is described in the
                         configuration file without adding them to the target
                         directory. This option can't be used the --add one.
                         (default: False)
-  -ti, --targetinfos    display informations about the target directory
-                        (default: False)
-  --mute                no output to the console; no question asked on the
+  -ti, --targetinfos    display informations about the target directory in
+                        --quiet mode (default: False)
+  -m, --mute            no output to the console; no question asked on the
                         console (default: False)
-  --quiet               no welcome/goodbye/informations about the parameters/
+  -q, --quiet           no welcome/goodbye/informations about the parameters/
                         messages on console (default: False)
+  --settag SETTAG       give the tag to some file(s) in combination with the
+                        --to option (default: None)
+  --to TO               give the name of the file(s) concerned by --settag.
+                        The argument is a regex; e.g. to select all .py files,
+                        use --to=".*\.py$ (default: None)
   --version             show the version and exit
 
 (C) the database
