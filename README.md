@@ -176,7 +176,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 
 (A) history
 
-    v.0.0.4 (2015_09_15) :
+    v.0.0.4 (2015_09_16) :
         o  Tests class (four tests ok)
         o  added eval formula in config file; added function eval_sieve_for_a_file()
         o  fixed a typo in size_as_str() : the '0 byte' case
