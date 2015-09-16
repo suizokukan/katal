@@ -13,27 +13,6 @@
         source directory.
         ________________________________________________________________________
 
-        arguments
-    
-          -h, --help            show this help message and exit
-          --add                 select files according to what is described in the
-                                configuration file then add them to the target
-                                directoryThis option can't be used the --select one.
-                                (default: False)
-          --configfile CONFIGFILE
-                                config file, e.g. config.ini (default: katal.ini)
-          --hashid HASHID       return the hash id of the given file (default: None)
-          --infos               display informations about the source directory given
-                                in the configuration file (default: False)
-          --select              select files according to what is described in the
-                                configuration file without adding them to the target
-                                directory. This option can't be used the --add one.
-                                (default: False)
-          --mute                no output to the console; no question asked on the
-                                console (default: False)
-          --quiet               no welcome/goodbye/informations about the parameters/
-                                messages on console (default: False)
-          --version             show the version and exit
         ________________________________________________________________________
 
         The name Katal comes from the Ancient Greek κατάλογος ("enrolment, 
@@ -213,4 +192,28 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
     v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
                            remain.
 
+(B) arguments
+
+  arguments
     
+  -h, --help            show this help message and exit
+  --add                 select files according to what is described in the
+                        configuration file then add them to the target
+                        directoryThis option can't be used the --select one.
+                        (default: False)
+  --configfile CONFIGFILE
+                        config file, e.g. config.ini (default: katal.ini)
+  --hashid HASHID       return the hash id of the given file (default: None)
+  --infos               display informations about the source directory given
+                        in the configuration file (default: False)
+  --select              select files according to what is described in the
+                        configuration file without adding them to the target
+                        directory. This option can't be used the --add one.
+                        (default: False)
+  -ti, --targetinfos    display informations about the target directory
+                        (default: False)
+  --mute                no output to the console; no question asked on the
+                        console (default: False)
+  --quiet               no welcome/goodbye/informations about the parameters/
+                        messages on console (default: False)
+  --version             show the version and exit

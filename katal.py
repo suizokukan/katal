@@ -590,6 +590,10 @@ def read_command_line_arguments():
                              "without adding them to the target directory. " \
                              "This option can't be used the --add one.")
 
+    parser.add_argument('-ti', '--targetinfos',
+                        action="store_true",
+                        help="display informations about the target directory")
+
     parser.add_argument('--mute',
                         action="store_true",
                         help="no output to the console; no question asked on the console")
@@ -1082,6 +1086,8 @@ if __name__ == '__main__':
 
         if ARGS.infos:
             action__infos()
+        if ARGS.targetinfos:
+            show_infos_about_target_path()
 
         if ARGS.hashid:
             show_hashid_of_a_file(ARGS.hashid)
