@@ -30,51 +30,6 @@
         ________________________________________________________________________
         ________________________________________________________________________
 
-        functions :
-
-        o  action__add()                        : add the source files to the destination
-                                                  path.
-        o  action__infos()                      : display informations about the source
-                                                  and the target directory
-        o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
-                                                  display what's going on.
-        o  action__settag()                     : Modify the tag(s) in the target directory,
-                                                  overwriting ancient tags.
-        o  check_args()                         : check the arguments of the command line.
-        o  create_target_name()                 : create the name of a file (a target file)
-                                                  from various informations read from a
-                                                  source file
-        o  eval_sieve_for_a_file()              : evaluate a file according to a sieve
-        o  fill_select                          : fill SELECT and SELECT_SIZE_IN_BYTES from
-                                                  the files stored in SOURCE_PATH.
-        o  get_disk_free_space()                : return the available space on disk
-        o  goodbye()                            : display the goodbye message
-        o  logfile_opening()                    : open the log file
-        o  hashfile64()                         : return the footprint of a file, encoded
-                                                  with the base 64.
-        o  msg()                                : display a message on console, write the
-                                                  same message in the log file.
-        o  parameters_infos()                   : display some informations about the
-                                                  content of the configuration file
-        o  read_command_line_arguments()        : read the command line arguments
-        o  read_parameters_from_cfgfile()       : read the configuration file
-        o  read_sieves()                        : initialize SIEVES from the configuration file
-        o  read_target_db()                     : read the database stored in the target
-                                                  directory and initialize TARGET_DB.
-        o  remove_illegal_characters()          : replace some illegal characters by the
-                                                  underscore character.
-        o  shortstr()                           : shorten a string
-        o  show_hashid_of_a_file()              : the function gives the hashid of a file.
-        o  show_infos_about_source_path()       : display informations about source path
-        o  show_infos_about_target_path()       : display informations about target path
-        o  size_as_str()                        : return a size in bytes as a human-readable
-                                                  string
-        o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
-                                                : the target directory
-        o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
-        o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
-        o  welcome()                            : display a welcome message on screen
-        o  welcome_in_logfile()                 : display a welcome message in the log file
 
 (1) configuration file
 The informations stored in the configuration file are written in the PARAMETERS global variable.
@@ -231,3 +186,51 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
         name                : text
         sourcename          : text
         tag                 : text
+
+(D) the functions
+
+o  action__add()                        : add the source files to the destination
+                                          path.
+o  action__infos()                      : display informations about the source
+                                          and the target directory
+o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
+                                          display what's going on.
+o  action__settag()                     : Modify the tag(s) in the target directory,
+                                          overwriting ancient tags.
+o  action__target_kill()                : delete a filename from the target directory
+                                          and from the database
+o  check_args()                         : check the arguments of the command line.
+o  create_target_name()                 : create the name of a file (a target file)
+                                          from various informations read from a
+                                          source file
+o  eval_sieve_for_a_file()              : evaluate a file according to a sieve
+o  fill_select                          : fill SELECT and SELECT_SIZE_IN_BYTES from
+                                          the files stored in SOURCE_PATH.
+o  get_disk_free_space()                : return the available space on disk
+o  goodbye()                            : display the goodbye message
+o  logfile_opening()                    : open the log file
+o  hashfile64()                         : return the footprint of a file, encoded
+                                          with the base 64.
+o  msg()                                : display a message on console, write the
+                                          same message in the log file.
+o  parameters_infos()                   : display some informations about the
+                                          content of the configuration file
+o  read_command_line_arguments()        : read the command line arguments
+o  read_parameters_from_cfgfile()       : read the configuration file
+o  read_sieves()                        : initialize SIEVES from the configuration file
+o  read_target_db()                     : read the database stored in the target
+                                          directory and initialize TARGET_DB.
+o  remove_illegal_characters()          : replace some illegal characters by the
+                                          underscore character.
+o  shortstr()                           : shorten a string
+o  show_hashid_of_a_file()              : the function gives the hashid of a file.
+o  show_infos_about_source_path()       : display informations about source path
+o  show_infos_about_target_path()       : display informations about target path
+o  size_as_str()                        : return a size in bytes as a human-readable
+                                          string
+o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
+                                        : the target directory
+o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
+o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
+o  welcome()                            : display a welcome message on screen
+o  welcome_in_logfile()                 : display a welcome message in the log file

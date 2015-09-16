@@ -295,6 +295,57 @@ def action__settag(_tag, _to):
         db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__target_kill(_filename):
+    """
+        action__target_kill()
+        ________________________________________________________________________
+
+        Delete _filename from the target directory and from the database.
+        ________________________________________________________________________
+
+        PARAMETER
+                o  _filename    : (str) file's name to be deleted.
+                                  DO NOT GIVE A PATH, just the file's name,
+                                  without the path to the target directory
+
+        RETURNED VALUE
+                (int) : 0 if success, -1 if the file doesn't exist in the target
+                        directory, -2 if the file doesn't exist in the database.
+    """
+    msg("  = about to kill \"{0}\" from the target directory " \
+        "and from its database =".format(_filename))
+    if not os.path.exists(os.path.join(TARGET_PATH, _filename)):
+        msg("    ! Can't find \"{0}\" file on disk.".format(_filename))
+        return -1
+
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+    db_connection = sqlite3.connect(db_filename)
+    db_cursor = db_connection.cursor()
+
+    filename_hashid = None
+    for hashid, name, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
+        if name == _filename:
+            filename_hashid = hashid
+
+    if filename_hashid is None:
+        msg("    ! Can't find \"{0}\" file in the database.".format(_filename))
+        res = -2
+    else:
+        # let's remove _filename from the target directory :
+        os.remove(os.path.join(TARGET_PATH, _filename))
+
+        # let's remove _filename from the database :
+        db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
+
+        res = 0  # success.
+
+    db_connection.commit()
+    db_connection.close()
+
+    msg("    ... done")
+    return res
+
+#///////////////////////////////////////////////////////////////////////////////
 def check_args():
     """
         check_args()
@@ -648,6 +699,12 @@ def read_command_line_arguments():
     parser.add_argument('-ti', '--targetinfos',
                         action="store_true",
                         help="display informations about the target directory in --quiet mode")
+
+    parser.add_argument('-tk', '--targetkill',
+                        type=str,
+                        help="kill one file from the target directory." \
+                             "DO NOT GIVE A PATH, just the file's name, " \
+                             "without the path to the target directory ")
 
     parser.add_argument('-m', '--mute',
                         action="store_true",
@@ -1196,6 +1253,9 @@ if __name__ == '__main__':
 
         if ARGS.settag:
             action__settag(ARGS.settag, ARGS.to)
+
+        if ARGS.targetkill:
+            action__target_kill(ARGS.targetkill)
 
         if ARGS.select:
             read_target_db()
