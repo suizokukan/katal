@@ -47,9 +47,11 @@ import argparse
 from base64 import b64encode
 from collections import namedtuple
 import configparser
+import ctypes
 import hashlib
 from datetime import datetime
 import os
+import platform
 import re
 import shutil
 import sqlite3
@@ -421,7 +423,8 @@ def get_disk_free_space(_path):
         get_disk_free_space()
         ________________________________________________________________________
 
-        return the available space on disk()
+        return the available space on disk() in bytes. Code for Windows system
+        from http://stackoverflow.com/questions/51658/ .
         ________________________________________________________________________
 
         PARAMETER
@@ -431,8 +434,14 @@ def get_disk_free_space(_path):
         RETURNED VALUE
                 the expected int(eger)
     """
-    stat = os.statvfs(_path)
-    return stat.f_bavail * stat.f_frsize
+    if platform.system() == 'Windows':
+        free_bytes = ctypes.c_ulonglong(0)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(_path),
+                                                   None, None, ctypes.pointer(free_bytes))
+        return free_bytes.value
+    else:
+        stat = os.statvfs(_path)
+        return stat.f_bavail * stat.f_frsize
 
 #///////////////////////////////////////////////////////////////////////////////
 def goodbye():
