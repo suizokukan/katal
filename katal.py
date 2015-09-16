@@ -160,7 +160,7 @@ def action__add():
 
         files_to_be_added.append((hashid, short_target_name, complete_source_filename, "",))
 
-    db_cursor.executemany('INSERT INTO files VALUES (?,?,?,?)', files_to_be_added)
+    db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?)', files_to_be_added)
     db_connection.commit()
 
     db_connection.close()
@@ -707,8 +707,8 @@ def read_target_db():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        db_cursor.execute('''CREATE TABLE files
-        (hashid text PRIMARY KEY, name text, sourcename text, tag text)''')
+        db_cursor.execute('''CREATE TABLE dbfiles
+        (hashid varchar(44) PRIMARY KEY, name text, sourcename text, tag text)''')
 
         db_connection.commit()
 
@@ -719,7 +719,7 @@ def read_target_db():
     db_connection = sqlite3.connect(db_filename)
     db_cursor = db_connection.cursor()
 
-    for hashid, _, _, _ in db_cursor.execute('SELECT * FROM files'):
+    for hashid, _, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
         TARGET_DB.append(hashid)
 
     db_connection.close()
@@ -845,15 +845,15 @@ def show_infos_about_target_path():
         # So we can't display the warning "empty database" before the following
         # code which created the table.
         row_index = 0
-        for hashid, filename, sourcename, tag in db_cursor.execute('SELECT * FROM files'):
+        for hashid, filename, sourcename, tag in db_cursor.execute('SELECT * FROM dbfiles'):
 
             msg("      " + \
-                "{0} | {1}{2} | {3}{4} | {5}".format(shortened_str(hashid, HASHID_MAXLENGTH),
-                                                     shortened_str(filename, TARGETNAME_MAXLENGTH),
+                "{0} | {1}{2} | {3}{4} | {5}".format(shortstr(hashid, HASHID_MAXLENGTH),
+                                                     shortstr(filename, TARGETNAME_MAXLENGTH),
                                                      " "*(TARGETNAME_MAXLENGTH-len(filename)),
-                                                     shortened_str(tag, TAG_MAXLENGTH),
+                                                     shortstr(tag, TAG_MAXLENGTH),
                                                      " "*(TAG_MAXLENGTH-len(tag)),
-                                                     shortened_str(sourcename, SOURCENAME_MAXLENGTH)))
+                                                     shortstr(sourcename, SOURCENAME_MAXLENGTH)))
             row_index += 1
 
         draw_table_separation_line()
@@ -867,9 +867,9 @@ def show_infos_about_target_path():
     return 0
 
 #///////////////////////////////////////////////////////////////////////////////
-def shortened_str(_str, _max_length):
+def shortstr(_str, _max_length):
     """
-        shortened_str
+        shortstr()
         ________________________________________________________________________
 
         The function the shortened version of a string.

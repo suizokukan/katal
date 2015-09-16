@@ -1,8 +1,6 @@
-todo : --quiet / -q et faire la même chose pour toutes les options en mettant à jour la doc.
-todo : * bdd : +tag (texte)
-       * afficher le tag
-            // abréger les noms de fonctions shortened_str > shortstr()
             / renommer la table files > filestable pour + de lisibilité.
+
+    todo : --quiet / -q et faire la même chose pour toutes les options en mettant à jour la doc.
        * commande pour donner/modifier le tag à un/des fichiers
 
 todo : appliquer un tag (à un ensemble de fichier(s))

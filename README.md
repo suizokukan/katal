@@ -61,7 +61,7 @@
                                                   directory and initialize TARGET_DB.
         o  remove_illegal_characters()          : replace some illegal characters by the
                                                   underscore character.
-        o  shortened_str()                      : shorten a string
+        o  shortstr()                           : shorten a string
         o  show_hashid_of_a_file()              : the function gives the hashid of a file.
         o  show_infos_about_source_path()       : display informations about source path
         o  show_infos_about_target_path()       : display informations about target path
@@ -217,3 +217,10 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
   --quiet               no welcome/goodbye/informations about the parameters/
                         messages on console (default: False)
   --version             show the version and exit
+
+(C) the database
+
+        hashid (primary key): varchar(44)
+        name                : text
+        sourcename          : text
+        tag                 : text
