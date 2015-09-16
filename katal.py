@@ -81,6 +81,9 @@ TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 # maximal length of the hashids displayed. Can't be greater than 44.
 HASHID_MAXLENGTH = 20
 
+# maximal length of the tag displayed.
+TAG_MAXLENGTH = 20
+
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOG_FILE = False  # (bool) initialized from the configuration file
 LOG_VERBOSITY = "high"  # initialized from the configuration file (see documentation:logfile)
@@ -155,9 +158,9 @@ def action__add():
         shutil.copyfile(complete_source_filename,
                         target_name)
 
-        files_to_be_added.append((hashid, short_target_name, complete_source_filename))
+        files_to_be_added.append((hashid, short_target_name, complete_source_filename, "",))
 
-    db_cursor.executemany('INSERT INTO files VALUES (?,?,?)', files_to_be_added)
+    db_cursor.executemany('INSERT INTO files VALUES (?,?,?,?)', files_to_be_added)
     db_connection.commit()
 
     db_connection.close()
@@ -629,7 +632,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     global USE_LOG_FILE, LOG_VERBOSITY
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
-    global HASHID_MAXLENGTH
+    global HASHID_MAXLENGTH, TAG_MAXLENGTH
 
     if not os.path.exists(_configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
@@ -646,6 +649,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
+        TAG_MAXLENGTH = int(parser["display"]["tag.max length on console"])
     except BaseException as exception:
         msg("    ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -704,7 +708,7 @@ def read_target_db():
         db_cursor = db_connection.cursor()
 
         db_cursor.execute('''CREATE TABLE files
-        (hashid text PRIMARY KEY, name text, sourcename text)''')
+        (hashid text PRIMARY KEY, name text, sourcename text, tag text)''')
 
         db_connection.commit()
 
@@ -715,7 +719,7 @@ def read_target_db():
     db_connection = sqlite3.connect(db_filename)
     db_cursor = db_connection.cursor()
 
-    for hashid, _, _ in db_cursor.execute('SELECT * FROM files'):
+    for hashid, _, _, _ in db_cursor.execute('SELECT * FROM files'):
         TARGET_DB.append(hashid)
 
     db_connection.close()
@@ -801,6 +805,14 @@ def show_infos_about_target_path():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
+    def draw_table_separation_line():
+        "draw the first line(s) and the last one of the table"
+        msg(" "*6 + \
+            "-"*(HASHID_MAXLENGTH+1) + "+" + \
+            "-"*(TARGETNAME_MAXLENGTH+2) + "+" + \
+            "-"*(TAG_MAXLENGTH+2) + "+" + \
+            "-"*(SOURCENAME_MAXLENGTH+2))
+
     if not os.path.exists(TARGET_PATH):
         msg("Can't read target path {0}.".format(TARGET_PATH))
         return -1
@@ -817,33 +829,34 @@ def show_infos_about_target_path():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        # the following magic numbers are here to align the rows' names and are
-        # linked to the footprint's length and rows' names' length.
-        msg("      " + \
-            "-"*(HASHID_MAXLENGTH+1) + "+" + \
-            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
-            "-"*(TARGETNAME_MAXLENGTH+1))
+        draw_table_separation_line()
 
-        msg("      hashid{0}| (target) file name{1}|" \
-            " (source) source name".format(" "*(HASHID_MAXLENGTH-5),
-                                           " "*(TARGETNAME_MAXLENGTH-17)))
+        msg(" "*6 + \
+            "hashid{0}|" \
+            " (target) name{1}|" \
+            " (target) tag{2}|" \
+            " (source) file name".format(" "*(HASHID_MAXLENGTH-5),
+                                         " "*(TARGETNAME_MAXLENGTH-12),
+                                         " "*(TAG_MAXLENGTH-11)))
 
-        msg("      " + \
-            "-"*(HASHID_MAXLENGTH+1) + "+" + \
-            "-"*(SOURCENAME_MAXLENGTH+2) + "+" + \
-            "-"*(TARGETNAME_MAXLENGTH+1))
+        draw_table_separation_line()
 
         # there's no easy way to know the size of a table in a database.
         # So we can't display the warning "empty database" before the following
         # code which created the table.
         row_index = 0
-        for hashid, filename, sourcename in db_cursor.execute('SELECT * FROM files'):
+        for hashid, filename, sourcename, tag in db_cursor.execute('SELECT * FROM files'):
 
-            msg("      {0} | {1}{2}| {3}".format(shortened_str(hashid, HASHID_MAXLENGTH),
-                                                 shortened_str(filename, TARGETNAME_MAXLENGTH),
-                                                 " "*(SOURCENAME_MAXLENGTH-len(filename)+1),
-                                                 shortened_str(sourcename, SOURCENAME_MAXLENGTH)))
+            msg("      " + \
+                "{0} | {1}{2} | {3}{4} | {5}".format(shortened_str(hashid, HASHID_MAXLENGTH),
+                                                     shortened_str(filename, TARGETNAME_MAXLENGTH),
+                                                     " "*(TARGETNAME_MAXLENGTH-len(filename)),
+                                                     shortened_str(tag, TAG_MAXLENGTH),
+                                                     " "*(TAG_MAXLENGTH-len(tag)),
+                                                     shortened_str(sourcename, SOURCENAME_MAXLENGTH)))
             row_index += 1
+
+        draw_table_separation_line()
 
         # see above : it's not possible to place this code before the table.
         if row_index == 0:
