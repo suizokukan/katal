@@ -112,6 +112,17 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 
 (A) history
 
+    v.0.0.5 (2015_09_17) :
+        o  added --targetkill/-tk option and the action__targetkill() function
+        o  improved show_infos_about_target_path() : each column has its own separator,
+           the table is computed by the function : no more magic numbers
+        o  added -ti, --targetinfos option (--targetinfos/-ti uses --quiet mode)
+        o  added --settag, --to options
+        o  fixed get_disk_free_space() for Windows systems
+        o  added short options for some options : -c, -s, -ti, -m, -q
+        o  'shortened_str' > 'shortstr'
+        o  added a 'tag' field in the database
+
     v.0.0.4 (2015_09_16) :
         o  Tests class (four tests ok)
         o  added eval formula in config file; added function eval_sieve_for_a_file()
