@@ -1,12 +1,7 @@
-    todo : --quiet / -q et faire la même chose pour toutes les options en mettant à jour la doc.
-       * commande pour donner/modifier le tag à un/des fichiers
-
+tests, en particulier sous Windows et sous OSX
 todo : appliquer un tag (à un ensemble de fichier(s))
 todo : supprimer un fichier/le renommer/...
 todo : sieve par date.
-
-    $$ tests, en particulier sous Windows et sous OSX
-
 point fort du programme : monofichier + pas de dépendance externe
 # un principe : on ne touche pas au répertoire de départ.
 #
