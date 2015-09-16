@@ -40,38 +40,6 @@
         register, catalogue").
         ________________________________________________________________________
 
-        history :
-
-        v.0.0.4 (2015_09_15) :
-            o  Tests class (three tests ok)
-            o  fixed a bug in hashfile64() : the hasher is now created every time 
-               the function is called
-            o  modified the SIEVES format for "size"
-            o  moved the declaration of global variables at the beginning of the file
-            o  added a block : if __name__ == '__main__', allowing to call the script
-               from another script.
-            o  improved the way the program catches the exceptions
-            o  updated .gitignore 
-            o  "VERBOSITY" > "LOG_VERBOSITY"
-            o  renamed some functions (get_* > read_*)
-
-        v.0.0.3 (2015_09_14) :
-            o  --quiet and --mute options
-            o  --hashid option (and show_hashid_of_a_file() function)
-            o  fixed the error in the shebang line
-            o  rewrote remove_illegal_character()
-            o  improved action__select() : no useless messages are displayed with the
-                --add option
-
-        v.0.0.2 (2015_09_14) :
-            o  added SELECTELEMENT type
-            o  the call to sys.exit(0) is now at the very end of the file
-            o  no tests, pylint=10.0, some todos remain.
-              
-                no tests, pylint=10.0, some todos remain.
-
-        v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
-                               remain.
         ________________________________________________________________________
 
         exit codes :
@@ -205,3 +173,44 @@ SIEVES is filled by read_sieves().
 In every target directory a database is created and filled. Its name is set by the
 global variable DATABASE_NAME.
 TARGET_DB is a list of hashids and initialized by read_target_db().
+
+(A) history
+
+    v.0.0.4 (2015_09_15) :
+        o  Tests class (four tests ok)
+        o  added eval formula in config file; added function eval_sieve_for_a_file()
+        o  fixed a typo in size_as_str() : the '0 byte' case
+        o  fixed a bug in hashfile64() : the hasher is now created every time 
+           the function is called
+        o  modified the SIEVES format for "size"
+        o  moved the declaration of global variables at the beginning of the file
+        o  added a block : if __name__ == '__main__', allowing to call the script
+           from another script.
+        o  modified the database data types : hashid=varchar(44); primary key on hashid
+        o  improved the way the program catches the exceptions
+        o  improved action__infos() display : for each extension the size in bytes is
+           displayed
+        o  updated .gitignore 
+        o  "VERBOSITY" > "LOG_VERBOSITY"; TARGETFILENAME_* > TARGETNAME_*
+        o  added FREESPACE_MARGIN constant
+        o  renamed some functions (get_* > read_*)
+
+    v.0.0.3 (2015_09_14) :
+        o  --quiet and --mute options
+        o  --hashid option (and show_hashid_of_a_file() function)
+        o  fixed the error in the shebang line
+        o  rewrote remove_illegal_character()
+        o  improved action__select() : no useless messages are displayed with the
+            --add option
+
+    v.0.0.2 (2015_09_14) :
+        o  added SELECTELEMENT type
+        o  the call to sys.exit(0) is now at the very end of the file
+        o  no tests, pylint=10.0, some todos remain.
+
+            no tests, pylint=10.0, some todos remain.
+
+    v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
+                           remain.
+
+    
