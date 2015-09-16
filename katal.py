@@ -439,7 +439,7 @@ def goodbye():
     """
         goodbye()
         ________________________________________________________________________
-q
+
         If not in quiet mode (see --quiet option), display a goodbye message.
         ________________________________________________________________________
 
@@ -572,7 +572,7 @@ def read_command_line_arguments():
                              "then add them to the target directory" \
                              "This option can't be used the --select one.")
 
-    parser.add_argument('--configfile',
+    parser.add_argument('-c', '--configfile',
                         type=str,
                         default=DEFAULT_CONFIGFILE_NAME,
                         help="config file, e.g. config.ini")
@@ -586,7 +586,7 @@ def read_command_line_arguments():
                         help="display informations about the source directory " \
                              "given in the configuration file")
 
-    parser.add_argument('--select',
+    parser.add_argument('-s', '--select',
                         action="store_true",
                         help="select files according to what is described " \
                              "in the configuration file " \
@@ -597,11 +597,11 @@ def read_command_line_arguments():
                         action="store_true",
                         help="display informations about the target directory")
 
-    parser.add_argument('--mute',
+    parser.add_argument('-m', '--mute',
                         action="store_true",
                         help="no output to the console; no question asked on the console")
 
-    parser.add_argument('--quiet',
+    parser.add_argument('-q', '--quiet',
                         action="store_true",
                         help="no welcome/goodbye/informations about the parameters/ messages " \
                              "on console")
