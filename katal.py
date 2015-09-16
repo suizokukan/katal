@@ -870,9 +870,9 @@ def show_infos_about_target_path():
     def draw_table(_rows, _data):
         """
                 Draw a table with some <_rows> and fill it with _data.
-        rows= ( ((str)row_name, (int)max length for this row), )
+        rows= ( ((str)row_name, (int)max length for this row), (str)separator)
         e.g. :
-        rows= ( ("hashid", HASHID_MAXLENGTH), )
+        rows= ( ("hashid", HASHID_MAXLENGTH, "|"), )
 
         _data : ( (str)row_content1, (str)row_content2, ...)
         """
@@ -880,7 +880,7 @@ def show_infos_about_target_path():
         def draw_line():
             " draw a simple line made of + and -"
             string = " "*6 + "+"
-            for _, row_maxlength in rows:
+            for _, row_maxlength, _ in rows:
                 string += "-"*(row_maxlength+2) + "+"
             msg(string)
 
@@ -888,15 +888,15 @@ def show_infos_about_target_path():
         # the maximal value given in _rows since the row name is longer than
         # this maximal value.
         rows = []
-        for row_name, row_maxlength in _rows:
-            rows.append((row_name, max(len(row_name), row_maxlength)))
+        for row_name, row_maxlength, row_separator in _rows:
+            rows.append((row_name, max(len(row_name), row_maxlength), row_separator))
 
         # header :
         draw_line()
 
         string = " "*6 + "|"
-        for row_name, row_maxlength in rows:
-            string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + "|"
+        for row_name, row_maxlength, row_separator in rows:
+            string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + row_separator
         msg(string)
 
         draw_line()
@@ -909,7 +909,7 @@ def show_infos_about_target_path():
                 string += " " + \
                           text + \
                           " "*(rows[row_index][1]-len(text)) + \
-                          " |"
+                          " " + rows[row_index][2]
             msg(string)  # let's write the computed line
 
         draw_line()
@@ -942,10 +942,10 @@ def show_infos_about_target_path():
         if row_index == 0:
             msg("    ! (empty database)")
         else:
-            draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH),
-                              ("(target) name", TARGETNAME_MAXLENGTH),
-                              ("(target) tag", TAG_MAXLENGTH),
-                              ("(source) name", SOURCENAME_MAXLENGTH)),
+            draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
+                              ("name", TARGETNAME_MAXLENGTH, "|"),
+                              ("tag", TAG_MAXLENGTH, "║"),
+                              ("(source) name", SOURCENAME_MAXLENGTH, "║")),
                        _data=rows_data)
 
         db_connection.close()
