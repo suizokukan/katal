@@ -58,7 +58,7 @@ import sqlite3
 import sys
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.0.4"
+PROGRAM_VERSION = "0.0.5"
 
 # when the program verifies that there's enough free space on disk, it multiplies
 # the required amount of space by these coefficient
