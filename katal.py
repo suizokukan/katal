@@ -40,6 +40,8 @@
 # pylint: disable=W0603
 # Pylint : disabling the "Too many lines in module" error
 # pylint: disable=C0302
+# Pylint : disabling the "Use of eval" warning
+# pylint: disable=W0123
 
 import argparse
 from base64 import b64encode
@@ -316,6 +318,33 @@ def create_target_name(_hashid, _database_index):
                                       remove_illegal_characters(str(_database_index)))
 
     return target_name
+
+#///////////////////////////////////////////////////////////////////////////////
+def eval_sieve_for_a_file(_sieve, _filename, _size):
+    """
+        eval_sieve_for_a_file()
+        ________________________________________________________________________
+
+        Eval a file according to a sieve and answers the following question :
+        does the file matches what is described in the sieve ?
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _sieve        : a dict, see documentation:select
+                o _filename     : (str) file's name
+                o _size         : (int) file's size, in bytes.
+
+        RETURNED VALUE
+                a boolean, giving the expected answer
+    """
+    res = True
+
+    if res and "name" in _sieve:
+        res = the_file_has_to_be_added__name(_sieve, _filename)
+    if res and "size" in _sieve:
+        res = the_file_has_to_be_added__size(_sieve, _size)
+
+    return res
 
 #///////////////////////////////////////////////////////////////////////////////
 def fill_select():
@@ -900,26 +929,19 @@ def the_file_has_to_be_added(_filename, _size):
         RETURNED VALUE
                 a boolean, giving the expected answer
     """
-    # to be True, one of the sieves must match the file given as a parameter :
-    res = False
+    evalstr = PARAMETERS["source"]["eval"]
 
     for sieve_index in SIEVES:
         sieve = SIEVES[sieve_index]
 
-        sieve_res = True
+        evalstr = evalstr.replace("sieve"+str(sieve_index),
+                                  str(eval_sieve_for_a_file(sieve, _filename, _size)))
 
-        if sieve_res and "name" in sieve:
-            sieve_res = the_file_has_to_be_added__name(sieve, _filename)
-
-        if sieve_res and "size" in sieve:
-            sieve_res = the_file_has_to_be_added__size(sieve, _size)
-
-        # at least, one sieve is ok with this file :
-        if sieve_res:
-            res = True
-            break
-
-    return res
+    try:
+        return eval(evalstr)
+    except BaseException as exception:
+        raise ProjectError("The eval formula in the config file " \
+                           "contains an error. Python message : "+str(exception))
 
 #///////////////////////////////////////////////////////////////////////////////
 def the_file_has_to_be_added__name(_sieve, _filename):
@@ -934,8 +956,11 @@ def the_file_has_to_be_added__name(_sieve, _filename):
         PARAMETERS
                 o _sieve        : a dict object; see documentation:selection
                 o _filename     : (str) file's name
+
+        RETURNED VALUE
+                the expected boolean
     """
-    return re.match(_sieve["name"], _filename)
+    return re.match(_sieve["name"], _filename) is not None
 
 #///////////////////////////////////////////////////////////////////////////////
 def the_file_has_to_be_added__size(_sieve, _size):
@@ -950,6 +975,9 @@ def the_file_has_to_be_added__size(_sieve, _size):
         PARAMETERS
                 o _sieve        : a dict object; see documentation:selection
                 o _size         : (str) file's size
+
+        RETURNED VALUE
+                the expected boolean
     """
     res = False
 

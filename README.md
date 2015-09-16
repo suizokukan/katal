@@ -95,6 +95,7 @@
         o  create_target_name()                 : create the name of a file (a target file)
                                                   from various informations read from a
                                                   source file
+        o  eval_sieve_for_a_file()              : evaluate a file according to a sieve
         o  fill_select                          : fill SELECT and SELECT_SIZE_IN_BYTES from
                                                   the files stored in SOURCE_PATH.
         o  get_disk_free_space()                : return the available space on disk
