@@ -256,6 +256,45 @@ def action__select():
                 break
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__settag(_tag, _to):
+    """
+        action__settag()
+        ________________________________________________________________________
+
+        Modify the tag(s) in the target directory, overwriting ancient tags.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _tag  : (str) the new tag
+                o _to   : (str) a regex string describing what files are
+                          concerned
+    """
+    msg("  = let's apply the tag \"{0}\" to {1}".format(_tag, _to))
+
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+    if not os.path.exists(db_filename):
+        msg("    ! Found no database.")
+    else:
+        db_connection = sqlite3.connect(db_filename)
+        db_cursor = db_connection.cursor()
+
+        files_to_be_modified = []       # a list of (hashids, name)
+        for hashid, filename, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
+            if re.match(ARGS.to, filename) is not None:
+                files_to_be_modified.append((hashid, filename))
+
+        if len(files_to_be_modified) == 0:
+            msg("    ! no files match the given regex.")
+        else:
+            # let's apply the _tag to the <files_to_be_modified> :
+            for hashid, filename in files_to_be_modified:
+                msg("    o applying the tag \"{0}\" to {1}.".format(_tag, filename))
+                db_connection.execute('UPDATE dbfiles SET tag=? WHERE hashid=?', (_tag, hashid))
+            db_connection.commit()
+
+        db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
 def check_args():
     """
         check_args()
@@ -270,6 +309,10 @@ def check_args():
     # --select and --add can't be used simultaneously.
     if ARGS.add == True and ARGS.select == True:
         raise ProjectError("--select and --add can't be used simultaneously")
+
+    # --settag must be used with --to :
+    if ARGS.settag and not ARGS.to:
+        raise ProjectError("please use --to in combination with --settag")
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(_hashid, _database_index):
@@ -614,6 +657,16 @@ def read_command_line_arguments():
                         action="store_true",
                         help="no welcome/goodbye/informations about the parameters/ messages " \
                              "on console")
+
+    parser.add_argument('--settag',
+                        type=str,
+                        help="give the tag to some file(s) in combination with the --to option")
+
+    parser.add_argument('--to',
+                        type=str,
+                        help="give the name of the file(s) concerned by --settag. " \
+                        "The argument is a regex; e.g. to select all .py files, use " \
+                        "--to=\".*\\.py$")
 
     parser.add_argument('--version',
                         action='version',
@@ -1113,6 +1166,9 @@ if __name__ == '__main__':
 
         if ARGS.hashid:
             show_hashid_of_a_file(ARGS.hashid)
+
+        if ARGS.settag:
+            action__settag(ARGS.settag, ARGS.to)
 
         if ARGS.select:
             read_target_db()

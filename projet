@@ -1,5 +1,5 @@
-tests, en particulier sous Windows et sous OSX
-todo : appliquer un tag (à un ensemble de fichier(s))
+    todo : -ti = --quiet + afficher infos.
+todo : terminer le tableau à droite
 todo : supprimer un fichier/le renommer/...
 todo : sieve par date.
 point fort du programme : monofichier + pas de dépendance externe

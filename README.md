@@ -38,6 +38,8 @@
                                                   and the target directory
         o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                                   display what's going on.
+        o  action__settag()                     : Modify the tag(s) in the target directory,
+                                                  overwriting ancient tags.
         o  check_args()                         : check the arguments of the command line.
         o  create_target_name()                 : create the name of a file (a target file)
                                                   from various informations read from a
