@@ -102,7 +102,8 @@ Definition of SELECTELEMENT :
 SIEVES is a dictionary with a (int)sieve_index as a key and a dict as values.
 This dict may be empty or contain the following keys/values : 
   SIEVES["name"] = re.compile(...)
-  SIEVES["size"] = a string like ">999"
+  SIEVES["size"] = a string like ">999", initial symbol in ('=', '<', '>', '<=', '>=')
+  SIEVES["date"] = a string like '>2015-09-17 20:01', initial symbol in ('=', '<', '>', '<=', '>=')
 SIEVES is filled by read_sieves().
 
 (4) database

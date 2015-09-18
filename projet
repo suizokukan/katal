@@ -1,5 +1,14 @@
+et si on entre un tag trop long...
+télécharger le katal.ini par dégaut... http://stackoverflow.com/questions/7243750
+
+doc: convention: nom d'arguments
+
+    tester sieve par date
+remettre le .ini normal.
+todo : dans welcome_*, utiliser le TIMESTAMP_BEGIN à la place des lignes l'affichant.
 todo : supprimer un fichier/le renommer/...
-todo : sieve par date.
 point fort du programme : monofichier + pas de dépendance externe
 # un principe : on ne touche pas au répertoire de départ.
 #
+
+the_file_has_to_be_added__size() : if > elif

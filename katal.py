@@ -103,6 +103,9 @@ SELECT = {} # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
 SIEVES = {}  # see documentation:selection; initialized by read_sieves()
 
+# date's string format, e.g. "2015-09-17 20:01"
+DATETIME_FORMAT = "%Y-%m-%d %H:%M"
+
 ################################################################################
 class ProjectError(BaseException):
     """
@@ -419,7 +422,7 @@ def create_target_name(_hashid, _database_index):
     return target_name
 
 #///////////////////////////////////////////////////////////////////////////////
-def eval_sieve_for_a_file(_sieve, _filename, _size):
+def eval_sieve_for_a_file(_sieve, _filename, _size, _date):
     """
         eval_sieve_for_a_file()
         ________________________________________________________________________
@@ -432,6 +435,7 @@ def eval_sieve_for_a_file(_sieve, _filename, _size):
                 o _sieve        : a dict, see documentation:select
                 o _filename     : (str) file's name
                 o _size         : (int) file's size, in bytes.
+                o _date         : (str)file's date
 
         RETURNED VALUE
                 a boolean, giving the expected answer
@@ -442,11 +446,13 @@ def eval_sieve_for_a_file(_sieve, _filename, _size):
         res = the_file_has_to_be_added__name(_sieve, _filename)
     if res and "size" in _sieve:
         res = the_file_has_to_be_added__size(_sieve, _size)
+    if res and "date" in _sieve:
+        res = the_file_has_to_be_added__date(_sieve, _date)
 
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def fill_select():
+def fill_select(_debug_datatime=None):
     """
         fill_select()
         ________________________________________________________________________
@@ -456,12 +462,14 @@ def fill_select():
         ________________________________________________________________________
 
         no PARAMETER
+                o  _debug_datatime : None (normal value) or a dict of DATETIME_FORMAT
+                                     strings if in debug/test mode.
 
         RETURNED VALUE
                 (int) the number of discard files
     """
     global SELECT, SELECT_SIZE_IN_BYTES
-    SELECT = {} # see the SELECT format in the documentation:selection
+    SELECT = {}  # see the SELECT format in the documentation:selection
     SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
 
@@ -470,14 +478,20 @@ def fill_select():
 
             complete_name = os.path.join(dirpath, filename)
             size = os.stat(complete_name).st_size
-            time = datetime.fromtimestamp(os.path.getmtime(complete_name))
+            if _debug_datatime is None:
+                time = \
+                    datetime.fromtimestamp(os.path.getmtime(complete_name)).replace(second=0,
+                                                                                    microsecond=0)
+            else:
+                time = datetime.strptime(_debug_datatime[complete_name], DATETIME_FORMAT)
+
             filename_no_extens, extension = os.path.splitext(filename)
 
             # the extension stored in SELECT does not begin with a dot.
             if extension.startswith("."):
                 extension = extension[1:]
 
-            res = the_file_has_to_be_added(filename, size)
+            res = the_file_has_to_be_added(filename, size, time)
             if not res:
                 if LOG_VERBOSITY == "high":
                     msg("    - (sieves described in the config file)" \
@@ -494,7 +508,7 @@ def fill_select():
                                                   filename_no_extens=filename_no_extens,
                                                   extension=extension,
                                                   size=size,
-                                                  date=time.strftime("%Y_%m_%d__%H_%M_%S"))
+                                                  date=time.strftime(DATETIME_FORMAT))
 
                     if LOG_VERBOSITY == "high":
                         msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
@@ -552,7 +566,7 @@ def goodbye():
         return
 
     msg("=== exit (stopped at {0}; " \
-        "total duration time : {1}) ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "total duration time : {1}) ===".format(datetime.now().strftime(DATETIME_FORMAT),
                                                 datetime.now() - TIMESTAMP_BEGIN))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -788,6 +802,8 @@ def read_sieves():
 
         no PARAMETER, no RETURNED VALUE
     """
+    SIEVES.clear()
+
     stop = False
     sieve_index = 1
 
@@ -802,6 +818,8 @@ def read_sieves():
                                     re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"])
             if PARAMETERS.has_option("source.sieve"+str(sieve_index), "size"):
                 SIEVES[sieve_index]["size"] = PARAMETERS["source.sieve"+str(sieve_index)]["size"]
+            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "date"):
+                SIEVES[sieve_index]["date"] = PARAMETERS["source.sieve"+str(sieve_index)]["date"]
 
         sieve_index += 1
 
@@ -1073,7 +1091,7 @@ def size_as_str(_size):
                                                 _size)
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_has_to_be_added(_filename, _size):
+def the_file_has_to_be_added(_filename, _size, _date):
     """
         the_file_has_to_be_added()
         ________________________________________________________________________
@@ -1085,6 +1103,7 @@ def the_file_has_to_be_added(_filename, _size):
         PARAMETERS
                 o _filename     : (str) file's name
                 o _size         : (int) file's size, in bytes.
+                o _date         : (str) file's date
 
         RETURNED VALUE
                 a boolean, giving the expected answer
@@ -1095,13 +1114,44 @@ def the_file_has_to_be_added(_filename, _size):
         sieve = SIEVES[sieve_index]
 
         evalstr = evalstr.replace("sieve"+str(sieve_index),
-                                  str(eval_sieve_for_a_file(sieve, _filename, _size)))
+                                  str(eval_sieve_for_a_file(sieve, _filename, _size, _date)))
 
     try:
         return eval(evalstr)
     except BaseException as exception:
         raise ProjectError("The eval formula in the config file " \
                            "contains an error. Python message : "+str(exception))
+
+#///////////////////////////////////////////////////////////////////////////////
+def the_file_has_to_be_added__date(_sieve, _date):
+    """
+        the_file_has_to_be_added__date()
+        ________________________________________________________________________
+
+        Function used by the_file_has_to_be_added() : check if the date of a
+        file matches the sieve given as a parameter.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _sieve        : a dict object; see documentation:selection
+                o _date         : (str) file's datestamp (object datetime.datetime)
+
+        RETURNED VALUE
+                the expected boolean
+    """
+    # beware ! the order matters (<= before <, >= before >)
+    if _sieve["date"].startswith("="):
+        return _date == datetime.strptime(_sieve["date"][1:], DATETIME_FORMAT)
+    elif _sieve["date"].startswith(">="):
+        return _date >= datetime.strptime(_sieve["date"][2:], DATETIME_FORMAT)
+    elif _sieve["date"].startswith(">"):
+        return _date > datetime.strptime(_sieve["date"][1:], DATETIME_FORMAT)
+    elif _sieve["date"].startswith("<="):
+        return _date < datetime.strptime(_sieve["date"][2:], DATETIME_FORMAT)
+    elif _sieve["date"].startswith("<"):
+        return _date < datetime.strptime(_sieve["date"][1:], DATETIME_FORMAT)
+    else:
+        raise ProjectError("Can't analyse a 'date' field : "+_sieve["date"])
 
 #///////////////////////////////////////////////////////////////////////////////
 def the_file_has_to_be_added__name(_sieve, _filename):
@@ -1143,17 +1193,18 @@ def the_file_has_to_be_added__size(_sieve, _size):
 
     sieve_size = _sieve["size"] # a string like ">999" : see documentation:selection
 
-    if sieve_size.startswith(">"):
-        if _size > int(sieve_size[1:]):
-            res = True
+    # beware !  the order matters (<= before <, >= before >)
     if sieve_size.startswith(">="):
         if _size >= int(sieve_size[2:]):
             res = True
-    if sieve_size.startswith("<"):
-        if _size < int(sieve_size[1:]):
+    if sieve_size.startswith(">"):
+        if _size > int(sieve_size[1:]):
             res = True
     if sieve_size.startswith("<="):
         if _size <= int(sieve_size[2:]):
+            res = True
+    if sieve_size.startswith("<"):
+        if _size < int(sieve_size[1:]):
             res = True
     if sieve_size.startswith("="):
         if _size == int(sieve_size[1:]):

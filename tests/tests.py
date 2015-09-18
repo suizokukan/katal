@@ -27,6 +27,7 @@
 #          since there IS a 'configfile' member for the ARGS class.
 # pylint: disable=E1101
 
+from datetime import datetime
 import os
 from collections import namedtuple
 import unittest
@@ -99,7 +100,7 @@ class Tests(unittest.TestCase):
     #//////////////////////////////////////////////////////////////////////////
     def test__fill_select4(self):
         """
-		Tests.test__fill_select3()
+		Tests.test__fill_select4()
 
 		Test of the katal.py::fill_select() function.
         """
@@ -113,3 +114,66 @@ class Tests(unittest.TestCase):
         hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
         self.assertTrue(hashid in katal.SELECT)
         self.assertTrue(katal.SELECT[hashid].complete_name, "ddddd.6")
+
+    #//////////////////////////////////////////////////////////////////////////
+    def test__fill_select5(self):
+        """
+		Tests.test__fill_select5()
+
+		Test of the katal.py::fill_select() function.
+        """
+        katal.ARGS.configfile = os.path.join("tests", "cfgfile5.ini")
+        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.read_sieves()
+        katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
+                           "tests/data1/a.1":"2015-09-17 20:01",
+                           "tests/data1/b.2":"2015-09-17 20:01",
+                           "tests/data1/b.3":"2015-09-17 20:01",
+                           "tests/data1/c.4":"2015-09-17 20:01",
+                           "tests/data1/c.5":"2015-09-17 20:01",
+                           "tests/data1/ddddX.6":"2015-09-17 20:01",
+                           "tests/data1/ddddd.6":"2015-09-17 20:01",})
+
+        self.assertEqual(len(katal.SELECT), 0)
+
+    #//////////////////////////////////////////////////////////////////////////
+    def test__fill_select6(self):
+        """
+		Tests.test__fill_select6()
+
+		Test of the katal.py::fill_select() function.
+        """
+        katal.ARGS.configfile = os.path.join("tests", "cfgfile6.ini")
+        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.read_sieves()
+        katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
+                           "tests/data1/a.1":"2015-09-17 20:01",
+                           "tests/data1/b.2":"2015-09-17 20:01",
+                           "tests/data1/b.3":"2015-09-17 20:01",
+                           "tests/data1/c.4":"2015-09-17 20:01",
+                           "tests/data1/c.5":"2015-09-17 20:01",
+                           "tests/data1/ddddX.6":"2015-09-17 20:01",
+                           "tests/data1/ddddd.6":"2015-09-17 20:01",})
+
+        self.assertEqual(len(katal.SELECT), 3)
+
+    #//////////////////////////////////////////////////////////////////////////
+    def test__fill_select7(self):
+        """
+		Tests.test__fill_select7()
+
+		Test of the katal.py::fill_select() function.
+        """
+        katal.ARGS.configfile = os.path.join("tests", "cfgfile7.ini")
+        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.read_sieves()
+        katal.fill_select({"tests/data1/a.0":"2013-01-01 00:00",
+                           "tests/data1/a.1":"2013-01-01 00:00",
+                           "tests/data1/b.2":"2014-01-01 00:00",
+                           "tests/data1/b.3":"2014-01-01 00:00",
+                           "tests/data1/c.4":"2015-01-01 00:00",
+                           "tests/data1/c.5":"2015-01-01 00:00",
+                           "tests/data1/ddddX.6":"2015-09-01 00:00",
+                           "tests/data1/ddddd.6":"2015-09-01 00:00",})
+
+        self.assertEqual(len(katal.SELECT), 3)
