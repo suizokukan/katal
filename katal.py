@@ -1234,7 +1234,7 @@ def welcome():
 
     msg("=== {0} v.{1} (launched at {2}) ===".format(PROGRAM_NAME,
                                                      PROGRAM_VERSION,
-                                                     datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                                                     TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")))
     msg("  = using \"{0}\" as config file".format(ARGS.configfile))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1258,7 +1258,7 @@ def welcome_in_logfile():
     msg(_msg="=== {0} v.{1} " \
         "(launched at {2}) ===".format(PROGRAM_NAME,
                                        PROGRAM_VERSION,
-                                       datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+                                       TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")),
         _for_logfile=True,
         _for_console=False)
 
