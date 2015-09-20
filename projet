@@ -1,4 +1,6 @@
-télécharger le katal.ini par dégaut... http://stackoverflow.com/questions/7243750
+todo : le comportement du download n'est pas documenté si le fichier existe déjà (xxx.ini.1 ??) est créé : essayer.
+
+todo : target ou dest ?   
 
 doc: convention: nom d'arguments
 

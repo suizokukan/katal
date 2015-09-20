@@ -38,9 +38,16 @@
 """
 # Pylint : disabling the "Using the global statement (global-statement)" warning
 # pylint: disable=W0603
+
 # Pylint : disabling the "Too many lines in module" error
 # pylint: disable=C0302
+
 # Pylint : disabling the "Use of eval" warning
+# eval() is used in the the_file_has_to_be_added() function
+#
+# see below how this function is protected against malicious code execution.
+# see AUTHORIZED_EVALCHARS
+#
 # pylint: disable=W0123
 
 import argparse
@@ -57,6 +64,7 @@ import shutil
 import sqlite3
 import urllib.request
 import sys
+import unicodedata
 
 PROGRAM_NAME = "Katal"
 PROGRAM_VERSION = "0.0.5"
@@ -106,6 +114,17 @@ SIEVES = {}  # see documentation:selection; initialized by read_sieves()
 
 # date's string format, e.g. "2015-09-17 20:01"
 DATETIME_FORMAT = "%Y-%m-%d %H:%M"
+
+# this minimal subset of characters are the only characters to be used in the
+# eval() function. Other characters are forbidden to avoid malicious code execution.
+# keywords an symbols : sieve, parentheses, and, or, not, xor, True, False
+#                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+AUTHORIZED_EVALCHARS = (' ',
+                        'T', 'F',
+                        'a', 'd', 'l', 's', 'i', 'e', 'v', 'r', 'u', 'x',
+                        'n', 'o', 't',
+                        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                        '&', '|', '^', '(', ')')
 
 ################################################################################
 class ProjectError(BaseException):
@@ -1140,6 +1159,18 @@ def the_file_has_to_be_added(_filename, _size, _date):
                                   str(eval_sieve_for_a_file(sieve, _filename, _size, _date)))
 
     try:
+        # eval() IS a dangerous function : see the note about AUTHORIZED_EVALCHARS.
+        for char in evalstr:
+            if char not in AUTHORIZED_EVALCHARS:
+                raise ProjectError("Error in configuration file : " \
+                                   "trying to compute the \"{0}\" string; " \
+                                   "wrong character '{1}'({2}) " \
+                                   "used in the string to be evaluated. " \
+                                   "Authorized " \
+                                   "characters are {3}".format(evalstr,
+                                                               char,
+                                                               unicodedata.name(char),
+                                                               "|"+"|".join(AUTHORIZED_EVALCHARS)))
         return eval(evalstr)
     except BaseException as exception:
         raise ProjectError("The eval formula in the config file " \
