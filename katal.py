@@ -55,6 +55,7 @@ import platform
 import re
 import shutil
 import sqlite3
+import urllib.request
 import sys
 
 PROGRAM_NAME = "Katal"
@@ -172,6 +173,22 @@ def action__add():
 
     # returned value : 0 = success
     return 0
+
+#///////////////////////////////////////////////////////////////////////////////
+def action__downloadefaultcfg():
+    """
+        action__downloadefaultcfg()
+        ________________________________________________________________________
+
+        Download the default configuration file and (over)writes it in the current
+        directory.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal.ini"
+    with urllib.request.urlopen(url) as response, open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__infos():
@@ -693,6 +710,12 @@ def read_command_line_arguments():
                         type=str,
                         default=DEFAULT_CONFIGFILE_NAME,
                         help="config file, e.g. config.ini")
+
+    parser.add_argument('-ddcfg', '--downloaddefaultcfg',
+                        action="store_true",
+                        help="Download the default config file and overwrite the file having " \
+                             "the same name. This is done before the script reads the parameters " \
+                             "in the config file")
 
     parser.add_argument('--hashid',
                         type=str,
@@ -1278,6 +1301,9 @@ if __name__ == '__main__':
             ARGS.quiet = True
 
         welcome()
+
+        if ARGS.downloaddefaultcfg:
+            action__downloadefaultcfg()
 
         PARAMETERS = read_parameters_from_cfgfile(ARGS.configfile)
         if PARAMETERS is None:
