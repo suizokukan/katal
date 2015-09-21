@@ -206,6 +206,10 @@ def action__downloadefaultcfg():
         no PARAMETER, no RETURNED VALUE
     """
     url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal.ini"
+
+    msg("  = downloading the configuration file =")
+    msg("  ... downloading {0} from {1}".format(DEFAULT_CONFIGFILE_NAME, url))
+
     with urllib.request.urlopen(url) as response, open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
 
