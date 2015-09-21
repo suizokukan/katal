@@ -1,7 +1,6 @@
-todo : le comportement du download n'est pas documenté si le fichier existe déjà (xxx.ini.1 ??) est créé : essayer.
 todo : add tag (!= set tag)
 todo : target ou dest ?   
-todo : utiliser katal dans un pipe
+todo : utiliser katal dans un pipe (?)
 
 doc: convention: nom d'arguments
 

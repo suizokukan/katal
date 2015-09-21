@@ -304,7 +304,7 @@ def action__settag(_tag, _to):
         action__settag()
         ________________________________________________________________________
 
-        Modify the tag(s) in the target directory, overwriting ancient tags.
+        Set the tag(s) in the target directory, overwriting ancient tags.
         ________________________________________________________________________
 
         PARAMETERS
