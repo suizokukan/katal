@@ -92,8 +92,8 @@ TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 # maximal length of the hashids displayed. Can't be greater than 44.
 HASHID_MAXLENGTH = 20
 
-# maximal length of the tag displayed.
-TAG_MAXLENGTH = 20
+# maximal length of the strtag displayed.
+STRTAG_MAXLENGTH = 20
 
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOG_FILE = False  # (bool) initialized from the configuration file
@@ -299,20 +299,20 @@ def action__select():
                 break
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__settag(_tag, _to):
+def action__setstrtag(_strtag, _to):
     """
-        action__settag()
+        action__setstrtag()
         ________________________________________________________________________
 
-        Set the tag(s) in the target directory, overwriting ancient tags.
+        Set the string tag(s) in the target directory, overwriting ancient tags.
         ________________________________________________________________________
 
         PARAMETERS
-                o _tag  : (str) the new tag
-                o _to   : (str) a regex string describing what files are
-                          concerned
+                o _strtag       : (str) the new string tag
+                o _to           : (str) a regex string describing what files are
+                                  concerned
     """
-    msg("  = let's apply the tag \"{0}\" to {1}".format(_tag, _to))
+    msg("  = let's apply the string tag \"{0}\" to {1}".format(_strtag, _to))
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     if not os.path.exists(db_filename):
@@ -329,10 +329,10 @@ def action__settag(_tag, _to):
         if len(files_to_be_modified) == 0:
             msg("    ! no files match the given regex.")
         else:
-            # let's apply the _tag to the <files_to_be_modified> :
+            # let's apply the _strtag to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
-                msg("    o applying the tag \"{0}\" to {1}.".format(_tag, filename))
-                db_connection.execute('UPDATE dbfiles SET tag=? WHERE hashid=?', (_tag, hashid))
+                msg("    o applying the string tag \"{0}\" to {1}.".format(_strtag, filename))
+                db_connection.execute('UPDATE dbfiles SET strtag=? WHERE hashid=?', (_strtag, hashid))
             db_connection.commit()
 
         db_connection.close()
@@ -404,9 +404,9 @@ def check_args():
     if ARGS.add == True and ARGS.select == True:
         raise ProjectError("--select and --add can't be used simultaneously")
 
-    # --settag must be used with --to :
-    if ARGS.settag and not ARGS.to:
-        raise ProjectError("please use --to in combination with --settag")
+    # --setstrtag must be used with --to :
+    if ARGS.setstrtag and not ARGS.to:
+        raise ProjectError("please use --to in combination with --setstrtag")
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(_hashid, _database_index):
@@ -775,14 +775,15 @@ def read_command_line_arguments():
                         help="no welcome/goodbye/informations about the parameters/ messages " \
                              "on console")
 
-    parser.add_argument('--settag',
+    parser.add_argument('--setstrtag',
                         type=str,
-                        help="give the tag to some file(s) in combination with the --to option. " \
-                             "Overwrite the ancient tag.")
+                        help="give the string tag to some file(s) in combination " \
+                             "with the --to option. " \
+                             "Overwrite the ancient string tag.")
 
     parser.add_argument('--to',
                         type=str,
-                        help="give the name of the file(s) concerned by --settag. " \
+                        help="give the name of the file(s) concerned by --setstrtag. " \
                         "The argument is a regex; e.g. to select all .py files, use " \
                         "--to=\".*\\.py$")
 
@@ -812,7 +813,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     global USE_LOG_FILE, LOG_VERBOSITY
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
-    global HASHID_MAXLENGTH, TAG_MAXLENGTH
+    global HASHID_MAXLENGTH, STRTAG_MAXLENGTH
 
     if not os.path.exists(_configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
@@ -829,7 +830,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
-        TAG_MAXLENGTH = int(parser["display"]["tag.max length on console"])
+        STRTAG_MAXLENGTH = int(parser["display"]["tag.max length on console"])
     except BaseException as exception:
         msg("    ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -1057,8 +1058,8 @@ def show_infos_about_target_path():
         # code which reads the table.
         rows_data = []
         row_index = 0
-        for hashid, filename, sourcename, tag in db_cursor.execute('SELECT * FROM dbfiles'):
-            rows_data.append((hashid, filename, tag, sourcename))
+        for hashid, filename, sourcename, strtag in db_cursor.execute('SELECT * FROM dbfiles'):
+            rows_data.append((hashid, filename, strtag, sourcename))
             row_index += 1
 
         if row_index == 0:
@@ -1066,7 +1067,7 @@ def show_infos_about_target_path():
         else:
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
                               ("name", TARGETNAME_MAXLENGTH, "|"),
-                              ("tag", TAG_MAXLENGTH, "║"),
+                              ("strtag", STRTAG_MAXLENGTH, "║"),
                               ("(source) name", SOURCENAME_MAXLENGTH, "║")),
                        _data=rows_data)
 
@@ -1364,8 +1365,8 @@ if __name__ == '__main__':
         if ARGS.hashid:
             show_hashid_of_a_file(ARGS.hashid)
 
-        if ARGS.settag:
-            action__settag(ARGS.settag, ARGS.to)
+        if ARGS.setstrtag:
+            action__setstrtag(ARGS.setstrtag, ARGS.to)
 
         if ARGS.targetkill:
             action__target_kill(ARGS.targetkill)

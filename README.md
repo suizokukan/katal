@@ -172,6 +172,11 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         (default: False)
   -c CONFIGFILE, --configfile CONFIGFILE
                         config file, e.g. config.ini (default: katal.ini)
+  -ddcfg, --downloaddefaultcfg
+                        Download the default config file and overwrite the
+                        file having the same name. This is done before the
+                        script reads the parameters in the config file
+                        (default: False)
   --hashid HASHID       return the hash id of the given file (default: None)
   --infos               display informations about the source directory given
                         in the configuration file (default: False)
@@ -181,13 +186,19 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         (default: False)
   -ti, --targetinfos    display informations about the target directory in
                         --quiet mode (default: False)
+  -tk TARGETKILL, --targetkill TARGETKILL
+                        kill one file from the target directory.DO NOT GIVE A
+                        PATH, just the file's name, without the path to the
+                        target directory (default: None)
   -m, --mute            no output to the console; no question asked on the
                         console (default: False)
   -q, --quiet           no welcome/goodbye/informations about the parameters/
                         messages on console (default: False)
-  --settag SETTAG       give the tag to some file(s) in combination with the
-                        --to option (default: None)
-  --to TO               give the name of the file(s) concerned by --settag.
+  --setstrtag SETSTRTAG
+                        give the string tag to some file(s) in combination
+                        with the --to option. Overwrite the ancient string
+                        tag. (default: None)
+  --to TO               give the name of the file(s) concerned by --setstrtag.
                         The argument is a regex; e.g. to select all .py files,
                         use --to=".*\.py$ (default: None)
   --version             show the version and exit
@@ -197,7 +208,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
         hashid (primary key): varchar(44)
         name                : text
         sourcename          : text
-        tag                 : text
+        strtag              : text
 
 (D) the functions
 
@@ -208,7 +219,7 @@ o  action__infos()                      : display informations about the source
                                           and the target directory
 o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                           display what's going on.
-o  action__settag()                     : Modify the tag(s) in the target directory,
+o  action__setstrtag()                  : Modify the string tag in the target directory,
                                           overwriting ancient tags.
 o  action__target_kill()                : delete a filename from the target directory
                                           and from the database
