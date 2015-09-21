@@ -147,7 +147,7 @@ def action__add():
         action__add()
         ________________________________________________________________________
 
-        Add the source files to the destination path.
+        Add the source files to the target path.
         ________________________________________________________________________
 
         no PARAMETER
@@ -1353,7 +1353,7 @@ if __name__ == '__main__':
         parameters_infos()
 
         if not os.path.exists(TARGET_PATH):
-            msg("  ! Since the destination path \"{0}\" " \
+            msg("  ! Since the target path \"{0}\" " \
                       "doesn't exist, let's create it.".format(TARGET_PATH))
             os.mkdir(TARGET_PATH)
 

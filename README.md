@@ -212,7 +212,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 
 (D) the functions
 
-o  action__add()                        : add the source files to the destination
+o  action__add()                        : add the source files to the target
                                           path.
 o  action__downloadefaultcfg            : download the default configuration file
 o  action__infos()                      : display informations about the source
