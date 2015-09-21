@@ -777,7 +777,8 @@ def read_command_line_arguments():
 
     parser.add_argument('--settag',
                         type=str,
-                        help="give the tag to some file(s) in combination with the --to option")
+                        help="give the tag to some file(s) in combination with the --to option. " \
+                             "Overwrite the ancient tag.")
 
     parser.add_argument('--to',
                         type=str,
