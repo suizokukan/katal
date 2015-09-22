@@ -194,11 +194,11 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         console (default: False)
   -q, --quiet           no welcome/goodbye/informations about the parameters/
                         messages on console (default: False)
-  --setstrtag SETSTRTAG
+  --setstrtags SETSTRTAGS
                         give the string tag to some file(s) in combination
                         with the --to option. Overwrite the ancient string
                         tag. (default: None)
-  --to TO               give the name of the file(s) concerned by --setstrtag.
+  --to TO               give the name of the file(s) concerned by --setstrtags.
                         The argument is a regex; e.g. to select all .py files,
                         use --to=".*\.py$ (default: None)
   --version             show the version and exit
@@ -208,7 +208,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
         hashid (primary key): varchar(44)
         name                : text
         sourcename          : text
-        strtag              : text
+        strtags             : text
 
 (D) the functions
 
@@ -219,7 +219,7 @@ o  action__infos()                      : display informations about the source
                                           and the target directory
 o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                           display what's going on.
-o  action__setstrtag()                  : Modify the string tag in the target directory,
+o  action__setstrtags()                 : Modify the string tag in the target directory,
                                           overwriting ancient tags.
 o  action__target_kill()                : delete a filename from the target directory
                                           and from the database
