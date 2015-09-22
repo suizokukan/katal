@@ -214,9 +214,11 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 
 o  action__add()                        : add the source files to the target
                                           path.
-o  action__downloadefaultcfg            : download the default configuration file
+o  action__addtag()                     : add one tag to the string tags of some files
+o  action__downloadefaultcfg()          : download the default configuration file
 o  action__infos()                      : display informations about the source
                                           and the target directory
+o  action__rmtags()                     : remove the entire string tags of some files
 o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                           display what's going on.
 o  action__setstrtags()                 : Modify the string tag in the target directory,
@@ -235,6 +237,7 @@ o  goodbye()                            : display the goodbye message
 o  logfile_opening()                    : open the log file
 o  hashfile64()                         : return the footprint of a file, encoded
                                           with the base 64.
+o  modify_tag_of_some_files()           : modify the tag(s) of some files
 o  msg()                                : display a message on console, write the
                                           same message in the log file.
 o  parameters_infos()                   : display some informations about the

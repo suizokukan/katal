@@ -194,6 +194,23 @@ def action__add():
     return 0
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__addtag(_tag, _to):
+    """
+        action__addtag()
+        ________________________________________________________________________
+
+        Add a tag to the files given by the _to parameter.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _tag          : (str) new tag to be added
+                o _to           : (str) a regex string describing what files are
+                                  concerned
+    """
+    msg("  = let's add the string tag \"{0}\" to {1}".format(_tag, _to))
+    modify_tag_of_some_files(_tag=_tag, _to=_to, _mode="append")
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg():
     """
         action__downloadefaultcfg()
@@ -329,29 +346,7 @@ def action__setstrtags(_strtags, _to):
                                   concerned
     """
     msg("  = let's apply the string tag \"{0}\" to {1}".format(_strtags, _to))
-
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    if not os.path.exists(db_filename):
-        msg("    ! Found no database.")
-    else:
-        db_connection = sqlite3.connect(db_filename)
-        db_cursor = db_connection.cursor()
-
-        files_to_be_modified = []       # a list of (hashids, name)
-        for hashid, filename, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
-            if re.match(ARGS.to, filename) is not None:
-                files_to_be_modified.append((hashid, filename))
-
-        if len(files_to_be_modified) == 0:
-            msg("    ! no files match the given regex.")
-        else:
-            # let's apply the _strtags to the <files_to_be_modified> :
-            for hashid, filename in files_to_be_modified:
-                msg("    o applying the string tag \"{0}\" to {1}.".format(_strtags, filename))
-                db_connection.execute('UPDATE dbfiles SET strtags=? WHERE hashid=?', (_strtags, hashid))
-            db_connection.commit()
-
-        db_connection.close()
+    modify_tag_of_some_files(_tag=_tag, _to=_to, _mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__target_kill(_filename):
@@ -678,6 +673,56 @@ def logfile_opening():
     return open(PARAMETERS["log file"]["name"], log_mode)
 
 #///////////////////////////////////////////////////////////////////////////////
+def modify_tag_of_some_files(_tag, _to, _mode):
+    """
+        modify_tag_of_some_files()
+        ________________________________________________________________________
+
+        Modify the tag(s) of some files.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _tag          : (str) new tag(s)
+                o _to           : (str) a regex string describing what files are
+                                  concerned
+                o _mode         : (str) "append" to add _tag to the other tags
+                                        "set" to replace old tag(s) by a new one
+    """
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+    if not os.path.exists(db_filename):
+        msg("    ! Found no database.")
+    else:
+        db_connection = sqlite3.connect(db_filename)
+        db_cursor = db_connection.cursor()
+
+        files_to_be_modified = []       # a list of (hashids, name)
+        for hashid, filename, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
+            if re.match(ARGS.to, filename) is not None:
+                files_to_be_modified.append((hashid, filename))
+
+        if len(files_to_be_modified) == 0:
+            msg("    ! no files match the given regex.")
+        else:
+            # let's apply the tag(s) to the <files_to_be_modified> :
+            for hashid, filename in files_to_be_modified:
+
+                if _mode == "set":
+                    msg("    o applying the string tag \"{0}\" to {1}.".format(_tag, filename))
+                    sqlorder = 'UPDATE dbfiles SET strtags=? WHERE hashid=?'
+                    db_connection.execute(sqlorder, (_tag, hashid))
+
+                elif _mode == "append":
+                    msg("    o adding the string tag \"{0}\" to {1}.".format(_tag, filename))
+                    sqlorder = 'UPDATE dbfiles SET strtags = strtags || \";{0}\" WHERE hashid=\"{1}\"'.format(_tag, hashid)
+                    db_connection.executescript(sqlorder)
+
+                else:
+                    raise ProjectError("_mode argument {0} isn't know".format(_mode))
+            db_connection.commit()
+
+        db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
 def msg(_msg, _for_console=True, _for_logfile=True):
     """
         msg()
@@ -744,6 +789,12 @@ def read_command_line_arguments():
                              "in the configuration file " \
                              "then add them to the target directory" \
                              "This option can't be used the --select one.")
+
+
+    parser.add_argument('--addtag',
+                        type=str,
+                        help="Add a tag to some file(s) in combination " \
+                             "with the --to option. ")
 
     parser.add_argument('-c', '--configfile',
                         type=str,
@@ -1388,6 +1439,9 @@ if __name__ == '__main__':
 
         if ARGS.setstrtags:
             action__setstrtags(ARGS.setstrtags, ARGS.to)
+
+        if ARGS.addtag:
+            action__addtag(ARGS.addtag, ARGS.to)
 
         if ARGS.rmtags:
             action__rmtags(ARGS.to)
