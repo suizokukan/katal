@@ -299,6 +299,22 @@ def action__select():
                 break
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__rmtags(_to):
+    """
+        action__rmtags()
+        ________________________________________________________________________
+
+        Remove the string tag(s) in the target directory, overwriting ancient tags.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _to           : (str) a regex string describing what files are
+                                  concerned
+    """
+    msg("  = let's remove the string tags in {0}".format(_to))
+    action__setstrtags(_strtags="", _to=_to)
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__setstrtags(_strtags, _to):
     """
         action__setstrtags()
@@ -308,7 +324,7 @@ def action__setstrtags(_strtags, _to):
         ________________________________________________________________________
 
         PARAMETERS
-                o _strtags       : (str) the new string tag
+                o _strtags      : (str) the new string tags
                 o _to           : (str) a regex string describing what files are
                                   concerned
     """
@@ -775,6 +791,11 @@ def read_command_line_arguments():
                         help="no welcome/goodbye/informations about the parameters/ messages " \
                              "on console")
 
+    parser.add_argument('--rmtags',
+                        action="store_true",
+                        help="remove all the tags of some file(s) in combination " \
+                             "with the --to option. ")
+
     parser.add_argument('--setstrtags',
                         type=str,
                         help="give the string tag to some file(s) in combination " \
@@ -893,7 +914,7 @@ def read_target_db():
         db_cursor = db_connection.cursor()
 
         db_cursor.execute('''CREATE TABLE dbfiles
-        (hashid varchar(44) PRIMARY KEY, name text, sourcename text, tag text)''')
+        (hashid varchar(44) PRIMARY KEY, name text, sourcename text, strtags text)''')
 
         db_connection.commit()
 
@@ -1067,7 +1088,7 @@ def show_infos_about_target_path():
         else:
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
                               ("name", TARGETNAME_MAXLENGTH, "|"),
-                              ("strtags", strtags_MAXLENGTH, "║"),
+                              ("tags", strtags_MAXLENGTH, "║"),
                               ("(source) name", SOURCENAME_MAXLENGTH, "║")),
                        _data=rows_data)
 
@@ -1367,6 +1388,9 @@ if __name__ == '__main__':
 
         if ARGS.setstrtags:
             action__setstrtags(ARGS.setstrtags, ARGS.to)
+
+        if ARGS.rmtags:
+            action__rmtags(ARGS.to)
 
         if ARGS.targetkill:
             action__target_kill(ARGS.targetkill)
