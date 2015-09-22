@@ -57,6 +57,7 @@ import configparser
 import ctypes
 import hashlib
 from datetime import datetime
+import fnmatch
 import os
 import platform
 import re
@@ -705,7 +706,7 @@ def modify_tag_of_some_files(_tag, _to, _mode):
 
         files_to_be_modified = []       # a list of (hashids, name)
         for hashid, filename, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
-            if re.match(ARGS.to, filename) is not None:
+            if fnmatch.fnmatch(filename, ARGS.to) is not None:
                 files_to_be_modified.append((hashid, filename))
 
         if len(files_to_be_modified) == 0:
@@ -864,8 +865,8 @@ def read_command_line_arguments():
     parser.add_argument('--to',
                         type=str,
                         help="give the name of the file(s) concerned by --setstrtags. " \
-                        "The argument is a regex; e.g. to select all .py files, use " \
-                        "--to=\".*\\.py$")
+                        "wildcards accepted; e.g. to select all .py files, use '*.py' . " \
+                        "Please DON'T ADD the path to the target directory, only the filenames")
 
     parser.add_argument('--version',
                         action='version',
