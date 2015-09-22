@@ -1329,19 +1329,20 @@ def the_file_has_to_be_added__size(_sieve, _size):
     if sieve_size.startswith(">="):
         if _size >= int(sieve_size[2:]):
             res = True
-    if sieve_size.startswith(">"):
+    elif sieve_size.startswith(">"):
         if _size > int(sieve_size[1:]):
             res = True
-    if sieve_size.startswith("<="):
+    elif sieve_size.startswith("<="):
         if _size <= int(sieve_size[2:]):
             res = True
-    if sieve_size.startswith("<"):
+    elif sieve_size.startswith("<"):
         if _size < int(sieve_size[1:]):
             res = True
-    if sieve_size.startswith("="):
+    elif sieve_size.startswith("="):
         if _size == int(sieve_size[1:]):
             res = True
-
+    else:
+        raise ProjectError("Can't analyse {0} in the sieve.".format(sieve_size))
     return res
 
 #///////////////////////////////////////////////////////////////////////////////

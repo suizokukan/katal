@@ -1,10 +1,11 @@
-todo : add tag (!= set tag)
+todo : modifer les arguments de certaines options : plus de REGEX mais les bons vieux noms de fichiers
+todo : vérifier qu'il ne manque aucune fonction dans la doc.
 todo : utiliser katal dans un pipe (?)
+todo : remettre un ini normal
+todo : rename a target file
 
 doc: convention: nom d'arguments
 
-remettre le .ini normal.
-todo : supprimer un fichier/le renommer/...
 point fort du programme : monofichier + pas de dépendance externe
 # un principe : on ne touche pas au répertoire de départ.
 #
