@@ -419,6 +419,14 @@ def check_args():
     if ARGS.setstrtags and not ARGS.to:
         raise ProjectError("please use --to in combination with --setstrtags")
 
+    # --addtag must be used with --to :
+    if ARGS.addtag and not ARGS.to:
+        raise ProjectError("please use --to in combination with --addtag")
+
+    # --rmtags must be used with --to :
+    if ARGS.rmtags and not ARGS.to:
+        raise ProjectError("please use --to in combination with --rmtags")
+
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(_hashid, _database_index):
     """

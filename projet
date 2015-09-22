@@ -8,6 +8,3 @@ doc: convention: nom d'arguments
 
 point fort du programme : monofichier + pas de dépendance externe
 # un principe : on ne touche pas au répertoire de départ.
-#
-
-the_file_has_to_be_added__size() : if > elif
