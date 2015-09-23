@@ -237,7 +237,7 @@ o  goodbye()                            : display the goodbye message
 o  logfile_opening()                    : open the log file
 o  hashfile64()                         : return the footprint of a file, encoded
                                           with the base 64.
-o  modify_tag_of_some_files()           : modify the tag(s) of some files
+o  modify_the_tag_of_some_files()       : modify the tag(s) of some files
 o  msg()                                : display a message on console, write the
                                           same message in the log file.
 o  parameters_infos()                   : display some informations about the

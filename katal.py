@@ -94,7 +94,7 @@ TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 HASHID_MAXLENGTH = 20
 
 # maximal length of the strtags displayed.
-strtags_MAXLENGTH = 20
+STRTAGS_MAXLENGTH = 20
 
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOG_FILE = False  # (bool) initialized from the configuration file
@@ -209,7 +209,7 @@ def action__addtag(_tag, _to):
                                   concerned
     """
     msg("  = let's add the string tag \"{0}\" to {1}".format(_tag, _to))
-    modify_tag_of_some_files(_tag=_tag, _to=_to, _mode="append")
+    modify_the_tag_of_some_files(_tag=_tag, _to=_to, _mode="append")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg():
@@ -347,7 +347,7 @@ def action__setstrtags(_strtags, _to):
                                   concerned
     """
     msg("  = let's apply the string tag \"{0}\" to {1}".format(_strtags, _to))
-    modify_tag_of_some_files(_tag=_tag, _to=_to, _mode="set")
+    modify_the_tag_of_some_files(_tag=_strtags, _to=_to, _mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__target_kill(_filename):
@@ -682,9 +682,9 @@ def logfile_opening():
     return open(PARAMETERS["log file"]["name"], log_mode)
 
 #///////////////////////////////////////////////////////////////////////////////
-def modify_tag_of_some_files(_tag, _to, _mode):
+def modify_the_tag_of_some_files(_tag, _to, _mode):
     """
-        modify_tag_of_some_files()
+        modify_the_tag_of_some_files()
         ________________________________________________________________________
 
         Modify the tag(s) of some files.
@@ -692,8 +692,8 @@ def modify_tag_of_some_files(_tag, _to, _mode):
 
         PARAMETERS
                 o _tag          : (str) new tag(s)
-                o _to           : (str) a regex string describing what files are
-                                  concerned
+                o _to           : (str) a string (wildcards accepted) describing
+                                   what files are concerned
                 o _mode         : (str) "append" to add _tag to the other tags
                                         "set" to replace old tag(s) by a new one
     """
@@ -706,7 +706,7 @@ def modify_tag_of_some_files(_tag, _to, _mode):
 
         files_to_be_modified = []       # a list of (hashids, name)
         for hashid, filename, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
-            if fnmatch.fnmatch(filename, ARGS.to) is not None:
+            if fnmatch.fnmatch(filename, _to) is not None:
                 files_to_be_modified.append((hashid, filename))
 
         if len(files_to_be_modified) == 0:
@@ -722,7 +722,8 @@ def modify_tag_of_some_files(_tag, _to, _mode):
 
                 elif _mode == "append":
                     msg("    o adding the string tag \"{0}\" to {1}.".format(_tag, filename))
-                    sqlorder = 'UPDATE dbfiles SET strtags = strtags || \";{0}\" WHERE hashid=\"{1}\"'.format(_tag, hashid)
+                    sqlorder = 'UPDATE dbfiles SET strtags = strtags || \";{0}\" ' \
+                               'WHERE hashid=\"{1}\"'.format(_tag, hashid)
                     db_connection.executescript(sqlorder)
 
                 else:
@@ -894,7 +895,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     global USE_LOG_FILE, LOG_VERBOSITY
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
-    global HASHID_MAXLENGTH, strtags_MAXLENGTH
+    global HASHID_MAXLENGTH, STRTAGS_MAXLENGTH
 
     if not os.path.exists(_configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
@@ -911,7 +912,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
-        strtags_MAXLENGTH = int(parser["display"]["tag.max length on console"])
+        STRTAGS_MAXLENGTH = int(parser["display"]["tag.max length on console"])
     except BaseException as exception:
         msg("    ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -1148,7 +1149,7 @@ def show_infos_about_target_path():
         else:
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
                               ("name", TARGETNAME_MAXLENGTH, "|"),
-                              ("tags", strtags_MAXLENGTH, "║"),
+                              ("tags", STRTAGS_MAXLENGTH, "║"),
                               ("(source) name", SOURCENAME_MAXLENGTH, "║")),
                        _data=rows_data)
 
