@@ -68,7 +68,7 @@ import sys
 import unicodedata
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.0.5"
+PROGRAM_VERSION = "0.0.6"
 
 # when the program verifies that there's enough free space on disk, it multiplies
 # the required amount of space by these coefficient

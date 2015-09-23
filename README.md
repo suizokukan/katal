@@ -113,6 +113,20 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 
 (A) history
 
+    v.0.0.6 (2015_09_23)
+        o  added a new sieve (by date)
+        o  added option -ddcfg / --downloaddefaultcfg
+        o  added --rmtags option
+        o  added --addtag option
+        o  the --to option takes from now wildcards name, not a regex anymore
+    
+        o (database) 'tag' > 'strtag'; --settag > --setstrtag
+        o  improved security : eval() function is now used in the secured way
+        o  welcome_* functions now use the TIMESTAMP_BEGIN global variable
+        o various parts of the documentation and error messages have been improved
+
+        o 7 tests, pylint=10.0
+
     v.0.0.5 (2015_09_17) :
         o  added --targetkill/-tk option and the action__targetkill() function
         o  improved show_infos_about_target_path() : each column has its own separator,
