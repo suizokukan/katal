@@ -184,6 +184,8 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         configuration file then add them to the target
                         directoryThis option can't be used the --select one.
                         (default: False)
+  --addtag ADDTAG       Add a tag to some file(s) in combination with the --to
+                        option. (default: None)
   -c CONFIGFILE, --configfile CONFIGFILE
                         config file, e.g. config.ini (default: katal.ini)
   -ddcfg, --downloaddefaultcfg
@@ -208,14 +210,19 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         console (default: False)
   -q, --quiet           no welcome/goodbye/informations about the parameters/
                         messages on console (default: False)
+  --rmtags              remove all the tags of some file(s) in combination
+                        with the --to option. (default: False)
   --setstrtags SETSTRTAGS
                         give the string tag to some file(s) in combination
                         with the --to option. Overwrite the ancient string
                         tag. (default: None)
-  --to TO               give the name of the file(s) concerned by --setstrtags.
-                        The argument is a regex; e.g. to select all .py files,
-                        use --to=".*\.py$ (default: None)
+  --to TO               give the name of the file(s) concerned by
+                        --setstrtags. wildcards accepted; e.g. to select all
+                        .py files, use '*.py' . Please DON'T ADD the path to
+                        the target directory, only the filenames (default:
+                        None)
   --version             show the version and exit
+
 
 (C) the database
 
