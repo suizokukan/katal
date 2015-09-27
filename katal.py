@@ -1052,7 +1052,7 @@ def show_infos_about_source_path():
 
     msg("    o files number : {0}".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
-    msg("    o list of all extensions : ")
+    msg("    o list of all extensions (found {0} extension(s)): ".format(len(extensions)))
     for extension in sorted(extensions):
         msg("      - {0:15} : {1} files, {2}".format(extension,
                                                      extensions[extension][0],
