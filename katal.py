@@ -84,7 +84,9 @@ PARAMETERS = None # see documentation:configuration file
 SOURCE_PATH = ""  # initialized from the configuration file.
 SOURCENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
-
+INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
+                                           # ((int)total_size, (int)files_number, (dict)extensions)
+						  
 TARGET_PATH = ""  # initialized from the configuration file.
 TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
@@ -529,13 +531,15 @@ def fill_select(_debug_datatime=None):
                 (int) the number of discard files
     """
     global SELECT, SELECT_SIZE_IN_BYTES
+
     SELECT = {}  # see the SELECT format in the documentation:selection
     SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
-
+	
+    file_index = 0  # number of the current file in the source directory.
     for dirpath, _, filenames in os.walk(SOURCE_PATH):
         for filename in filenames:
-
+            file_index += 1
             complete_name = os.path.join(dirpath, filename)
             size = os.stat(complete_name).st_size
             if _debug_datatime is None:
@@ -546,6 +550,14 @@ def fill_select(_debug_datatime=None):
                 time = datetime.strptime(_debug_datatime[complete_name], DATETIME_FORMAT)
 
             filename_no_extens, extension = os.path.splitext(filename)
+			
+			# if we know the total amount of files to be selected (see the --infos option),
+			# we can add the percentage done :
+            if INFOS_ABOUT_SRC_PATH[1] is None or INFOS_ABOUT_SRC_PATH[1] == 0:
+                # no information about the source path or no file to be selected :
+                prefix = ""
+            else:
+                prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
 
             # the extension stored in SELECT does not begin with a dot.
             if extension.startswith("."):
@@ -554,8 +566,8 @@ def fill_select(_debug_datatime=None):
             res = the_file_has_to_be_added(filename, size, time)
             if not res:
                 if LOG_VERBOSITY == "high":
-                    msg("    - (sieves described in the config file)" \
-                              " discarded \"{0}\"".format(complete_name))
+                    msg("    - {0} (sieves described in the config file)" \
+                              " discarded \"{1}\"".format(prefix, complete_name))
                     number_of_discarded_files += 1
             else:
                 # is filename already stored in <TARGET_DB> ?
@@ -571,7 +583,7 @@ def fill_select(_debug_datatime=None):
                                                   date=time.strftime(DATETIME_FORMAT))
 
                     if LOG_VERBOSITY == "high":
-                        msg("    + selected {0} ({1} file(s) selected)".format(complete_name,
+                        msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix, complete_name,
                                                                                len(SELECT)))
 
                     SELECT_SIZE_IN_BYTES += os.stat(complete_name).st_size
@@ -579,8 +591,8 @@ def fill_select(_debug_datatime=None):
                     res = False
 
                     if LOG_VERBOSITY == "high":
-                        msg("    - (similar hashid) " \
-                                  " discarded \"{0}\"".format(complete_name))
+                        msg("    - {0} (similar hashid) " \
+                                  " discarded \"{1}\"".format(prefix, complete_name))
                         number_of_discarded_files += 1
 
     return number_of_discarded_files
@@ -797,9 +809,10 @@ def read_command_line_arguments():
                         action="store_true",
                         help="select files according to what is described " \
                              "in the configuration file " \
-                             "then add them to the target directory" \
-                             "This option can't be used the --select one.")
-
+                             "then add them to the target directory. " \
+                             "This option can't be used with the --select one." \
+                             "If you want more informations about the process, please " \
+                             "use this option in combination with --infos .")
 
     parser.add_argument('--addtag',
                         type=str,
@@ -824,14 +837,18 @@ def read_command_line_arguments():
     parser.add_argument('--infos',
                         action="store_true",
                         help="display informations about the source directory " \
-                             "given in the configuration file")
+                             "given in the configuration file. Help the --select/--add " \
+							 "options to display more informations about the process : in " \
+							 "this case, the --infos will be executed before --select/--add")
 
     parser.add_argument('-s', '--select',
                         action="store_true",
                         help="select files according to what is described " \
                              "in the configuration file " \
                              "without adding them to the target directory. " \
-                             "This option can't be used the --add one.")
+                             "This option can't be used with the --add one." \
+							 "If you want more informations about the process, please " \
+							 "use this option in combination with --infos .")
 
     parser.add_argument('-ti', '--targetinfos',
                         action="store_true",
@@ -1018,11 +1035,14 @@ def show_infos_about_source_path():
         show_infos_about_source_path()
         ________________________________________________________________________
 
-        Display informations about the source directory
+        Display informations about the source directory. 
+		Initialize INFOS_ABOUT_SRC_PATH.
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
     """
+    global INFOS_ABOUT_SRC_PATH
+
     if not os.path.exists(SOURCE_PATH):
         msg("Can't read source path {0}.".format(SOURCE_PATH))
         return -1
@@ -1058,6 +1078,8 @@ def show_infos_about_source_path():
                                                      extensions[extension][0],
                                                      size_as_str(extensions[extension][1])))
 
+    INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
+													 
 #///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_target_path():
     """
