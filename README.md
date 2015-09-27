@@ -182,7 +182,9 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
   -h, --help            show this help message and exit
   --add                 select files according to what is described in the
                         configuration file then add them to the target
-                        directoryThis option can't be used the --select one.
+                        directory. This option can't be used with the --select
+                        one.If you want more informations about the process,
+                        please use this option in combination with --infos .
                         (default: False)
   --addtag ADDTAG       Add a tag to some file(s) in combination with the --to
                         option. (default: None)
@@ -195,10 +197,15 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         (default: False)
   --hashid HASHID       return the hash id of the given file (default: None)
   --infos               display informations about the source directory given
-                        in the configuration file (default: False)
+                        in the configuration file. Help the --select/--add
+                        options to display more informations about the process
+                        : in this case, the --infos will be executed before
+                        --select/--add (default: False)
   -s, --select          select files according to what is described in the
                         configuration file without adding them to the target
-                        directory. This option can't be used the --add one.
+                        directory. This option can't be used with the --add
+                        one.If you want more informations about the process,
+                        please use this option in combination with --infos .
                         (default: False)
   -ti, --targetinfos    display informations about the target directory in
                         --quiet mode (default: False)
@@ -222,7 +229,6 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         the target directory, only the filenames (default:
                         None)
   --version             show the version and exit
-
 
 (C) the database
 
