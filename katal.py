@@ -1070,7 +1070,7 @@ def show_infos_about_source_path():
             total_size += size
             files_number += 1
 
-    msg("    o files number : {0}".format(files_number))
+    msg("    o files number : {0} file(s)".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
     msg("    o list of all extensions (found {0} extension(s)): ".format(len(extensions)))
     for extension in sorted(extensions):
