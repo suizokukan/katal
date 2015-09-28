@@ -762,11 +762,13 @@ def msg(_msg, _for_console=True, _for_logfile=True):
 
         no RETURNED VALUE
     """
-    if USE_LOG_FILE and _for_logfile:
-        LOGFILE.write(_msg+"\n")
-
+    # first to the console : otherwise, if an error occurs by writing to the log
+    # file, it would'nt possible to read the message.
     if not ARGS.mute and _for_console:
         print(_msg)
+
+    if USE_LOG_FILE and _for_logfile:
+        LOGFILE.write(_msg+"\n")
 
 #///////////////////////////////////////////////////////////////////////////////
 def parameters_infos():
