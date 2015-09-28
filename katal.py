@@ -76,6 +76,10 @@ FREESPACE_MARGIN = 1.1
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
+DATABASE_RECORD = namedtuple('DATABASE_FIELD', ["hashid",
+                                                "filename",
+                                                "sourcename",
+                                                "strtags"])
 
 TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
 
@@ -237,16 +241,19 @@ def action__cleandbrm():
         return
 
     db_connection = sqlite3.connect(db_filename)
+    db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
     files_to_be_rmved_from_the_db = []  # hashid of the files
-    for hashid, name, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
-        if not os.path.exists(os.path.join(TARGET_PATH, name)):
-            files_to_be_rmved_from_the_db.append(hashid)
-            msg("    o about to remove \"{0}\"".format(os.path.join(TARGET_PATH, name)))
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        if not os.path.exists(os.path.join(TARGET_PATH, db_record["name"])):
+            files_to_be_rmved_from_the_db.append(db_record["hashid"])
+            msg("    o about to remove \"{0}\"".format(os.path.join(TARGET_PATH,
+                                                                    db_record["filename"])))
 
     for hashid in files_to_be_rmved_from_the_db:
-        db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+        pass
+        # $$$ db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
     db_connection.commit()
     db_connection.close()
@@ -417,12 +424,13 @@ def action__target_kill(_filename):
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     db_connection = sqlite3.connect(db_filename)
+    db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
     filename_hashid = None
-    for hashid, name, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
-        if name == _filename:
-            filename_hashid = hashid
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        if db_record["name"] == _filename:
+            filename_hashid = db_record["hashid"]
 
     if filename_hashid is None:
         msg("    ! Can't find \"{0}\" file in the database.".format(_filename))
@@ -755,12 +763,13 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
         msg("    ! Found no database.")
     else:
         db_connection = sqlite3.connect(db_filename)
+        db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
         files_to_be_modified = []       # a list of (hashids, name)
-        for hashid, filename, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
-            if fnmatch.fnmatch(filename, _to) is not None:
-                files_to_be_modified.append((hashid, filename))
+        for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+            if fnmatch.fnmatch(db_record["name"], _to) is not None:
+                files_to_be_modified.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_modified) == 0:
             msg("    ! no files match the given regex.")
@@ -1048,10 +1057,11 @@ def read_target_db():
         msg("  = ... database created.")
 
     db_connection = sqlite3.connect(db_filename)
+    db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
-    for hashid, _, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
-        TARGET_DB.append(hashid)
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        TARGET_DB.append(db_record["hashid"])
 
     db_connection.close()
 
@@ -1202,6 +1212,7 @@ def show_infos_about_target_path():
     else:
         db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
         db_connection = sqlite3.connect(db_filename)
+        db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
         # there's no easy way to know the size of a table in a database,
@@ -1209,8 +1220,11 @@ def show_infos_about_target_path():
         # code which reads the table.
         rows_data = []
         row_index = 0
-        for hashid, filename, sourcename, strtags in db_cursor.execute('SELECT * FROM dbfiles'):
-            rows_data.append((hashid, filename, strtags, sourcename))
+        for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+            rows_data.append((db_record["hashid"],
+                              db_record["name"],
+                              db_record["strtags"],
+                              db_record["sourcename"]))
             row_index += 1
 
         if row_index == 0:
