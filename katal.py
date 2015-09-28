@@ -189,9 +189,8 @@ def action__add():
         # converting the datetime object in epoch value (=the number of seconds from 1970-01-01 :
         sourcedate -= datetime(1970, 1, 1)
         sourcedate = sourcedate.total_seconds()
-
-        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
-                                                                    len_select,
+        
+        msg("    ... [{0:.4f}%] copying \"{1}\" to \"{2}\" .".format(index+1/len_select*100.0,
                                                                     complete_source_filename,
                                                                     target_name))
         shutil.copyfile(complete_source_filename,
