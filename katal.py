@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 ################################################################################
 #    Katal Copyright (C) 2012 Suizokukan
 #    Contact: suizokukan _A.T._ orange dot fr
@@ -201,7 +201,15 @@ def action__add():
 
     msg("    = all files have been copied, updating the database... =")
 
-    db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?)', files_to_be_added)
+    try:
+        db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?)', files_to_be_added)
+    except sqlite3.IntegrityError as exception:
+        msg("!!! An error occured while writing the database : "+str(exception))
+        msg("!!! files_to_be_added : ")
+        for file_to_be_added in files_to_be_added:
+            msg("     ! hashid={0}; name={1}; sourcename={2}; " \
+                "sourcedate={3}; strtags={4}".format(*file_to_be_added))
+        raise ProjectError("An error occured while writing the database : "+str(exception))
     db_connection.commit()
 
     db_connection.close()
@@ -1061,8 +1069,8 @@ def read_target_db():
         db_cursor = db_connection.cursor()
 
         db_cursor.execute('CREATE TABLE dbfiles ' \
-                          '(hashid varchar(44) PRIMARY KEY, name text, ' \
-                          'sourcename text, sourcedate integer, strtags text)')
+                          '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
+                          'sourcename TEXT, sourcedate INTEGER, strtags TEXT)')
 
         db_connection.commit()
 
