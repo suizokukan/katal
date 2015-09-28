@@ -805,7 +805,7 @@ def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
                 o _for_console  : (bool) authorization to write on console
                 o _for_logfile  : (bool) authorization to write in the log file
                 o _important_msg: (bool) if False, will be printed only if
-                                  LOG_VERBOSITY is set to "high"
+                                  LOG_VERBOSITY is set to "high" .
 
         no RETURNED VALUE
     """
