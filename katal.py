@@ -250,10 +250,12 @@ def action__cleandbrm():
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
             msg("    o about to remove \"{0}\"".format(os.path.join(TARGET_PATH,
                                                                     db_record["filename"])))
-
-    for hashid in files_to_be_rmved_from_the_db:
-        pass
-        # $$$ db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+            
+    if len(files_to_be_rmved_from_the_db) == 0:
+        msg("    ! no file to be removed : the database is ok.")
+    else:
+        for hashid in files_to_be_rmved_from_the_db:
+            db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
     db_connection.commit()
     db_connection.close()
