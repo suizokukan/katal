@@ -1171,12 +1171,14 @@ def show_infos_about_target_path():
         if row_index == 0:
             msg("    ! (empty database)")
         else:
+            # beware : characters like "║" are forbidden (think to the cp1252 encoding
+            # required by Windows terminal)
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
                               ("name", TARGETNAME_MAXLENGTH, "|"),
-                              ("tags", STRTAGS_MAXLENGTH, "║"),
-                              ("(source) name", SOURCENAME_MAXLENGTH, "║")),
+                              ("tags", STRTAGS_MAXLENGTH, "|"),
+                              ("(source) name", SOURCENAME_MAXLENGTH, "|")),
                        _data=rows_data)
-
+                       
         db_connection.close()
 
     return 0
