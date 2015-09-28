@@ -43,11 +43,9 @@
 # pylint: disable=C0302
 
 # Pylint : disabling the "Use of eval" warning
-# eval() is used in the the_file_has_to_be_added() function
-#
-# see below how this function is protected against malicious code execution.
-# see AUTHORIZED_EVALCHARS
-#
+# -> eval() is used in the the_file_has_to_be_added() function
+# -> see below how this function is protected against malicious code execution.
+# -> see AUTHORIZED_EVALCHARS
 # pylint: disable=W0123
 
 import argparse
