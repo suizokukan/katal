@@ -76,10 +76,6 @@ FREESPACE_MARGIN = 1.1
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
-DATABASE_RECORD = namedtuple('DATABASE_FIELD', ["hashid",
-                                                "filename",
-                                                "sourcename",
-                                                "strtags"])
 
 TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
 
@@ -250,17 +246,17 @@ def action__cleandbrm():
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
             msg("    o about to remove \"{0}\"".format(os.path.join(TARGET_PATH,
                                                                     db_record["filename"])))
-            
+
     if len(files_to_be_rmved_from_the_db) == 0:
         msg("    ! no file to be removed : the database is ok.")
     else:
         for hashid in files_to_be_rmved_from_the_db:
             db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
-    db_connection.commit()
-    db_connection.close()
+            db_connection.commit()
+            msg("    o ... done")
 
-    msg("    o ... done")
+    db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg():
