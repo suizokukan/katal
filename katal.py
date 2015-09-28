@@ -69,7 +69,7 @@ PROGRAM_NAME = "Katal"
 PROGRAM_VERSION = "0.0.7"
 
 # when the program verifies that there's enough free space on disk, it multiplies
-# the required amount of space by these coefficient
+# the required amount of space by this coefficient.
 FREESPACE_MARGIN = 1.1
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
