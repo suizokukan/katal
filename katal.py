@@ -115,6 +115,7 @@ SIEVES = {}  # see documentation:selection; initialized by read_sieves()
 
 # date's string format, e.g. "2015-09-17 20:01"
 DATETIME_FORMAT = "%Y-%m-%d %H:%M"
+DATETIME_FORMAT_LENGTH = 16
 
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
@@ -177,6 +178,13 @@ def action__add():
         complete_source_filename = SELECT[hashid].complete_name
         target_name = os.path.join(TARGET_PATH, short_target_name)
 
+        sourcedate = \
+         datetime.fromtimestamp(os.path.getmtime(complete_source_filename)).replace(second=0,
+                                                                                    microsecond=0)
+        # converting the datetime object in epoch value (=the number of seconds from 1970-01-01 :
+        sourcedate -= datetime(1970, 1, 1)
+        sourcedate = sourcedate.total_seconds()
+
         msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
                                                                     len_select,
                                                                     complete_source_filename,
@@ -184,11 +192,15 @@ def action__add():
         shutil.copyfile(complete_source_filename,
                         target_name)
 
-        files_to_be_added.append((hashid, short_target_name, complete_source_filename, "",))
+        files_to_be_added.append((hashid,
+                                  short_target_name,
+                                  complete_source_filename,
+                                  sourcedate,
+                                  ""))
 
     msg("    = all files have been copied, updating the database... =")
 
-    db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?)', files_to_be_added)
+    db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?)', files_to_be_added)
     db_connection.commit()
 
     db_connection.close()
@@ -1047,8 +1059,9 @@ def read_target_db():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        db_cursor.execute('''CREATE TABLE dbfiles
-        (hashid varchar(44) PRIMARY KEY, name text, sourcename text, strtags text)''')
+        db_cursor.execute('CREATE TABLE dbfiles ' \
+                          '(hashid varchar(44) PRIMARY KEY, name text, ' \
+                          'sourcename text, sourcedate integer, strtags text)')
 
         db_connection.commit()
 
@@ -1221,10 +1234,14 @@ def show_infos_about_target_path():
         rows_data = []
         row_index = 0
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+            sourcedate = datetime.fromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
+
             rows_data.append((db_record["hashid"],
                               db_record["name"],
                               db_record["strtags"],
-                              db_record["sourcename"]))
+                              db_record["sourcename"],
+                              sourcedate))
+
             row_index += 1
 
         if row_index == 0:
@@ -1235,7 +1252,8 @@ def show_infos_about_target_path():
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
                               ("name", TARGETNAME_MAXLENGTH, "|"),
                               ("tags", STRTAGS_MAXLENGTH, "|"),
-                              ("(source) name", SOURCENAME_MAXLENGTH, "|")),
+                              ("(source) name", SOURCENAME_MAXLENGTH, "|"),
+                              ("(source) date", DATETIME_FORMAT_LENGTH, "|")),
                        _data=rows_data)
 
         db_connection.close()

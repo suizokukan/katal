@@ -110,6 +110,12 @@ SIEVES is filled by read_sieves().
 In every target directory a database is created and filled. Its name is set by the
 global variable DATABASE_NAME.
 TARGET_DB is a list of hashids and initialized by read_target_db().
+    
+    o hashid varchar(44) PRIMARY KEY        : hashid
+    o name text                             : (target) name
+    o sourcename text                       : complete path + name + extension
+    o sourcedate integer                    : epoch time
+    o strtags text                          : a list of tags separated by ";"
 
 (A) history
 
