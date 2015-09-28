@@ -188,10 +188,14 @@ def action__add():
 
         files_to_be_added.append((hashid, short_target_name, complete_source_filename, "",))
 
+    msg("    = all files have been copied, updating the database... =")
+
     db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?)', files_to_be_added)
     db_connection.commit()
 
     db_connection.close()
+
+    msg("    = ... database updated =")
 
     # returned value : 0 = success
     return 0
