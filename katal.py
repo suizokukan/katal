@@ -597,10 +597,8 @@ def fill_select(_debug_datatime=None):
 
 	    # if we know the total amount of files to be selected (see the --infos option),
 	    # we can add the percentage done :
-            if INFOS_ABOUT_SRC_PATH[1] is None or INFOS_ABOUT_SRC_PATH[1] == 0:
-                # no information about the source path or no file to be selected :
-                prefix = ""
-            else:
+            prefix = ""
+            if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
 
             # the extension stored in SELECT does not begin with a dot.
