@@ -113,6 +113,28 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 
 (A) history
 
+    v.0.0.7 (2015_09_28)
+        o --cleandbrm option : Remove from the database the missing files in
+          the target path; added the action__cleandbrm() function (issue #1)
+
+        o modified msg() function : new parameter "_important_msg"
+          If _important_msg is False, the message will be printed only if
+          LOG_VERBOSITY is set to "high" .
+        o fixed a minor bug in fill_select() : number_of_discarded_files is
+          now correctly computed
+        o improved code readibility by using sqlite3.Row as a row factory.    
+        o fixed show_infos_about_target_path()::draw_table() : characters like "║"
+          are forbidden (problem with the cp1252 
+        o modified msg() : messages are written to the console first
+        o (issue #4) fill_select() adds a percentage of the work done based on
+          the informations gathered by the --infos options.
+        o modified show_infos_about_source_path() : added the number of the
+          extensions found in the source directory (issue #2).
+        o modified show_infos_about_source_path() : extensions are now sorted by name
+        o the documentation and the error messages have been improved
+
+        o 7 tests, pylint=10.0
+
     v.0.0.6 (2015_09_23)
         o  added a new sieve (by date)
         o  added option -ddcfg / --downloaddefaultcfg
