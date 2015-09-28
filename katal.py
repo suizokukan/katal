@@ -74,6 +74,7 @@ FREESPACE_MARGIN = 1.1
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
+TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
 
 TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
 
@@ -791,8 +792,8 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
 
                 elif _mode == "append":
                     msg("    o adding the string tag \"{0}\" to {1}.".format(_tag, filename))
-                    sqlorder = 'UPDATE dbfiles SET strtags = strtags || \";{0}\" ' \
-                               'WHERE hashid=\"{1}\"'.format(_tag, hashid)
+                    sqlorder = 'UPDATE dbfiles SET strtags = strtags || \"{0}{1}\" ' \
+                               'WHERE hashid=\"{2}\"'.format(TAG_SEPARATOR, _tag, hashid)
                     db_connection.executescript(sqlorder)
 
                 else:

@@ -115,8 +115,8 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
     o name text                             : (target) name
     o sourcename text                       : complete path + name + extension
     o sourcedate integer                    : epoch time
-    o strtags text                          : a list of tags separated by ";"
-
+    o strtags text                          : a list of tags separated by the TAG_SEPARATOR
+                                              symbol.
 (A) history
 
     v.0.0.7 (2015_09_28)
