@@ -190,6 +190,8 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         option. (default: None)
   -c CONFIGFILE, --configfile CONFIGFILE
                         config file, e.g. config.ini (default: katal.ini)
+  --cleandbrm           Remove from the database the missing files in the
+                        target path. (default: False)
   -ddcfg, --downloaddefaultcfg
                         Download the default config file and overwrite the
                         file having the same name. This is done before the
@@ -242,6 +244,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 o  action__add()                        : add the source files to the target
                                           path.
 o  action__addtag()                     : add one tag to the string tags of some files
+o  action__cleandbrm()                  : remove from the database the missing files
 o  action__downloadefaultcfg()          : download the default configuration file
 o  action__infos()                      : display informations about the source
                                           and the target directory

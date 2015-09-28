@@ -218,6 +218,42 @@ def action__addtag(_tag, _to):
     modify_the_tag_of_some_files(_tag=_tag, _to=_to, _mode="append")
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__cleandbrm():
+    """
+        action__cleandbrm()
+        ________________________________________________________________________
+
+        Remove from the database the missing files, i.e. the files that do not
+        exist in the target directory.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    msg("    = clean the database : remove missing files from the target directory =")
+
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+    if not os.path.exists(db_filename):
+        msg("    ! Found no database.")
+        return
+
+    db_connection = sqlite3.connect(db_filename)
+    db_cursor = db_connection.cursor()
+
+    files_to_be_rmved_from_the_db = []  # hashid of the files
+    for hashid, name, _, _ in db_cursor.execute('SELECT * FROM dbfiles'):
+        if not os.path.exists(os.path.join(TARGET_PATH, name)):
+            files_to_be_rmved_from_the_db.append(hashid)
+            msg("    o about to remove \"{0}\"".format(os.path.join(TARGET_PATH, name)))
+
+    for hashid in files_to_be_rmved_from_the_db:
+        db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+
+    db_connection.commit()
+    db_connection.close()
+
+    msg("    o ... done")
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg():
     """
         action__downloadefaultcfg()
@@ -830,6 +866,10 @@ def read_command_line_arguments():
                         type=str,
                         default=DEFAULT_CONFIGFILE_NAME,
                         help="config file, e.g. config.ini")
+
+    parser.add_argument('--cleandbrm',
+                        action="store_true",
+                        help="Remove from the database the missing files in the target path.")
 
     parser.add_argument('-ddcfg', '--downloaddefaultcfg',
                         action="store_true",
@@ -1475,6 +1515,9 @@ if __name__ == '__main__':
             action__infos()
         if ARGS.targetinfos:
             show_infos_about_target_path()
+
+        if ARGS.cleandbrm:
+            action__cleandbrm()
 
         if ARGS.hashid:
             show_hashid_of_a_file(ARGS.hashid)
