@@ -159,6 +159,10 @@ def action__add():
                 (int) 0 if success, -1 if an error occured.
     """
     msg("  = copying data =")
+    
+    msg("  o ... beginning of the copying process at {0}; " \
+        "duration time hitherto : {1}) ===".format(datetime.now().strftime(DATETIME_FORMAT),
+                                                   datetime.now() - TIMESTAMP_BEGIN))
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     db_connection = sqlite3.connect(db_filename)
@@ -337,6 +341,10 @@ def action__select():
 
     # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
     number_of_discarded_files = fill_select()
+    
+    msg("  o ... end of the selection process at {0}; " \
+        "duration time hitherto : {1}) ===".format(datetime.now().strftime(DATETIME_FORMAT),
+                                                   datetime.now() - TIMESTAMP_BEGIN))
 
     msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
