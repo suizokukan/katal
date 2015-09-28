@@ -86,7 +86,7 @@ SOURCENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
-						  
+
 TARGET_PATH = ""  # initialized from the configuration file.
 TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
@@ -535,7 +535,7 @@ def fill_select(_debug_datatime=None):
     SELECT = {}  # see the SELECT format in the documentation:selection
     SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
-	
+
     file_index = 0  # number of the current file in the source directory.
     for dirpath, _, filenames in os.walk(SOURCE_PATH):
         for filename in filenames:
@@ -550,9 +550,9 @@ def fill_select(_debug_datatime=None):
                 time = datetime.strptime(_debug_datatime[complete_name], DATETIME_FORMAT)
 
             filename_no_extens, extension = os.path.splitext(filename)
-			
-			# if we know the total amount of files to be selected (see the --infos option),
-			# we can add the percentage done :
+
+	    # if we know the total amount of files to be selected (see the --infos option),
+	    # we can add the percentage done :
             if INFOS_ABOUT_SRC_PATH[1] is None or INFOS_ABOUT_SRC_PATH[1] == 0:
                 # no information about the source path or no file to be selected :
                 prefix = ""
@@ -583,8 +583,9 @@ def fill_select(_debug_datatime=None):
                                                   date=time.strftime(DATETIME_FORMAT))
 
                     if LOG_VERBOSITY == "high":
-                        msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix, complete_name,
-                                                                               len(SELECT)))
+                        msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix,
+                                                                                   complete_name,
+                                                                                   len(SELECT)))
 
                     SELECT_SIZE_IN_BYTES += os.stat(complete_name).st_size
                 else:
@@ -1037,7 +1038,7 @@ def show_infos_about_source_path():
         show_infos_about_source_path()
         ________________________________________________________________________
 
-        Display informations about the source directory. 
+        Display informations about the source directory.
 		Initialize INFOS_ABOUT_SRC_PATH.
         ________________________________________________________________________
 
@@ -1081,7 +1082,7 @@ def show_infos_about_source_path():
                                                      size_as_str(extensions[extension][1])))
 
     INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
-													 
+
 #///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_target_path():
     """
@@ -1178,7 +1179,7 @@ def show_infos_about_target_path():
                               ("tags", STRTAGS_MAXLENGTH, "|"),
                               ("(source) name", SOURCENAME_MAXLENGTH, "|")),
                        _data=rows_data)
-                       
+
         db_connection.close()
 
     return 0
