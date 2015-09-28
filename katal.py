@@ -607,10 +607,11 @@ def fill_select(_debug_datatime=None):
 
             res = the_file_has_to_be_added(filename, size, time)
             if not res:
-                if LOG_VERBOSITY == "high":
-                    msg("    - {0} (sieves described in the config file)" \
-                              " discarded \"{1}\"".format(prefix, complete_name))
                 number_of_discarded_files += 1
+
+                msg("    - {0} (sieves described in the config file)" \
+                    " discarded \"{1}\"".format(prefix, complete_name),
+                    _important_msg=False)
             else:
                 # is filename already stored in <TARGET_DB> ?
                 _hash = hashfile64(complete_name)
@@ -624,19 +625,19 @@ def fill_select(_debug_datatime=None):
                                                   size=size,
                                                   date=time.strftime(DATETIME_FORMAT))
 
-                    if LOG_VERBOSITY == "high":
-                        msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix,
-                                                                                   complete_name,
-                                                                                   len(SELECT)))
+                    msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix,
+                                                                               complete_name,
+                                                                               len(SELECT)),
+                        _important_msg=False)
 
                     SELECT_SIZE_IN_BYTES += os.stat(complete_name).st_size
                 else:
                     res = False
+                    number_of_discarded_files += 1
 
-                    if LOG_VERBOSITY == "high":
-                        msg("    - {0} (similar hashid) " \
-                                  " discarded \"{1}\"".format(prefix, complete_name))
-                        number_of_discarded_files += 1
+                    msg("    - {0} (similar hashid) " \
+                        " discarded \"{1}\"".format(prefix, complete_name),
+                        _important_msg=False)
 
     return number_of_discarded_files
 
@@ -789,7 +790,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
         db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def msg(_msg, _for_console=True, _for_logfile=True):
+def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
     """
         msg()
         ________________________________________________________________________
@@ -803,9 +804,14 @@ def msg(_msg, _for_console=True, _for_logfile=True):
                 o _msg          : (str) the message to be written
                 o _for_console  : (bool) authorization to write on console
                 o _for_logfile  : (bool) authorization to write in the log file
+                o _important_msg: (bool) if False, will be printed only if
+                                  LOG_VERBOSITY is set to "high"
 
         no RETURNED VALUE
     """
+    if _important_msg == False and LOG_VERBOSITY == "low":
+        return
+
     # first to the console : otherwise, if an error occurs by writing to the log
     # file, it would'nt possible to read the message.
     if not ARGS.mute and _for_console:
