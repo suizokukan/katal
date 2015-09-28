@@ -610,7 +610,7 @@ def fill_select(_debug_datatime=None):
                 if LOG_VERBOSITY == "high":
                     msg("    - {0} (sieves described in the config file)" \
                               " discarded \"{1}\"".format(prefix, complete_name))
-                    number_of_discarded_files += 1
+                number_of_discarded_files += 1
             else:
                 # is filename already stored in <TARGET_DB> ?
                 _hash = hashfile64(complete_name)
