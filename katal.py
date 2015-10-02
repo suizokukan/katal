@@ -328,7 +328,7 @@ def action__rmnotags():
         no PARAMETER, no RETURNED VALUE
     """
     msg("  = removing all files with no tags =")
-    
+
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     if not os.path.exists(db_filename):
         msg("    ! no database found.")
@@ -340,9 +340,9 @@ def action__rmnotags():
         files_to_be_removed = []    # list of (hashid, name)
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
             if db_record["strtags"] == "":
-                files_to_be_removed.append( (db_record["hashid"], db_record["name"]) )
+                files_to_be_removed.append((db_record["hashid"], db_record["name"]))
 
-        if len(files_to_be_removed)==0:
+        if len(files_to_be_removed) == 0:
             msg("   ! no files to be removed.")
         else:
             for hashid, name in files_to_be_removed:
