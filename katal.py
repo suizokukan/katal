@@ -252,7 +252,7 @@ def action__cleandbrm():
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     if not os.path.exists(db_filename):
-        msg("    ! Found no database.")
+        msg("    ! no database found.")
         return
 
     db_connection = sqlite3.connect(db_filename)
@@ -331,7 +331,7 @@ def action__rmnotags():
     
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     if not os.path.exists(db_filename):
-        msg("    ! Found no database.")
+        msg("    ! no database found.")
     else:
         db_connection = sqlite3.connect(db_filename)
         db_connection.row_factory = sqlite3.Row
@@ -482,7 +482,7 @@ def action__target_kill(_filename):
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     if not os.path.exists(db_filename):
-        msg("    ! Found no database.")
+        msg("    ! no database found.")
         return -3
     else:
         db_connection = sqlite3.connect(db_filename)
@@ -828,7 +828,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
     """
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     if not os.path.exists(db_filename):
-        msg("    ! Found no database.")
+        msg("    ! no database found.")
     else:
         db_connection = sqlite3.connect(db_filename)
         db_connection.row_factory = sqlite3.Row
@@ -1206,7 +1206,7 @@ def show_infos_about_source_path():
 
     msg("    o files number : {0} file(s)".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
-    msg("    o list of all extensions (found {0} extension(s)): ".format(len(extensions)))
+    msg("    o list of all extensions ({0} extension(s) found): ".format(len(extensions)))
     for extension in sorted(extensions):
         msg("      - {0:15} : {1} files, {2}".format(extension,
                                                      extensions[extension][0],
