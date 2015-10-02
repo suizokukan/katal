@@ -471,7 +471,8 @@ def action__target_kill(_filename):
 
         RETURNED VALUE
                 (int) : 0 if success, -1 if the file doesn't exist in the target
-                        directory, -2 if the file doesn't exist in the database.
+                        directory, -2 if the file doesn't exist in the database,
+                        -3 if there's no database.
     """
     msg("  = about to kill \"{0}\" from the target directory " \
         "and from its database =".format(_filename))
@@ -480,32 +481,36 @@ def action__target_kill(_filename):
         return -1
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    db_connection = sqlite3.connect(db_filename)
-    db_connection.row_factory = sqlite3.Row
-    db_cursor = db_connection.cursor()
-
-    filename_hashid = None
-    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        if db_record["name"] == _filename:
-            filename_hashid = db_record["hashid"]
-
-    if filename_hashid is None:
-        msg("    ! Can't find \"{0}\" file in the database.".format(_filename))
-        res = -2
+    if not os.path.exists(db_filename):
+        msg("    ! Found no database.")
+        return -3
     else:
-        # let's remove _filename from the target directory :
-        os.remove(os.path.join(TARGET_PATH, _filename))
+        db_connection = sqlite3.connect(db_filename)
+        db_connection.row_factory = sqlite3.Row
+        db_cursor = db_connection.cursor()
 
-        # let's remove _filename from the database :
-        db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
+        filename_hashid = None
+        for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+            if db_record["name"] == _filename:
+                filename_hashid = db_record["hashid"]
 
-        res = 0  # success.
+        if filename_hashid is None:
+            msg("    ! Can't find \"{0}\" file in the database.".format(_filename))
+            res = -2
+        else:
+            # let's remove _filename from the target directory :
+            os.remove(os.path.join(TARGET_PATH, _filename))
 
-    db_connection.commit()
-    db_connection.close()
+            # let's remove _filename from the database :
+            db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
 
-    msg("    ... done")
-    return res
+            res = 0  # success.
+
+        db_connection.commit()
+        db_connection.close()
+
+        msg("    ... done")
+        return res
 
 #///////////////////////////////////////////////////////////////////////////////
 def check_args():
