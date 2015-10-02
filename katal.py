@@ -1123,7 +1123,6 @@ def read_target_db():
                           'sourcename TEXT, sourcedate INTEGER, strtags TEXT)')
 
         db_connection.commit()
-
         db_connection.close()
 
         msg("  = ... database created.")
