@@ -69,7 +69,7 @@ PROGRAM_NAME = "Katal"
 PROGRAM_VERSION = "0.0.7"
 
 # when the program verifies that there's enough free space on disk, it multiplies
-# the required amount of space by this coefficient.
+# the required amount of space by these coefficient
 FREESPACE_MARGIN = 1.1
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
@@ -159,10 +159,6 @@ def action__add():
                 (int) 0 if success, -1 if an error occured.
     """
     msg("  = copying data =")
-    
-    msg("  o ... beginning of the copying process at {0}; " \
-        "duration time hitherto : {1}) ===".format(datetime.now().strftime(DATETIME_FORMAT),
-                                                   datetime.now() - TIMESTAMP_BEGIN))
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     db_connection = sqlite3.connect(db_filename)
@@ -189,8 +185,9 @@ def action__add():
         # converting the datetime object in epoch value (=the number of seconds from 1970-01-01 :
         sourcedate -= datetime(1970, 1, 1)
         sourcedate = sourcedate.total_seconds()
-        
-        msg("    ... [{0:.4f}%] copying \"{1}\" to \"{2}\" .".format(index+1/len_select*100.0,
+
+        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
+                                                                    len_select,
                                                                     complete_source_filename,
                                                                     target_name))
         shutil.copyfile(complete_source_filename,
@@ -340,10 +337,6 @@ def action__select():
 
     # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
     number_of_discarded_files = fill_select()
-    
-    msg("  o ... end of the selection process at {0}; " \
-        "duration time hitherto : {1}) ===".format(datetime.now().strftime(DATETIME_FORMAT),
-                                                   datetime.now() - TIMESTAMP_BEGIN))
 
     msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
@@ -749,6 +742,7 @@ def logfile_opening():
         ________________________________________________________________________
 
         Open the log file and return the result of the called to open().
+        If the ancient logfile exists, it is renamed to avoid its overwriting.
         ________________________________________________________________________
 
         no PARAMETER
@@ -759,6 +753,11 @@ def logfile_opening():
     if PARAMETERS["log file"]["overwrite"] == "True":
         # overwrite :
         log_mode = "w"
+
+        if os.path.exists(PARAMETERS["log file"]["name"]):
+            shutil.copyfile(PARAMETERS["log file"]["name"],
+                            PARAMETERS["log file"]["name"] +\
+                            datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))
     else:
         # let's append :
         log_mode = "a"
