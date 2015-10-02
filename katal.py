@@ -316,6 +316,46 @@ def action__infos():
     return show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__rmnotags():
+    """
+        action__rmnotags
+        ________________________________________________________________________
+
+        Remove all files (from the target directory and from the database) if
+        they have no tags.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    msg("  = removing all files with no tags =")
+    
+    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
+    if not os.path.exists(db_filename):
+        msg("    ! Found no database.")
+    else:
+        db_connection = sqlite3.connect(db_filename)
+        db_connection.row_factory = sqlite3.Row
+        db_cursor = db_connection.cursor()
+
+        files_to_be_removed = []    # list of (hashid, name)
+        for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+            if db_record["strtags"] == "":
+                files_to_be_removed.append( (db_record["hashid"], db_record["name"]) )
+
+        if len(files_to_be_removed)==0:
+            msg("   ! no files to be removed.")
+        else:
+            for hashid, name in files_to_be_removed:
+                msg("   o removing {0} from the database and from the target path".format(name))
+                # removing the file from the database :
+                os.remove(os.path.join(TARGET_PATH, name))
+                # let's remove the file from the database :
+                db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+
+        db_connection.commit()
+        db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__select():
     """
         action__select()
@@ -952,6 +992,10 @@ def read_command_line_arguments():
                         help="no welcome/goodbye/informations about the parameters/ messages " \
                              "on console")
 
+    parser.add_argument('--rmnotags',
+                        action="store_true",
+                        help="remove all files without a tag")
+
     parser.add_argument('--rmtags',
                         action="store_true",
                         help="remove all the tags of some file(s) in combination " \
@@ -1565,6 +1609,9 @@ if __name__ == '__main__':
 
         if ARGS.cleandbrm:
             action__cleandbrm()
+
+        if ARGS.rmnotags:
+            action__rmnotags()
 
         if ARGS.hashid:
             show_hashid_of_a_file(ARGS.hashid)

@@ -247,6 +247,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
                         console (default: False)
   -q, --quiet           no welcome/goodbye/informations about the parameters/
                         messages on console (default: False)
+  --rmnotags            remove all files without a tag (default: False)
   --rmtags              remove all the tags of some file(s) in combination
                         with the --to option. (default: False)
   --setstrtags SETSTRTAGS
@@ -276,6 +277,7 @@ o  action__cleandbrm()                  : remove from the database the missing f
 o  action__downloadefaultcfg()          : download the default configuration file
 o  action__infos()                      : display informations about the source
                                           and the target directory
+o  action__rmnotags()                   : Remove all files if they have no tags.
 o  action__rmtags()                     : remove the entire string tags of some files
 o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                           display what's going on.
