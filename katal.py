@@ -796,7 +796,8 @@ def logfile_opening():
 
         if os.path.exists(PARAMETERS["log file"]["name"]):
             shutil.copyfile(PARAMETERS["log file"]["name"],
-                            PARAMETERS["log file"]["name"] +\
+                            "oldlogfile_" + \
+                            PARAMETERS["log file"]["name"] + \
                             datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))
     else:
         # let's append :
