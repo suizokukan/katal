@@ -117,6 +117,11 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
     o sourcedate integer                    : epoch time
     o strtags text                          : a list of tags separated by the TAG_SEPARATOR
                                               symbol.
+
+(5) trash directory
+the deleted files are placed in a trashed directory placed inside the target directory. The
+trash name is defined in the configuration file.    
+    
 (A) history
 
     v.0.0.7 (2015_09_28)

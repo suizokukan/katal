@@ -91,6 +91,8 @@ TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
 TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 
+TRASH_SUBDIR = "" # initialized from the configuration file.
+
 # maximal length of the hashids displayed. Can't be greater than 44.
 HASHID_MAXLENGTH = 20
 
@@ -347,8 +349,9 @@ def action__rmnotags():
         else:
             for hashid, name in files_to_be_removed:
                 msg("   o removing {0} from the database and from the target path".format(name))
-                # removing the file from the database :
-                os.remove(os.path.join(TARGET_PATH, name))
+                # removing the file from the target directory :
+                shutil.move(os.path.join(TARGET_PATH, name),
+                            os.path.join(TARGET_PATH, TRASH_SUBDIR, name))
                 # let's remove the file from the database :
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
@@ -499,7 +502,8 @@ def action__target_kill(_filename):
             res = -2
         else:
             # let's remove _filename from the target directory :
-            os.remove(os.path.join(TARGET_PATH, _filename))
+            shutil.move(os.path.join(TARGET_PATH, _filename),
+                        os.path.join(TARGET_PATH, TRASH_SUBDIR, _filename))
 
             # let's remove _filename from the database :
             db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
@@ -1046,6 +1050,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
     global HASHID_MAXLENGTH, STRTAGS_MAXLENGTH
+    global TRASH_SUBDIR
 
     if not os.path.exists(_configfile_name):
         msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
@@ -1059,6 +1064,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         LOG_VERBOSITY = parser["log file"]["verbosity"]
         TARGET_PATH = parser["target"]["path"]
         TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
+        TRASH_SUBDIR = parser["trash directory"]["name"]
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
@@ -1607,6 +1613,13 @@ if __name__ == '__main__':
                       "doesn't exist, let's create it.".format(TARGET_PATH))
             os.mkdir(TARGET_PATH)
 
+        if not os.path.exists(os.path.join(TARGET_PATH, TRASH_SUBDIR)):
+            msg("  ! Since the trash path \"{0}\" " \
+                      "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
+                                                                            TRASH_SUBDIR)))
+            os.mkdir(os.path.join(TARGET_PATH,
+                                  TRASH_SUBDIR))
+            
         if ARGS.infos:
             action__infos()
         if ARGS.targetinfos:
