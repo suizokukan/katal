@@ -329,7 +329,7 @@ def action__rmnotags():
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("  = removing all files with no tags =")
+    msg("  = removing all files with no tags (=moving them to the trash) =")
 
     db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
     if not os.path.exists(db_filename):
@@ -477,7 +477,7 @@ def action__target_kill(_filename):
                         directory, -2 if the file doesn't exist in the database,
                         -3 if there's no database.
     """
-    msg("  = about to kill \"{0}\" from the target directory " \
+    msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) " \
         "and from its database =".format(_filename))
     if not os.path.exists(os.path.join(TARGET_PATH, _filename)):
         msg("    ! Can't find \"{0}\" file on disk.".format(_filename))
@@ -1619,7 +1619,7 @@ if __name__ == '__main__':
                                                                             TRASH_SUBDIR)))
             os.mkdir(os.path.join(TARGET_PATH,
                                   TRASH_SUBDIR))
-            
+
         if ARGS.infos:
             action__infos()
         if ARGS.targetinfos:
