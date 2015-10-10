@@ -1345,7 +1345,7 @@ def shortstr(_str, _max_length):
         shortstr()
         ________________________________________________________________________
 
-        The function the shortened version of a string.$$$
+        The function returns a shortened version of a string.
         ________________________________________________________________________
 
         PARAMETER
