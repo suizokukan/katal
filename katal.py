@@ -123,13 +123,8 @@ DATETIME_FORMAT_LENGTH = 16
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
 # keywords an symbols : sieve, parentheses, and, or, not, xor, True, False
-#                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9$$$$
-AUTHORIZED_EVALCHARS = (' ',
-                        'T', 'F',
-                        'a', 'd', 'l', 's', 'i', 'e', 'v', 'r', 'u', 'x',
-                        'n', 'o', 't',
-                        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                        '&', '|', '^', '(', ')')
+#                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+AUTHORIZED_EVALCHARS = " TFadlsievruxnot0123456789&|^()"
 
 ################################################################################
 class ProjectError(BaseException):
