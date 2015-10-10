@@ -123,7 +123,7 @@ DATETIME_FORMAT_LENGTH = 16
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
 # keywords an symbols : sieve, parentheses, and, or, not, xor, True, False
-#                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+#                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9$$$$
 AUTHORIZED_EVALCHARS = (' ',
                         'T', 'F',
                         'a', 'd', 'l', 's', 'i', 'e', 'v', 'r', 'u', 'x',
@@ -192,8 +192,8 @@ def action__add():
                                                                     len_select,
                                                                     complete_source_filename,
                                                                     target_name))
-        shutil.copyfile(complete_source_filename,
-                        target_name)
+        if not ARGS.off:
+            shutil.copyfile(complete_source_filename, target_name)
 
         files_to_be_added.append((hashid,
                                   short_target_name,
@@ -201,10 +201,12 @@ def action__add():
                                   sourcedate,
                                   ""))
 
-    msg("    = all files have been copied, updating the database... =")
+    msg("    = all files have been copied, $$$updating the database... =")
 
     try:
-        db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?)', files_to_be_added)
+        if not ARGS.off:
+            db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?)', files_to_be_added)
+
     except sqlite3.IntegrityError as exception:
         msg("!!! An error occured while writing the database : "+str(exception))
         msg("!!! files_to_be_added : ")
@@ -212,8 +214,8 @@ def action__add():
             msg("     ! hashid={0}; name={1}; sourcename={2}; " \
                 "sourcedate={3}; strtags={4}".format(*file_to_be_added))
         raise ProjectError("An error occured while writing the database : "+str(exception))
-    db_connection.commit()
 
+    db_connection.commit()
     db_connection.close()
 
     msg("    = ... database updated =")
@@ -272,9 +274,9 @@ def action__cleandbrm():
         msg("    ! no file to be removed : the database is ok.")
     else:
         for hashid in files_to_be_rmved_from_the_db:
-            db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
-
-            db_connection.commit()
+            if not ARGS.off:
+                db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+                db_connection.commit()
             msg("    o ... done")
 
     db_connection.close()
@@ -296,8 +298,10 @@ def action__downloadefaultcfg():
     msg("  = downloading the configuration file =")
     msg("  ... downloading {0} from {1}".format(DEFAULT_CONFIGFILE_NAME, url))
 
-    with urllib.request.urlopen(url) as response, open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
+    if not ARGS.off:
+        with urllib.request.urlopen(url) as response, \
+             open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__infos():
@@ -349,11 +353,12 @@ def action__rmnotags():
         else:
             for hashid, name in files_to_be_removed:
                 msg("   o removing {0} from the database and from the target path".format(name))
-                # removing the file from the target directory :
-                shutil.move(os.path.join(TARGET_PATH, name),
-                            os.path.join(TARGET_PATH, TRASH_SUBDIR, name))
-                # let's remove the file from the database :
-                db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+                if not ARGS.off:
+                    # removing the file from the target directory :
+                    shutil.move(os.path.join(TARGET_PATH, name),
+                                os.path.join(TARGET_PATH, TRASH_SUBDIR, name))
+                    # let's remove the file from the database :
+                    db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
         db_connection.commit()
         db_connection.close()
@@ -501,12 +506,13 @@ def action__target_kill(_filename):
             msg("    ! Can't find \"{0}\" file in the database.".format(_filename))
             res = -2
         else:
-            # let's remove _filename from the target directory :
-            shutil.move(os.path.join(TARGET_PATH, _filename),
-                        os.path.join(TARGET_PATH, TRASH_SUBDIR, _filename))
+            if not ARGS.off:
+                # let's remove _filename from the target directory :
+                shutil.move(os.path.join(TARGET_PATH, _filename),
+                            os.path.join(TARGET_PATH, TRASH_SUBDIR, _filename))
 
-            # let's remove _filename from the database :
-            db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
+                # let's remove _filename from the database :
+                db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
 
             res = 0  # success.
 
@@ -529,7 +535,7 @@ def check_args():
         no PARAMETER, no RETURNED VALUE
     """
     # --select and --add can't be used simultaneously.
-    if ARGS.add == True and ARGS.select == True:
+    if ARGS.add is True and ARGS.select is True:
         raise ProjectError("--select and --add can't be used simultaneously")
 
     # --setstrtags must be used with --to :
@@ -849,12 +855,12 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
 
-                if _mode == "set":
+                if _mode == "set" and not ARGS.off:
                     msg("    o applying the string tag \"{0}\" to {1}.".format(_tag, filename))
                     sqlorder = 'UPDATE dbfiles SET strtags=? WHERE hashid=?'
                     db_connection.execute(sqlorder, (_tag, hashid))
 
-                elif _mode == "append":
+                elif _mode == "append" and not ARGS.off:
                     msg("    o adding the string tag \"{0}\" to {1}.".format(_tag, filename))
                     sqlorder = 'UPDATE dbfiles SET strtags = strtags || \"{0}{1}\" ' \
                                'WHERE hashid=\"{2}\"'.format(TAG_SEPARATOR, _tag, hashid)
@@ -886,7 +892,7 @@ def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
 
         no RETURNED VALUE
     """
-    if _important_msg == False and LOG_VERBOSITY == "low":
+    if _important_msg is True and LOG_VERBOSITY == "low":
         return
 
     # first to the console : otherwise, if an error occurs by writing to the log
@@ -980,8 +986,8 @@ def read_command_line_arguments():
                              "in the configuration file " \
                              "without adding them to the target directory. " \
                              "This option can't be used with the --add one." \
-							 "If you want more informations about the process, please " \
-							 "use this option in combination with --infos .")
+     			     "If you want more informations about the process, please " \
+			     "use this option in combination with --infos .")
 
     parser.add_argument('-ti', '--targetinfos',
                         action="store_true",
@@ -996,6 +1002,13 @@ def read_command_line_arguments():
     parser.add_argument('-m', '--mute',
                         action="store_true",
                         help="no output to the console; no question asked on the console")
+
+    parser.add_argument('--off',
+                        action="store_true",
+                        help="don't write anything into the target directory or into " \
+                             "the database, except into the current log file. " \
+                             "Use this option to simulate an operation : you get the messages " \
+                             "but no file is modified on disk, no directory is created.")
 
     parser.add_argument('-q', '--quiet',
                         action="store_true",
@@ -1053,7 +1066,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     global TRASH_SUBDIR
 
     if not os.path.exists(_configfile_name):
-        msg("    ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
+        msg("  ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
         return None
 
     parser = configparser.ConfigParser()
@@ -1070,9 +1083,9 @@ def read_parameters_from_cfgfile(_configfile_name):
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
         STRTAGS_MAXLENGTH = int(parser["display"]["tag.max length on console"])
     except BaseException as exception:
-        msg("    ! An error occured while reading " \
+        msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
-        msg("    ! Python message : \"{0}\"".format(exception))
+        msg("  ! Python message : \"{0}\"".format(exception))
         return None
 
     return parser
@@ -1130,9 +1143,10 @@ def read_target_db():
         db_connection = sqlite3.connect(db_filename)
         db_cursor = db_connection.cursor()
 
-        db_cursor.execute('CREATE TABLE dbfiles ' \
-                          '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
-                          'sourcename TEXT, sourcedate INTEGER, strtags TEXT)')
+        if not ARGS.off:
+            db_cursor.execute('CREATE TABLE dbfiles ' \
+                              '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
+                              'sourcename TEXT, sourcedate INTEGER, strtags TEXT)')
 
         db_connection.commit()
         db_connection.close()
@@ -1336,7 +1350,7 @@ def shortstr(_str, _max_length):
         shortstr()
         ________________________________________________________________________
 
-        The function the shortened version of a string.
+        The function the shortened version of a string.$$$
         ________________________________________________________________________
 
         PARAMETER
@@ -1553,6 +1567,11 @@ def welcome():
                                                      TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")))
     msg("  = using \"{0}\" as config file".format(ARGS.configfile))
 
+    if ARGS.off:
+        msg("  = --off option : no file will be modified, no directory will be created =")
+        msg("  =                but the corresponding messages will be written in the  =")
+        msg("  =                log file.                                              =")
+
 #///////////////////////////////////////////////////////////////////////////////
 def welcome_in_logfile():
     """
@@ -1611,14 +1630,16 @@ if __name__ == '__main__':
         if not os.path.exists(TARGET_PATH):
             msg("  ! Since the target path \"{0}\" " \
                       "doesn't exist, let's create it.".format(TARGET_PATH))
-            os.mkdir(TARGET_PATH)
+            if not ARGS.off:
+                os.mkdir(TARGET_PATH)
 
         if not os.path.exists(os.path.join(TARGET_PATH, TRASH_SUBDIR)):
             msg("  ! Since the trash path \"{0}\" " \
                       "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
                                                                             TRASH_SUBDIR)))
-            os.mkdir(os.path.join(TARGET_PATH,
-                                  TRASH_SUBDIR))
+            if not ARGS.off:
+                os.mkdir(os.path.join(TARGET_PATH,
+                                      TRASH_SUBDIR))
 
         if ARGS.infos:
             action__infos()
