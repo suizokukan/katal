@@ -196,7 +196,7 @@ def action__add():
                                   sourcedate,
                                   ""))
 
-    msg("    = all files have been copied, $$$updating the database... =")
+    msg("    = all files have been copied, let's update the database... =")
 
     try:
         if not ARGS.off:
