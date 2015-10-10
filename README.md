@@ -124,6 +124,26 @@ trash name is defined in the configuration file.
     
 (A) history
 
+    v.0.0.8 (2015_10_04)
+    
+        o --rmnotags option : added the action__rmnotags() function
+        o deleted files are moved to a trash subdirectory, inside the target
+          directory. (see issue #13)
+    
+        o in modified action__target_kill() : return an error code if there's no database.
+        o fixed an important bug in modify_the_tag_of_some_files() :
+          the files are now correctly choosed along with the --to argument's content
+        o modified logfile__opening(): rename old log files so that they can be
+          easily deleted (issue #15)
+        o added a new column in the database : 'sourcedate'
+        o in logfile_opening() : if the opening mode is "append", save the last
+          log file with a different name to prevent its overwriting.
+        o added global constant TAG_SEPARATOR
+        o database 'name' and 'hashid' are unique from now;
+        o the documentation and the error messages have been improved
+    
+        o 7 tests, pylint=10.0
+
     v.0.0.7 (2015_09_28)
         o --cleandbrm option : Remove from the database the missing files in
           the target path; added the action__cleandbrm() function (issue #1)
