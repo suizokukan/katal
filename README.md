@@ -15,7 +15,7 @@
 
         ________________________________________________________________________
 
-        The name Katal comes from the Ancient Greek κατάλογος ("enrolment, 
+        The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, 
         register, catalogue").
         ________________________________________________________________________
 
