@@ -30,6 +30,7 @@
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
+from katal.katal import PROGRAM_NAME, __version__, __author__, __license__, __email__
 
 HERE = path.abspath(path.dirname(__file__))
 
@@ -38,7 +39,7 @@ with open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name='Katal',
+    name=PROGRAM_NAME,
 
     # The project's main homepage.
     url='https://github.com/suizokukan/katal',
@@ -46,17 +47,17 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.0.dev3',
+    version=__version__,
 
     description="files' catalogue manager",
     long_description=LONG_DESCRIPTION,
 
     # Author details
-    author='suizokukan',
-    author_email='suizokukan@orange.fr',
+    author=__author__,
+    author_email=__email__,
 
     # Choose your license
-    license='GPL-3.0',
+    license=__license__,
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[

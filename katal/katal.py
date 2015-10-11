@@ -66,7 +66,14 @@ import sys
 import unicodedata
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.1.0.dev3"  # cf https://www.python.org/dev/peps/pep-0440/
+
+__author__ = "Xavier Faure (suizokukan)"
+__copyright__ = "Copyright 2015, suizokukan"
+__license__ = "GPL-3.0"
+__version__ = "0.0.9.dev15"      #  cf https://www.python.org/dev/peps/pep-0440/
+__maintainer__ = "Xavier Faure (suizokukan)"
+__email__ = "suizokukan @T orange D@T fr"
+__status__ = "Production"
 
 ARGS = None # initialized by main()
 
@@ -1075,7 +1082,7 @@ def read_command_line_arguments():
         RETURNED VALUE
                 return the argparse object.
     """
-    parser = argparse.ArgumentParser(description="{0} v. {1}".format(PROGRAM_NAME, PROGRAM_VERSION),
+    parser = argparse.ArgumentParser(description="{0} v. {1}".format(PROGRAM_NAME, __version__),
                                      epilog="by suizokukan AT orange DOT fr",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -1177,7 +1184,7 @@ def read_command_line_arguments():
 
     parser.add_argument('--version',
                         action='version',
-                        version="{0} v. {1}".format(PROGRAM_NAME, PROGRAM_VERSION),
+                        version="{0} v. {1}".format(PROGRAM_NAME, __version__),
                         help="show the version and exit")
 
     return parser.parse_args()
@@ -1702,7 +1709,7 @@ def welcome():
         return
 
     msg("=== {0} v.{1} (launched at {2}) ===".format(PROGRAM_NAME,
-                                                     PROGRAM_VERSION,
+                                                     __version__,
                                                      TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")))
     msg("  = using \"{0}\" as config file".format(ARGS.configfile))
 
@@ -1731,7 +1738,7 @@ def welcome_in_logfile():
     """
     msg(_msg="=== {0} v.{1} " \
         "(launched at {2}) ===".format(PROGRAM_NAME,
-                                       PROGRAM_VERSION,
+                                       __version__,
                                        TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")),
         _for_logfile=True,
         _for_console=False)
