@@ -349,3 +349,12 @@ o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
 o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
 o  welcome()                            : display a welcome message on screen
 o  welcome_in_logfile()                 : display a welcome message in the log file
+
+(E) Pypi
+
+$ python setup.py sdist bdist_wheel register -r test
+... if no error :
+$ python setup.py sdist bdist_wheel upload -r test
+
+$ python setup.py sdist bdist_wheel register -r pypi
+$ python setup.py sdist bdist_wheel upload -r pypi
