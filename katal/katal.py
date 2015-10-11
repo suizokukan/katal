@@ -297,7 +297,7 @@ def action__downloadefaultcfg():
 
         no PARAMETER, no RETURNED VALUE
     """
-    url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal.ini"
+    url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
 
     msg("  = downloading the configuration file =")
     msg("  ... downloading {0} from {1}".format(DEFAULT_CONFIGFILE_NAME, url))
