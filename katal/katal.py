@@ -66,7 +66,7 @@ import sys
 import unicodedata
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.0.8"
+PROGRAM_VERSION = "0.0.9.dev5"  # cf https://www.python.org/dev/peps/pep-0440/
 
 # when the program verifies that there's enough free space on disk, it multiplies
 # the required amount of space by these coefficient

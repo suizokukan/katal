@@ -32,7 +32,7 @@ import os
 from collections import namedtuple
 import unittest
 
-import katal
+from katal import katal
 katal.ARGS = namedtuple("ARGS", ("configfile", "mute",))
 
 ################################################################################
