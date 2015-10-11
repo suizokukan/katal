@@ -66,7 +66,9 @@ import sys
 import unicodedata
 
 PROGRAM_NAME = "Katal"
-PROGRAM_VERSION = "0.0.9.dev5"  # cf https://www.python.org/dev/peps/pep-0440/
+PROGRAM_VERSION = "0.1.0.dev3"  # cf https://www.python.org/dev/peps/pep-0440/
+
+ARGS = None # initialized by main()
 
 # when the program verifies that there's enough free space on disk, it multiplies
 # the required amount of space by these coefficient
@@ -816,6 +818,148 @@ def logfile_opening():
     return open(PARAMETERS["log file"]["name"], log_mode)
 
 #///////////////////////////////////////////////////////////////////////////////
+def main():
+    """
+        main()
+        ________________________________________________________________________
+
+        Main entry point.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+
+        o  sys.exit(-1) is called if the config file is ill-formed.
+        o  sys.exit(-2) is called if a ProjectError exception is raised
+        o  sys.exit(-3) is called if another exception is raised
+    """
+    global ARGS
+
+    try:
+        ARGS = read_command_line_arguments()
+        check_args()
+
+        if ARGS.targetinfos:
+            ARGS.quiet = True
+
+        welcome()
+        main_warmup()
+        main_actions()
+
+        goodbye()
+
+        if USE_LOG_FILE:
+            LOGFILE.close()
+
+    except ProjectError as exception:
+        print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
+                                                                              exception))
+        sys.exit(-2)
+    else:
+        sys.exit(-3)
+
+    sys.exit(0)
+
+#///////////////////////////////////////////////////////////////////////////////
+def main_actions():
+    """
+        main_actions()
+        ________________________________________________________________________
+
+        Call the different actions required by the arguments of the command line.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    if ARGS.cleandbrm:
+        action__cleandbrm()
+
+    if ARGS.rmnotags:
+        action__rmnotags()
+
+    if ARGS.hashid:
+        show_hashid_of_a_file(ARGS.hashid)
+
+    if ARGS.setstrtags:
+        action__setstrtags(ARGS.setstrtags, ARGS.to)
+
+    if ARGS.addtag:
+        action__addtag(ARGS.addtag, ARGS.to)
+
+    if ARGS.rmtags:
+        action__rmtags(ARGS.to)
+
+    if ARGS.targetkill:
+        action__target_kill(ARGS.targetkill)
+
+    if ARGS.select:
+        read_target_db()
+        read_sieves()
+        action__select()
+
+        if not ARGS.mute:
+            answer = \
+                input("\nDo you want to add the selected " \
+                      "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+
+            if answer in ("y", "yes"):
+                action__add()
+                action__infos()
+
+    if ARGS.add:
+        read_target_db()
+        read_sieves()
+        action__select()
+        action__add()
+        action__infos()
+
+#///////////////////////////////////////////////////////////////////////////////
+def main_warmup():
+    """
+        main_warmup()
+        ________________________________________________________________________
+
+        Initialization
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+
+        o  sys.exit(-1) is called if the config file is ill-formed.
+    """
+    global PARAMETERS, LOGFILE
+
+    if ARGS.downloaddefaultcfg:
+        action__downloadefaultcfg()
+
+    PARAMETERS = read_parameters_from_cfgfile(ARGS.configfile)
+    if PARAMETERS is None:
+        sys.exit(-1)
+
+    if USE_LOG_FILE:
+        LOGFILE = logfile_opening()
+        welcome_in_logfile()
+
+    parameters_infos()
+
+    if not os.path.exists(TARGET_PATH):
+        msg("  ! Since the target path \"{0}\" " \
+                  "doesn't exist, let's create it.".format(TARGET_PATH))
+        if not ARGS.off:
+            os.mkdir(TARGET_PATH)
+
+    if not os.path.exists(os.path.join(TARGET_PATH, TRASH_SUBDIR)):
+        msg("  ! Since the trash path \"{0}\" " \
+                  "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
+                                                                        TRASH_SUBDIR)))
+        if not ARGS.off:
+            os.mkdir(os.path.join(TARGET_PATH,
+                                  TRASH_SUBDIR))
+
+    if ARGS.infos:
+        action__infos()
+    if ARGS.targetinfos:
+        show_infos_about_target_path()
+
+#///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
     """
         modify_the_tag_of_some_files()
@@ -972,8 +1116,8 @@ def read_command_line_arguments():
                         action="store_true",
                         help="display informations about the source directory " \
                              "given in the configuration file. Help the --select/--add " \
-							 "options to display more informations about the process : in " \
-							 "this case, the --infos will be executed before --select/--add")
+                             "options to display more informations about the process : in " \
+			     "this case, the --infos will be executed before --select/--add")
 
     parser.add_argument('-s', '--select',
                         action="store_true",
@@ -1600,99 +1744,4 @@ def welcome_in_logfile():
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
 if __name__ == '__main__':
-    try:
-        ARGS = read_command_line_arguments()
-        check_args()
-
-        if ARGS.targetinfos:
-            ARGS.quiet = True
-
-        welcome()
-
-        if ARGS.downloaddefaultcfg:
-            action__downloadefaultcfg()
-
-        PARAMETERS = read_parameters_from_cfgfile(ARGS.configfile)
-        if PARAMETERS is None:
-            sys.exit(-1)
-
-        if USE_LOG_FILE:
-            LOGFILE = logfile_opening()
-            welcome_in_logfile()
-
-        parameters_infos()
-
-        if not os.path.exists(TARGET_PATH):
-            msg("  ! Since the target path \"{0}\" " \
-                      "doesn't exist, let's create it.".format(TARGET_PATH))
-            if not ARGS.off:
-                os.mkdir(TARGET_PATH)
-
-        if not os.path.exists(os.path.join(TARGET_PATH, TRASH_SUBDIR)):
-            msg("  ! Since the trash path \"{0}\" " \
-                      "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
-                                                                            TRASH_SUBDIR)))
-            if not ARGS.off:
-                os.mkdir(os.path.join(TARGET_PATH,
-                                      TRASH_SUBDIR))
-
-        if ARGS.infos:
-            action__infos()
-        if ARGS.targetinfos:
-            show_infos_about_target_path()
-
-        if ARGS.cleandbrm:
-            action__cleandbrm()
-
-        if ARGS.rmnotags:
-            action__rmnotags()
-
-        if ARGS.hashid:
-            show_hashid_of_a_file(ARGS.hashid)
-
-        if ARGS.setstrtags:
-            action__setstrtags(ARGS.setstrtags, ARGS.to)
-
-        if ARGS.addtag:
-            action__addtag(ARGS.addtag, ARGS.to)
-
-        if ARGS.rmtags:
-            action__rmtags(ARGS.to)
-
-        if ARGS.targetkill:
-            action__target_kill(ARGS.targetkill)
-
-        if ARGS.select:
-            read_target_db()
-            read_sieves()
-            action__select()
-
-            if not ARGS.mute:
-                ANSWER = \
-                    input("\nDo you want to add the selected " \
-                          "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
-
-                if ANSWER in ("y", "yes"):
-                    action__add()
-                    action__infos()
-
-        if ARGS.add:
-            read_target_db()
-            read_sieves()
-            action__select()
-            action__add()
-            action__infos()
-
-        goodbye()
-
-        if USE_LOG_FILE:
-            LOGFILE.close()
-
-    except ProjectError as exception:
-        print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
-                                                                              exception))
-        sys.exit(-2)
-    else:
-        sys.exit(-3)
-
-    sys.exit(0)
+    main()

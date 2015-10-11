@@ -27,7 +27,6 @@
 #          since there IS a 'configfile' member for the ARGS class.
 # pylint: disable=E1101
 
-from datetime import datetime
 import os
 from collections import namedtuple
 import unittest

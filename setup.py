@@ -1,19 +1,41 @@
-"""A setuptools based setup module.
-
-See:
-https://packaging.python.org/en/latest/distributing.html
-https://github.com/pypa/sampleproject
+#!/usr/bin/env python3
+ # -*- coding: utf-8 -*-
+################################################################################
+#    Katal Copyright (C) 2012 Suizokukan
+#    Contact: suizokukan _A.T._ orange dot fr
+#
+#    This file is part of Katal.
+#    Katal is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Katal is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Katal.  If not, see <http://www.gnu.org/licenses/>.
+################################################################################
 """
+        Katal by suizokukan (suizokukan AT orange DOT fr)
+        ________________________________________________________________________
+
+        see README.md for more documentation.
+"""
+# Pylint : disabling the "Using the global statement (global-statement)" warning
+# pylint: disable=W0622
 
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
-here = path.abspath(path.dirname(__file__))
+HERE = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+with open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
+    LONG_DESCRIPTION = f.read()
 
 setup(
     name='Katal',
@@ -24,10 +46,10 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.9.dev7',
+    version='0.1.0.dev3',
 
     description="files' catalogue manager",
-    long_description=long_description,
+    long_description=LONG_DESCRIPTION,
 
     # Author details
     author='suizokukan',
@@ -63,40 +85,10 @@ setup(
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['tests*']),
 
-    # List run-time dependencies here.  These will be installed by pip when
-    # your project is installed. For an analysis of "install_requires" vs pip's
-    # requirements files see:
-    # https://packaging.python.org/en/latest/requirements.html
-    ##install_requires=['peppercorn'],
-
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). You can install these using the following syntax,
-    # for example:
-    # $ pip install -e .[dev,test]
-    ##extras_require={
-    ##    'dev': ['check-manifest'],
-    ##    'test': ['coverage'],
-    ##},
-
-    # If there are data files included in your packages that need to be
-    # installed, specify them here.  If using Python 2.6 or less, then these
-    # have to be included in MANIFEST.in as well.
-    ##package_data={
-    ##    'sample': ['package_data.dat'],
-    ##},
-
-    # Although 'package_data' is the preferred approach, in some case you may
-    # need to place data files outside of your packages. See:
-    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
-    # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    ##data_files=[('my_data', ['data/data_file'])],
-
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    ##entry_points={
-    ##    'console_scripts': [
-    ##        'sample=sample:main',
-    ##    ],
-    ##},
+    entry_points={
+        'console_scripts': ['katal=katal.katal:main',],
+    },
 )

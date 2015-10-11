@@ -322,6 +322,9 @@ o  goodbye()                            : display the goodbye message
 o  logfile_opening()                    : open the log file
 o  hashfile64()                         : return the footprint of a file, encoded
                                           with the base 64.
+o  main()                               : main entry point
+o  main__actions()                      : call the different actions required by the arguments
+o  main__warmup()                       : initializations
 o  modify_the_tag_of_some_files()       : modify the tag(s) of some files
 o  msg()                                : display a message on console, write the
                                           same message in the log file.
