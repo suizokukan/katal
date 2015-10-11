@@ -69,6 +69,7 @@ __projectname__ = "Katal"
 __author__ = "Xavier Faure (suizokukan)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
+__licensepipy__ = 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
 __version__ = "0.0.9.dev16"      #  cf https://www.python.org/dev/peps/pep-0440/
 __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"

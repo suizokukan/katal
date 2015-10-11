@@ -30,7 +30,8 @@
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
-from katal.katal import __projectname__, __version__, __author__, __license__, __email__
+from katal.katal import __projectname__, __version__, __author__, __email__, \
+                        __license__, __licensepipy__
 
 HERE = path.abspath(path.dirname(__file__))
 
@@ -72,7 +73,7 @@ setup(
         'Topic :: Utilities',
 
         # Pick your license as you wish (should match "license" above)
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        __licensepipy__,
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
