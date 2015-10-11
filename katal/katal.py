@@ -65,12 +65,11 @@ import urllib.request
 import sys
 import unicodedata
 
-PROGRAM_NAME = "Katal"
-
+__projectname__ = "Katal"
 __author__ = "Xavier Faure (suizokukan)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
-__version__ = "0.0.9.dev15"      #  cf https://www.python.org/dev/peps/pep-0440/
+__version__ = "0.0.9.dev16"      #  cf https://www.python.org/dev/peps/pep-0440/
 __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"
 __status__ = "Production"
@@ -858,7 +857,7 @@ def main():
             LOGFILE.close()
 
     except ProjectError as exception:
-        print("({0}) ! a critical error occured.\nError message : {1}".format(PROGRAM_NAME,
+        print("({0}) ! a critical error occured.\nError message : {1}".format(__projectname__,
                                                                               exception))
         sys.exit(-2)
     else:
@@ -1082,7 +1081,7 @@ def read_command_line_arguments():
         RETURNED VALUE
                 return the argparse object.
     """
-    parser = argparse.ArgumentParser(description="{0} v. {1}".format(PROGRAM_NAME, __version__),
+    parser = argparse.ArgumentParser(description="{0} v. {1}".format(__projectname__, __version__),
                                      epilog="by suizokukan AT orange DOT fr",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -1184,7 +1183,7 @@ def read_command_line_arguments():
 
     parser.add_argument('--version',
                         action='version',
-                        version="{0} v. {1}".format(PROGRAM_NAME, __version__),
+                        version="{0} v. {1}".format(__projectname__, __version__),
                         help="show the version and exit")
 
     return parser.parse_args()
@@ -1708,7 +1707,7 @@ def welcome():
     if ARGS.quiet:
         return
 
-    msg("=== {0} v.{1} (launched at {2}) ===".format(PROGRAM_NAME,
+    msg("=== {0} v.{1} (launched at {2}) ===".format(__projectname__,
                                                      __version__,
                                                      TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")))
     msg("  = using \"{0}\" as config file".format(ARGS.configfile))
@@ -1737,7 +1736,7 @@ def welcome_in_logfile():
         no PARAMETER, no RETURNED VALUE
     """
     msg(_msg="=== {0} v.{1} " \
-        "(launched at {2}) ===".format(PROGRAM_NAME,
+        "(launched at {2}) ===".format(__projectname__,
                                        __version__,
                                        TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")),
         _for_logfile=True,

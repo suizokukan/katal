@@ -30,7 +30,7 @@
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
-from katal.katal import PROGRAM_NAME, __version__, __author__, __license__, __email__
+from katal.katal import __projectname__, __version__, __author__, __license__, __email__
 
 HERE = path.abspath(path.dirname(__file__))
 
@@ -39,7 +39,7 @@ with open(path.join(HERE, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name=PROGRAM_NAME,
+    name=__projectname__,
 
     # The project's main homepage.
     url='https://github.com/suizokukan/katal',
