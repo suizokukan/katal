@@ -22,6 +22,9 @@
         Katal by suizokukan (suizokukan AT orange DOT fr)
         ________________________________________________________________________
 
+        setup.py is a file required by Pypi.
+        ________________________________________________________________________
+
         see README.md for more documentation.
 """
 # Pylint : disabling the "Using the global statement (global-statement)" warning
