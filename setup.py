@@ -34,7 +34,8 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 from katal.katal import __projectname__, __version__, __author__, __email__, \
-                        __license__, __licensepipy__
+                        __license__, __licensepipy__, \
+                        __statuspypi__
 
 HERE = path.abspath(path.dirname(__file__))
 
@@ -69,7 +70,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+        __statuspypi__,
 
         # Indicate who your project is intended for
         'Intended Audience :: End Users/Desktop',

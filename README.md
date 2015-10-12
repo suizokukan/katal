@@ -358,3 +358,18 @@ $ python setup.py sdist bdist_wheel upload -r test
 
 $ python setup.py sdist bdist_wheel register -r pypi
 $ python setup.py sdist bdist_wheel upload -r pypi
+
+(F) for every new version...
+
+$ pylint katal/katal.py   : 10
+$ pylint katal/setup.py   : 10
+    
+$ nosetests               : all tests ok
+    
+$ python setup.py sdist bdist_wheel register -r test
+$ python setup.py sdist bdist_wheel upload -r test
+$ sudo pip uninstall katal
+$ sudo pip install katal
+$ katal --version
+
+$ git commit -a ... (changelog, bump version number, ...)
