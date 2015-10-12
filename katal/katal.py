@@ -1720,7 +1720,10 @@ def welcome():
     msg("=== {0} v.{1} (launched at {2}) ===".format(__projectname__,
                                                      __version__,
                                                      TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")))
-    msg("  = using \"{0}\" as config file".format(ARGS.configfile))
+    msg("  = target directory : \"{0}\" (\"{1}\")".format(ARGS.targetpath,
+                                                          os.path.abspath(ARGS.targetpath)))
+    msg("  = expected config file : \"{0}\" (\"{1}\")".format(ARGS.configfile,
+                                                              os.path.abspath(ARGS.configfile)))
 
     if ARGS.off:
         msg("  = --off option : no file will be modified, no directory will be created =")
