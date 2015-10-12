@@ -103,8 +103,7 @@ TARGET_PATH = ""  # initialized from the configuration file.
 TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
 TARGET_DB = []  # see documentation:database; initializd by read_target_db()
-
-TRASH_SUBDIR = "" # initialized from the configuration file.
+TRASH_SUBDIR = "kataltrash"
 
 # maximal length of the hashids displayed. Can't be greater than 44.
 HASHID_MAXLENGTH = 20
