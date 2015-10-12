@@ -1180,6 +1180,11 @@ def read_command_line_arguments():
                              "with the --to option. " \
                              "Overwrite the ancient string tag.")
 
+    parser.add_argument('--targetpath',
+                        type=str,
+                        default=".",
+                        help="target path, usually '.'")
+
     parser.add_argument('--to',
                         type=str,
                         help="give the name of the file(s) concerned by --setstrtags. " \
@@ -1225,7 +1230,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         parser.read(_configfile_name)
         USE_LOG_FILE = parser["log file"]["use log file"] == "True"
         LOG_VERBOSITY = parser["log file"]["verbosity"]
-        TARGET_PATH = parser["target"]["path"]
+        TARGET_PATH = ARGS.targetpath
         TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
         TRASH_SUBDIR = parser["trash directory"]["name"]
         SOURCE_PATH = parser["source"]["path"]
