@@ -124,6 +124,20 @@ trash name is defined in the configuration file.
     
 (A) history
 
+    v.0.0.9 (2015_10_12)
+    
+        o --off option : don't write anything into the target directory or into
+          the database.
+
+        o added some files required by Pypi : setup.py, README.rst, setup.cfg and
+          the katal/ subdirectory
+        o added a function for the main entry point : main()
+        o the documentation, the error messages and katal.ini have been improved
+        o added the script check_before_commit_a_new_version.sh
+
+        o 7 tests, pylint=10.0
+        o first version to be packaged and send to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.0.8 (2015_10_04)
     
         o --rmnotags option : added the action__rmnotags() function
@@ -361,15 +375,4 @@ $ python setup.py sdist bdist_wheel upload -r pypi
 
 (F) for every new version...
 
-$ pylint katal/katal.py   : 10
-$ pylint katal/setup.py   : 10
-    
-$ nosetests               : all tests ok
-    
-$ python setup.py sdist bdist_wheel register -r test
-$ python setup.py sdist bdist_wheel upload -r test
-$ sudo pip uninstall katal
-$ sudo pip install katal
-$ katal --version
-
-$ git commit -a ... (changelog, bump version number, ...)
+   see check_before_commit_a_new_version.sh
