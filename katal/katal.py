@@ -1228,7 +1228,10 @@ def read_parameters_from_cfgfile(_configfile_name):
     global HASHID_MAXLENGTH, STRTAGS_MAXLENGTH
 
     if not os.path.exists(_configfile_name):
-        msg("  ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
+        msg("  ! The config file \"{0}\" (\"{1}\") " \
+            "doesn't exist. ".format(_configfile_name,
+                                     os.path.abspath(_configfile_name)))
+        msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file.")
         return None
 
     parser = configparser.ConfigParser()
