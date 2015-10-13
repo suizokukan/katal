@@ -944,14 +944,20 @@ def main_warmup():
     if ARGS.downloaddefaultcfg:
         action__downloadefaultcfg()
 
-    if not os.path.exists(ARGS.configfile):
+    configfile_name = ARGS.configfile
+    if ARGS.configfile is None:
+        configfile_name = os.path.join(".", ARGS.targetpath, KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME)
+        msg("  * config file name : \"{0}\" (\"{1}\")".format(configfile_name,
+                                                              os.path.abspath(configfile_name)))
+
+    if not os.path.exists(configfile_name):
         msg("  ! The config file \"{0}\" (\"{1}\") " \
-            "doesn't exist. ".format(ARGS.configfile,
-                                     os.path.abspath(ARGS.configfile)))
+            "doesn't exist. ".format(configfile_name,
+                                     os.path.abspath(configfile_name)))
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file.")
         sys.exit(-1)
  
-    PARAMETERS = read_parameters_from_cfgfile(ARGS.configfile)
+    PARAMETERS = read_parameters_from_cfgfile(configfile_name)
     if PARAMETERS is None:
         sys.exit(-1)
     else:
@@ -972,46 +978,6 @@ def main_warmup():
                                                          os.path.abspath(fullpath)))
             if not ARGS.off:
                 os.mkdir(fullpath)
-
-
-    # if not os.path.exists(TARGET_PATH):
-    #     msg("  * Since the target path \"{0}\" (\"{1}\") " \
-    #         "doesn't exist, let's create it.".format(TARGET_PATH,
-    #                                                  os.path.abspath(TARGET_PATH)))
-    #     if not ARGS.off:
-    #         os.mkdir(TARGET_PATH)
-
-    # full_katalsys_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR)
-    # if not os.path.exists(full_katalsys_subdir):
-    #     msg("  * Since the system path \"{0}\" (\"{1}\") " \
-    #         "doesn't exist, let's create it.".format(full_katalsys_subdir,
-    #                                                  os.path.abspath(full_katalsys_subdir)))
-    #     if not ARGS.off:
-    #         os.mkdir(full_katalsys_subdir)
-
-    # full_trash_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)
-    # if not os.path.exists(full_trash_subdir):
-    #     msg("  * Since the trash path \"{0}\" (\"{1}\") " \
-    #         "doesn't exist, let's create it.".format(full_trash_subdir,
-    #                                                  os.path.abspath(full_trash_subdir)))
-    #     if not ARGS.off:
-    #         os.mkdir(full_trash_subdir)
-
-    # full_log_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)
-    # if not os.path.exists(full_log_subdir):
-    #     msg("  * Since the log path \"{0}\" (\"{1}\") " \
-    #         "doesn't exist, let's create it.".format(full_log_subdir,
-    #                                                  os.path.abspath(full_log_subdir)))
-    #     if not ARGS.off:
-    #         os.mkdir(full_log_subdir)
-
-    # full_tasks_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR)
-    # if not os.path.exists(full_tasks_subdir):
-    #     msg("  * Since the tasks path \"{0}\" (\"{1}\") " \
-    #         "doesn't exist, let's create it.".format(full_log_subdir,
-    #                                                  os.path.abspath(full_log_subdir)))
-    #     if not ARGS.off:
-    #         os.mkdir(full_tasks_subdir)
 
     if USE_LOGFILE:
         LOGFILE = logfile_opening()
@@ -1159,7 +1125,6 @@ def read_command_line_arguments():
 
     parser.add_argument('-c', '--configfile',
                         type=str,
-                        default=DEFAULT_CONFIGFILE_NAME,
                         help="config file, e.g. config.ini")
 
     parser.add_argument('--cleandbrm',
@@ -1774,9 +1739,11 @@ def welcome():
     msg("  = target directory : \"{0}\" (\"{1}\")".format(ARGS.targetpath,
                                                           os.path.abspath(ARGS.targetpath)))
 
-    # if the config file doesn't exist, it's a problem :
-    msg("  = expected config file : \"{0}\" (\"{1}\")".format(ARGS.configfile,
-                                                              os.path.abspath(ARGS.configfile)))
+    if ARGS.configfile is not None:
+        msg("  = expected config file : \"{0}\" (\"{1}\")".format(ARGS.configfile,
+                                                                  os.path.abspath(ARGS.configfile)))
+    else:
+        msg("  = no config file specified")
 
     if ARGS.off:
         msg("  = --off option : no file will be modified, no directory will be created =")
