@@ -300,17 +300,26 @@ def action__downloadefaultcfg():
         directory.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        no PARAMETER
+
+        RETURNED VALUE :
+            (bool) success
     """
     url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
 
     msg("  = downloading the default configuration file =")
     msg("  ... downloading {0} from {1}".format(DEFAULT_CONFIGFILE_NAME, url))
 
-    if not ARGS.off:
-        with urllib.request.urlopen(url) as response, \
-             open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)
+    try:
+        if not ARGS.off:
+            with urllib.request.urlopen(url) as response, \
+                 open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
+                shutil.copyfileobj(response, out_file)
+        return True
+
+    except urllib.error.URLError as exception:
+        msg("  ! An error occured : "+str(exception))
+        return False
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__new(targetname):
@@ -342,12 +351,12 @@ def action__new(targetname):
                   "into the expected directory ? (y/N)")
 
         if answer in ("y", "yes"):
-            action__downloadefaultcfg()
-
-        shutil.move(DEFAULT_CONFIGFILE_NAME,
-                    os.path.join(KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME))
-
-    msg("  ... done.")
+            if action__downloadefaultcfg():
+                shutil.move(DEFAULT_CONFIGFILE_NAME,
+                            os.path.join(KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME))
+                msg("  ... done.")
+            else:
+                print("  ! A problem occured : the creation of the target directory has been aborted.")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__infos():
@@ -981,7 +990,8 @@ def main_warmup():
     global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
     if ARGS.downloaddefaultcfg:
-        action__downloadefaultcfg()
+        if not action__downloadefaultcfg():
+            msg("  ! The default configuration file couldn't be downloaded !")
 
     configfile_name = ARGS.configfile
     if ARGS.configfile is None:
@@ -1058,7 +1068,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
                 files_to_be_modified.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_modified) == 0:
-            msg("    ! no files match the given regex.")
+            msg("    * no files match the given regex.")
         else:
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
