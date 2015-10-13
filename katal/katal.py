@@ -1763,9 +1763,12 @@ def welcome():
     if ARGS.quiet:
         return
 
-    msg("=== {0} v.{1} (launched at {2}) ===".format(__projectname__,
-                                                     __version__,
-                                                     TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")))
+    strmsg = "=== {0} v.{1} (launched at {2}) ===".format(__projectname__,
+                                                          __version__,
+                                                          TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S"))
+    msg("="*len(strmsg))
+    msg(strmsg)
+    msg("="*len(strmsg))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     msg("  = target directory : \"{0}\" (\"{1}\")".format(ARGS.targetpath,
