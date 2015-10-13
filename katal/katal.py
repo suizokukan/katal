@@ -105,6 +105,7 @@ TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
 TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
+LOG_SUBSUBDIR = "logs"
 
 # maximal length of the hashids displayed. Can't be greater than 44.
 HASHID_MAXLENGTH = 20
@@ -813,20 +814,23 @@ def logfile_opening():
         RETURNED VALUE
                 the _io.BufferedReader object returned by the call to open()
     """
+    fullname = os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR, PARAMETERS["log file"]["name"])
+
     if PARAMETERS["log file"]["overwrite"] == "True":
         # overwrite :
         log_mode = "w"
 
-        if os.path.exists(PARAMETERS["log file"]["name"]):
-            shutil.copyfile(PARAMETERS["log file"]["name"],
-                            "oldlogfile_" + \
-                            PARAMETERS["log file"]["name"] + \
-                            datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))
+        if os.path.exists(fullname):
+            shutil.copyfile(fullname,
+                            os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
+                                         "oldlogfile_" + \
+                                         PARAMETERS["log file"]["name"] + \
+                                         datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")))
     else:
         # let's append :
         log_mode = "a"
 
-    return open(PARAMETERS["log file"]["name"], log_mode)
+    return open(fullname, log_mode)
 
 #///////////////////////////////////////////////////////////////////////////////
 def main():
@@ -968,6 +972,12 @@ def main_warmup():
             "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
                                                                   KATALSYS_SUBDIR,
                                                                   TRASH_SUBSUBDIR)))
+
+    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)):
+        msg("  ! Since the log path \"{0}\" " \
+            "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
+                                                                  KATALSYS_SUBDIR,
+                                                                  LOG_SUBSUBDIR)))
         if not ARGS.off:
             os.mkdir(os.path.join(TARGET_PATH,
                                   KATALSYS_SUBDIR,
