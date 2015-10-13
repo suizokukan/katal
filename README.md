@@ -342,8 +342,6 @@ o  main__warmup()                       : initializations
 o  modify_the_tag_of_some_files()       : modify the tag(s) of some files
 o  msg()                                : display a message on console, write the
                                           same message in the log file.
-o  parameters_infos()                   : display some informations about the
-                                          content of the configuration file
 o  read_command_line_arguments()        : read the command line arguments
 o  read_parameters_from_cfgfile()       : read the configuration file
 o  read_sieves()                        : initialize SIEVES from the configuration file

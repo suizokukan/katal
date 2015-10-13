@@ -1036,7 +1036,9 @@ def main_warmup():
             LOGFILE = logfile_opening()
             welcome_in_logfile()
 
-        parameters_infos()
+        if not ARGS.quiet:
+            msg("  = source directory : \"{0}\" (\"{1}\")".format(SOURCE_PATH,
+                                                                  os.path.abspath(SOURCE_PATH)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -1119,25 +1121,6 @@ def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
 
     if USE_LOGFILE and _for_logfile and LOGFILE is not None:
         LOGFILE.write(_msg+"\n")
-
-#///////////////////////////////////////////////////////////////////////////////
-def parameters_infos():
-    """
-        parameters_infos()
-        ________________________________________________________________________
-
-        Display some informations about the content of the configuration file
-        (confer the PARAMETERS variable). This function must be called after
-        the opening of the configuration file.
-        ________________________________________________________________________
-
-        no PARAMETER, no RETURNED VALUE
-    """
-    if ARGS.quiet:
-        return
-
-    msg("  = source directory : \"{0}\" (\"{1}\")".format(SOURCE_PATH,
-                                                          os.path.abspath(SOURCE_PATH)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_command_line_arguments():
