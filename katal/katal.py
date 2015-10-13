@@ -604,6 +604,31 @@ def check_args():
     if ARGS.rmtags and not ARGS.to:
         raise ProjectError("please use --to in combination with --rmtags")
 
+#///////////////////////////////////////////////////////////////////////////////
+def create_subdirs_in_target_path():
+    """
+        create_subdirs_in_target_path()
+        ________________________________________________________________________
+
+        Create the expected subdirectories in TARGET_PATH .
+        ________________________________________________________________________
+
+        no PARAMETERS, no RETURNED VALUE
+    """
+    for name, \
+        fullpath in (("target", TARGET_PATH),
+                     ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
+                     ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
+                     ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
+                     ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
+        if not os.path.exists(fullpath):
+            msg("  * Since the {0} path \"{1}\" (\"{2}\") " \
+                "doesn't exist, let's create it.".format(name,
+                                                         fullpath,
+                                                         os.path.abspath(fullpath)))
+            if not ARGS.off:
+                os.mkdir(fullpath)
+
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(_hashid, _database_index):
     """
@@ -1018,23 +1043,15 @@ def main_warmup():
         DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
 
         # list of the expected directories : if one directory is missing, let's create it.
-        for name, \
-            fullpath in (("target", TARGET_PATH),
-                         ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
-                         ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
-                         ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
-                         ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
-            if not os.path.exists(fullpath):
-                msg("  * Since the {0} path \"{1}\" (\"{2}\") " \
-                    "doesn't exist, let's create it.".format(name,
-                                                             fullpath,
-                                                             os.path.abspath(fullpath)))
-                if not ARGS.off:
-                    os.mkdir(fullpath)
+        create_subdirs_in_target_path()
 
         if USE_LOGFILE:
             LOGFILE = logfile_opening()
             welcome_in_logfile()
+
+        if TARGET_PATH == SOURCE_PATH:
+            msg("  ! warning : " \
+                "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
         if not ARGS.quiet:
             msg("  = source directory : \"{0}\" (\"{1}\")".format(SOURCE_PATH,

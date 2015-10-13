@@ -332,6 +332,7 @@ o  action__setstrtags()                 : Modify the string tag in the target di
 o  action__target_kill()                : delete a filename from the target directory
                                           and from the database
 o  check_args()                         : check the arguments of the command line.
+o  create_subdirs_in_target_path()      : create the expected subdirectories in TARGET_PATH .
 o  create_target_name()                 : create the name of a file (a target file)
                                           from various informations read from a
                                           source file
