@@ -49,7 +49,6 @@ target filename.max length on console : (max length of the file names displayed)
 source filename.max length on console : (max length of the file names displayed)
 
 [source]          : parameters about source directory 
-path              : a string without any quotation mark.
 
 [source.sieveN]   : N is an integer greater or equal to  1; [source.sieve1], [source.sieve2], ...
 name              : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
