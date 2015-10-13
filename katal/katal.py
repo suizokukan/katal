@@ -956,29 +956,29 @@ def main_warmup():
         if not ARGS.off:
             os.mkdir(TARGET_PATH)
 
-    FULL_KATALSYS_SUBDIR = os.path.join(TARGET_PATH, KATALSYS_SUBDIR)
-    if not os.path.exists(FULL_KATALSYS_SUBDIR):
+    full_katalsys_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR)
+    if not os.path.exists(full_katalsys_subdir):
         msg("  ! Since the system path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(FULL_KATALSYS_SUBDIR,
-                                                     os.path.abspath(FULL_KATALSYS_SUBDIR)))
+            "doesn't exist, let's create it.".format(full_katalsys_subdir,
+                                                     os.path.abspath(full_katalsys_subdir)))
         if not ARGS.off:
-            os.mkdir(FULL_KATALSYS_SUBDIR)
+            os.mkdir(full_katalsys_subdir)
 
-    FULL_TRASH_SUBDIR = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)
-    if not os.path.exists(FULL_TRASH_SUBDIR):
+    full_trash_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)
+    if not os.path.exists(full_trash_subdir):
         msg("  ! Since the trash path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(FULL_TRASH_SUBDIR,
-                                                     os.path.abspath(FULL_TRASH_SUBDIR)))
+            "doesn't exist, let's create it.".format(full_trash_subdir,
+                                                     os.path.abspath(full_trash_subdir)))
         if not ARGS.off:
-            os.mkdir(FULL_TRASH_SUBDIR)
+            os.mkdir(full_trash_subdir)
 
-    FULL_LOG_SUBDIR = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)
-    if not os.path.exists(FULL_LOG_SUBDIR):
+    full_log_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)
+    if not os.path.exists(full_log_subdir):
         msg("  ! Since the log path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(FULL_LOG_SUBDIR,
-                                                     os.path.abspath(FULL_LOG_SUBDIR)))
+            "doesn't exist, let's create it.".format(full_log_subdir,
+                                                     os.path.abspath(full_log_subdir)))
         if not ARGS.off:
-            os.mkdir(FULL_LOG_SUBDIR)
+            os.mkdir(full_log_subdir)
 
     if USE_LOGFILE:
         LOGFILE = logfile_opening()
