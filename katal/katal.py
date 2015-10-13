@@ -949,12 +949,12 @@ def main_warmup():
                                      os.path.abspath(ARGS.configfile)))
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file.")
         sys.exit(-1)
-    else:
-        msg("    ... config file found : ok")
-
+ 
     PARAMETERS = read_parameters_from_cfgfile(ARGS.configfile)
     if PARAMETERS is None:
         sys.exit(-1)
+    else:
+        msg("    ... config file found and read (ok)")
 
     DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
 
