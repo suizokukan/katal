@@ -304,13 +304,50 @@ def action__downloadefaultcfg():
     """
     url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
 
-    msg("  = downloading the configuration file =")
+    msg("  = downloading the default configuration file =")
     msg("  ... downloading {0} from {1}".format(DEFAULT_CONFIGFILE_NAME, url))
 
     if not ARGS.off:
         with urllib.request.urlopen(url) as response, \
              open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
+
+#///////////////////////////////////////////////////////////////////////////////
+def action__new(targetname):
+    """
+        action__new()
+        ________________________________________________________________________
+
+        Create a new target directory
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    msg("  = about to create a new target directory named \"{0}\" (\"{1}\")".format(targetname,
+                                                                                    os.path.abspath(targetname)))
+    if os.path.exists(targetname):
+        msg("  ! can't go further : the directory already exists.")
+        return
+
+    if not ARGS.off:
+        os.mkdir(targetname)
+        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR))
+        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
+        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
+        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR, LOG_SUBSUBDIR))
+
+    if not ARGS.mute:
+        answer = \
+            input("\nDo you want to download the default config file " \
+                  "into the expected directory ? (y/N)")
+
+        if answer in ("y", "yes"):
+            action__downloadefaultcfg()
+
+        shutil.move(DEFAULT_CONFIGFILE_NAME,
+                    os.path.join(KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME))
+
+    msg("  ... done.")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__infos():
@@ -925,6 +962,9 @@ def main_actions():
         action__add()
         action__infos()
 
+    if ARGS.new:
+        action__new(ARGS.new)
+
 #///////////////////////////////////////////////////////////////////////////////
 def main_warmup():
     """
@@ -936,8 +976,7 @@ def main_warmup():
 
         no PARAMETER, no RETURNED VALUE
 
-        o  sys.exit(-1) is called if the config file is ill-formed or if it 
-           doesn't exist.
+        o  sys.exit(-1) is called if the config file is ill-formed.
     """
     global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
@@ -950,45 +989,45 @@ def main_warmup():
         msg("  * config file name : \"{0}\" (\"{1}\")".format(configfile_name,
                                                               os.path.abspath(configfile_name)))
 
-    if not os.path.exists(configfile_name):
+    if not os.path.exists(configfile_name) and ARGS.new is None:
         msg("  ! The config file \"{0}\" (\"{1}\") " \
             "doesn't exist. ".format(configfile_name,
                                      os.path.abspath(configfile_name)))
-        msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file.")
-        sys.exit(-1)
+        msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
+        msg("    move this downloaded file into the $target/.katal/ directory .")
  
-    PARAMETERS = read_parameters_from_cfgfile(configfile_name)
-    if PARAMETERS is None:
-        sys.exit(-1)
-    else:
-        msg("    ... config file found and read (ok)")
+        PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+        if PARAMETERS is None:
+            sys.exit(-1)
+        else:
+            msg("    ... config file found and read (ok)")
 
-    DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
+        DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
 
-    # list of the expected directories : if one directory is missing, let's create it.
-    for name, fullpath in (("target", TARGET_PATH),
-                           ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
-                           ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
-                           ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
-                           ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
-        if not os.path.exists(fullpath):
-            msg("  * Since the {0} path \"{1}\" (\"{2}\") " \
-                "doesn't exist, let's create it.".format(name,
-                                                         fullpath,
-                                                         os.path.abspath(fullpath)))
-            if not ARGS.off:
-                os.mkdir(fullpath)
+        # list of the expected directories : if one directory is missing, let's create it.
+        for name, fullpath in (("target", TARGET_PATH),
+                               ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
+                               ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
+                               ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
+                               ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
+            if not os.path.exists(fullpath):
+                msg("  * Since the {0} path \"{1}\" (\"{2}\") " \
+                    "doesn't exist, let's create it.".format(name,
+                                                             fullpath,
+                                                             os.path.abspath(fullpath)))
+                if not ARGS.off:
+                    os.mkdir(fullpath)
 
-    if USE_LOGFILE:
-        LOGFILE = logfile_opening()
-        welcome_in_logfile()
+        if USE_LOGFILE:
+            LOGFILE = logfile_opening()
+            welcome_in_logfile()
 
-    parameters_infos()
+        parameters_infos()
 
-    if ARGS.infos:
-        action__infos()
-    if ARGS.targetinfos:
-        show_infos_about_target_path()
+        if ARGS.infos:
+            action__infos()
+        if ARGS.targetinfos:
+            show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -1148,28 +1187,13 @@ def read_command_line_arguments():
                              "options to display more informations about the process : in " \
 			     "this case, the --infos will be executed before --select/--add")
 
-    parser.add_argument('-s', '--select',
-                        action="store_true",
-                        help="select files according to what is described " \
-                             "in the configuration file " \
-                             "without adding them to the target directory. " \
-                             "This option can't be used with the --add one." \
-     			     "If you want more informations about the process, please " \
-			     "use this option in combination with --infos .")
-
-    parser.add_argument('-ti', '--targetinfos',
-                        action="store_true",
-                        help="display informations about the target directory in --quiet mode")
-
-    parser.add_argument('-tk', '--targetkill',
-                        type=str,
-                        help="kill one file from the target directory." \
-                             "DO NOT GIVE A PATH, just the file's name, " \
-                             "without the path to the target directory ")
-
     parser.add_argument('-m', '--mute',
                         action="store_true",
                         help="no output to the console; no question asked on the console")
+
+    parser.add_argument('-n', '--new',
+                        type=str,
+                        help="create a new target directory")
 
     parser.add_argument('--off',
                         action="store_true",
@@ -1192,6 +1216,15 @@ def read_command_line_arguments():
                         help="remove all the tags of some file(s) in combination " \
                              "with the --to option. ")
 
+    parser.add_argument('-s', '--select',
+                        action="store_true",
+                        help="select files according to what is described " \
+                             "in the configuration file " \
+                             "without adding them to the target directory. " \
+                             "This option can't be used with the --add one." \
+                     "If you want more informations about the process, please " \
+                 "use this option in combination with --infos .")
+
     parser.add_argument('--setstrtags',
                         type=str,
                         help="give the string tag to some file(s) in combination " \
@@ -1202,6 +1235,16 @@ def read_command_line_arguments():
                         type=str,
                         default=".",
                         help="target path, usually '.'")
+
+    parser.add_argument('-ti', '--targetinfos',
+                        action="store_true",
+                        help="display informations about the target directory in --quiet mode")
+
+    parser.add_argument('-tk', '--targetkill',
+                        type=str,
+                        help="kill one file from the target directory." \
+                             "DO NOT GIVE A PATH, just the file's name, " \
+                             "without the path to the target directory ")
 
     parser.add_argument('--to',
                         type=str,
