@@ -87,6 +87,7 @@ FREESPACE_MARGIN = 1.1
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DATABASE_NAME = "katal.db"
+DATABASE_FULLNAME = ""  # initialized by main_warmup()
 TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
 
 TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
@@ -171,8 +172,7 @@ def action__add():
     """
     msg("  = copying data =")
 
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    db_connection = sqlite3.connect(db_filename)
+    db_connection = sqlite3.connect(DATABASE_FULLNAME)
     db_cursor = db_connection.cursor()
 
     if get_disk_free_space(TARGET_PATH) < SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
@@ -263,12 +263,11 @@ def action__cleandbrm():
     """
     msg("    = clean the database : remove missing files from the target directory =")
 
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    if not os.path.exists(db_filename):
+    if not os.path.exists(DATABASE_FULLNAME):
         msg("    ! no database found.")
         return
 
-    db_connection = sqlite3.connect(db_filename)
+    db_connection = sqlite3.connect(DATABASE_FULLNAME)
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
@@ -344,11 +343,10 @@ def action__rmnotags():
     """
     msg("  = removing all files with no tags (=moving them to the trash) =")
 
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    if not os.path.exists(db_filename):
+    if not os.path.exists(DATABASE_FULLNAME):
         msg("    ! no database found.")
     else:
-        db_connection = sqlite3.connect(db_filename)
+        db_connection = sqlite3.connect(DATABASE_FULLNAME)
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
@@ -497,12 +495,11 @@ def action__target_kill(_filename):
         msg("    ! Can't find \"{0}\" file on disk.".format(_filename))
         return -1
 
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    if not os.path.exists(db_filename):
+    if not os.path.exists(DATABASE_FULLNAME):
         msg("    ! no database found.")
         return -3
     else:
-        db_connection = sqlite3.connect(db_filename)
+        db_connection = sqlite3.connect(DATABASE_FULLNAME)
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
@@ -938,19 +935,31 @@ def main_warmup():
 
         no PARAMETER, no RETURNED VALUE
 
-        o  sys.exit(-1) is called if the config file is ill-formed.
+        o  sys.exit(-1) is called if the config file is ill-formed or if it 
+           doesn't exist.
     """
-    global PARAMETERS, LOGFILE
+    global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
     if ARGS.downloaddefaultcfg:
         action__downloadefaultcfg()
+
+    if not os.path.exists(ARGS.configfile):
+        msg("  ! The config file \"{0}\" (\"{1}\") " \
+            "doesn't exist. ".format(ARGS.configfile,
+                                     os.path.abspath(ARGS.configfile)))
+        msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file.")
+        sys.exit(-1)
+    else:
+        msg("    ... config file found : ok")
 
     PARAMETERS = read_parameters_from_cfgfile(ARGS.configfile)
     if PARAMETERS is None:
         sys.exit(-1)
 
+    DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
+
     if not os.path.exists(TARGET_PATH):
-        msg("  ! Since the target path \"{0}\" (\"{1}\") " \
+        msg("  * Since the target path \"{0}\" (\"{1}\") " \
             "doesn't exist, let's create it.".format(TARGET_PATH,
                                                      os.path.abspath(TARGET_PATH)))
         if not ARGS.off:
@@ -958,7 +967,7 @@ def main_warmup():
 
     full_katalsys_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR)
     if not os.path.exists(full_katalsys_subdir):
-        msg("  ! Since the system path \"{0}\" (\"{1}\") " \
+        msg("  * Since the system path \"{0}\" (\"{1}\") " \
             "doesn't exist, let's create it.".format(full_katalsys_subdir,
                                                      os.path.abspath(full_katalsys_subdir)))
         if not ARGS.off:
@@ -966,7 +975,7 @@ def main_warmup():
 
     full_trash_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)
     if not os.path.exists(full_trash_subdir):
-        msg("  ! Since the trash path \"{0}\" (\"{1}\") " \
+        msg("  * Since the trash path \"{0}\" (\"{1}\") " \
             "doesn't exist, let's create it.".format(full_trash_subdir,
                                                      os.path.abspath(full_trash_subdir)))
         if not ARGS.off:
@@ -974,7 +983,7 @@ def main_warmup():
 
     full_log_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)
     if not os.path.exists(full_log_subdir):
-        msg("  ! Since the log path \"{0}\" (\"{1}\") " \
+        msg("  * Since the log path \"{0}\" (\"{1}\") " \
             "doesn't exist, let's create it.".format(full_log_subdir,
                                                      os.path.abspath(full_log_subdir)))
         if not ARGS.off:
@@ -1007,11 +1016,10 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
                 o _mode         : (str) "append" to add _tag to the other tags
                                         "set" to replace old tag(s) by a new one
     """
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-    if not os.path.exists(db_filename):
+    if not os.path.exists(DATABASE_FULLNAME):
         msg("    ! no database found.")
     else:
-        db_connection = sqlite3.connect(db_filename)
+        db_connection = sqlite3.connect(DATABASE_FULLNAME)
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
@@ -1240,13 +1248,6 @@ def read_parameters_from_cfgfile(_configfile_name):
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
     global HASHID_MAXLENGTH, STRTAGS_MAXLENGTH
 
-    if not os.path.exists(_configfile_name):
-        msg("  ! The config file \"{0}\" (\"{1}\") " \
-            "doesn't exist. ".format(_configfile_name,
-                                     os.path.abspath(_configfile_name)))
-        msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file.")
-        return None
-
     parser = configparser.ConfigParser()
 
     try:
@@ -1311,13 +1312,11 @@ def read_target_db():
 
         no PARAMETER, no RETURNED VALUE
     """
-    db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-
-    if not os.path.exists(db_filename):
+    if not os.path.exists(DATABASE_FULLNAME):
         msg("  = creating the database in the target path...")
 
         # let's create a new database in the target directory :
-        db_connection = sqlite3.connect(db_filename)
+        db_connection = sqlite3.connect(DATABASE_FULLNAME)
         db_cursor = db_connection.cursor()
 
         if not ARGS.off:
@@ -1330,7 +1329,7 @@ def read_target_db():
 
         msg("  = ... database created.")
 
-    db_connection = sqlite3.connect(db_filename)
+    db_connection = sqlite3.connect(DATABASE_FULLNAME)
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
@@ -1481,11 +1480,10 @@ def show_infos_about_target_path():
 
     msg("  = informations about the \"{0}\" (target) directory =".format(TARGET_PATH))
 
-    if not os.path.exists(os.path.join(TARGET_PATH, DATABASE_NAME)):
+    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)):
         msg("    o no database in the target directory o")
     else:
-        db_filename = os.path.join(TARGET_PATH, DATABASE_NAME)
-        db_connection = sqlite3.connect(db_filename)
+        db_connection = sqlite3.connect(DATABASE_FULLNAME)
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
@@ -1735,6 +1733,8 @@ def welcome():
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
+
+        sys.exit(-1) if the config file doesn't exist.
     """
     if ARGS.quiet:
         return
@@ -1742,8 +1742,12 @@ def welcome():
     msg("=== {0} v.{1} (launched at {2}) ===".format(__projectname__,
                                                      __version__,
                                                      TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")))
+
+    # if the target file doesn't exist, it will be created later by main_warmup() :
     msg("  = target directory : \"{0}\" (\"{1}\")".format(ARGS.targetpath,
                                                           os.path.abspath(ARGS.targetpath)))
+
+    # if the config file doesn't exist, it's a problem :
     msg("  = expected config file : \"{0}\" (\"{1}\")".format(ARGS.configfile,
                                                               os.path.abspath(ARGS.configfile)))
 
