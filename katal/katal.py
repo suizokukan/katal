@@ -291,16 +291,16 @@ def action__cleandbrm():
     db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__downloadefaultcfg():
+def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
     """
         action__downloadefaultcfg()
         ________________________________________________________________________
 
-        Download the default configuration file and (over)writes it in the current
-        directory.
+        Download the default configuration file and give to it the name "newname"
         ________________________________________________________________________
 
-        no PARAMETER
+        PARAMETER :
+            (str) newname : the new name of the downloaded file
 
         RETURNED VALUE :
             (bool) success
@@ -308,12 +308,12 @@ def action__downloadefaultcfg():
     url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
 
     msg("  = downloading the default configuration file =")
-    msg("  ... downloading {0} from {1}".format(DEFAULT_CONFIGFILE_NAME, url))
+    msg("  ... downloading {0} from {1}".format(newname, url))
 
     try:
         if not ARGS.off:
             with urllib.request.urlopen(url) as response, \
-                 open(DEFAULT_CONFIGFILE_NAME, 'wb') as out_file:
+                 open(newname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
         return True
 
@@ -349,12 +349,12 @@ def action__new(targetname):
     if not ARGS.mute:
         answer = \
             input("\nDo you want to download the default config file " \
-                  "into the expected directory ? (y/N)")
+                  "into the expected directory ? (y/N) ")
 
         if answer in ("y", "yes"):
-            if action__downloadefaultcfg():
-                shutil.move(DEFAULT_CONFIGFILE_NAME,
-                            os.path.join(KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME))
+            if action__downloadefaultcfg(os.path.join(targetname,
+                                                      KATALSYS_SUBDIR,
+                                                      DEFAULT_CONFIGFILE_NAME)):
                 msg("  ... done.")
             else:
                 print("  ! A problem occured : " \
@@ -931,6 +931,11 @@ def main_actions():
 
         no PARAMETER, no RETURNED VALUE
     """
+    if ARGS.infos:
+        action__infos()
+    if ARGS.targetinfos:
+        show_infos_about_target_path()
+    
     if ARGS.cleandbrm:
         action__cleandbrm()
 
@@ -1009,6 +1014,7 @@ def main_warmup():
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
         msg("    move this downloaded file into the $target/.katal/ directory .")
 
+    elif ARGS.new is None:
         PARAMETERS = read_parameters_from_cfgfile(configfile_name)
         if PARAMETERS is None:
             sys.exit(-1)
@@ -1037,11 +1043,6 @@ def main_warmup():
             welcome_in_logfile()
 
         parameters_infos()
-
-        if ARGS.infos:
-            action__infos()
-        if ARGS.targetinfos:
-            show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
