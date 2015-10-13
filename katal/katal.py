@@ -908,7 +908,7 @@ def main_actions():
         read_sieves()
         action__select()
 
-        if not ARGS.mute:
+        if not ARGS.mute and len(SELECT)>0:
             answer = \
                 input("\nDo you want to add the selected " \
                       "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
