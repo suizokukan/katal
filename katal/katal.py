@@ -106,6 +106,7 @@ TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
 TARGET_DB = []  # see documentation:database; initializd by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
+TASKS_SUBSUBDIR = "tasks"
 LOG_SUBSUBDIR = "logs"
 
 # maximal length of the hashids displayed. Can't be greater than 44.
@@ -988,6 +989,14 @@ def main_warmup():
                                                      os.path.abspath(full_log_subdir)))
         if not ARGS.off:
             os.mkdir(full_log_subdir)
+
+    full_tasks_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR)
+    if not os.path.exists(full_tasks_subdir):
+        msg("  * Since the tasks path \"{0}\" (\"{1}\") " \
+            "doesn't exist, let's create it.".format(full_log_subdir,
+                                                     os.path.abspath(full_log_subdir)))
+        if not ARGS.off:
+            os.mkdir(full_tasks_subdir)
 
     if USE_LOGFILE:
         LOGFILE = logfile_opening()
