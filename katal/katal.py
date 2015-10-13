@@ -959,44 +959,59 @@ def main_warmup():
 
     DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
 
-    if not os.path.exists(TARGET_PATH):
-        msg("  * Since the target path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(TARGET_PATH,
-                                                     os.path.abspath(TARGET_PATH)))
-        if not ARGS.off:
-            os.mkdir(TARGET_PATH)
+    # list of the expected directories : if one directory is missing, let's create it.
+    for name, fullpath in (("target", TARGET_PATH),
+                           ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
+                           ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
+                           ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
+                           ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
+        if not os.path.exists(fullpath):
+            msg("  * Since the {0} path \"{1}\" (\"{2}\") " \
+                "doesn't exist, let's create it.".format(name,
+                                                         fullpath,
+                                                         os.path.abspath(fullpath)))
+            if not ARGS.off:
+                os.mkdir(fullpath)
 
-    full_katalsys_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR)
-    if not os.path.exists(full_katalsys_subdir):
-        msg("  * Since the system path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(full_katalsys_subdir,
-                                                     os.path.abspath(full_katalsys_subdir)))
-        if not ARGS.off:
-            os.mkdir(full_katalsys_subdir)
 
-    full_trash_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)
-    if not os.path.exists(full_trash_subdir):
-        msg("  * Since the trash path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(full_trash_subdir,
-                                                     os.path.abspath(full_trash_subdir)))
-        if not ARGS.off:
-            os.mkdir(full_trash_subdir)
+    # if not os.path.exists(TARGET_PATH):
+    #     msg("  * Since the target path \"{0}\" (\"{1}\") " \
+    #         "doesn't exist, let's create it.".format(TARGET_PATH,
+    #                                                  os.path.abspath(TARGET_PATH)))
+    #     if not ARGS.off:
+    #         os.mkdir(TARGET_PATH)
 
-    full_log_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)
-    if not os.path.exists(full_log_subdir):
-        msg("  * Since the log path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(full_log_subdir,
-                                                     os.path.abspath(full_log_subdir)))
-        if not ARGS.off:
-            os.mkdir(full_log_subdir)
+    # full_katalsys_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR)
+    # if not os.path.exists(full_katalsys_subdir):
+    #     msg("  * Since the system path \"{0}\" (\"{1}\") " \
+    #         "doesn't exist, let's create it.".format(full_katalsys_subdir,
+    #                                                  os.path.abspath(full_katalsys_subdir)))
+    #     if not ARGS.off:
+    #         os.mkdir(full_katalsys_subdir)
 
-    full_tasks_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR)
-    if not os.path.exists(full_tasks_subdir):
-        msg("  * Since the tasks path \"{0}\" (\"{1}\") " \
-            "doesn't exist, let's create it.".format(full_log_subdir,
-                                                     os.path.abspath(full_log_subdir)))
-        if not ARGS.off:
-            os.mkdir(full_tasks_subdir)
+    # full_trash_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)
+    # if not os.path.exists(full_trash_subdir):
+    #     msg("  * Since the trash path \"{0}\" (\"{1}\") " \
+    #         "doesn't exist, let's create it.".format(full_trash_subdir,
+    #                                                  os.path.abspath(full_trash_subdir)))
+    #     if not ARGS.off:
+    #         os.mkdir(full_trash_subdir)
+
+    # full_log_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)
+    # if not os.path.exists(full_log_subdir):
+    #     msg("  * Since the log path \"{0}\" (\"{1}\") " \
+    #         "doesn't exist, let's create it.".format(full_log_subdir,
+    #                                                  os.path.abspath(full_log_subdir)))
+    #     if not ARGS.off:
+    #         os.mkdir(full_log_subdir)
+
+    # full_tasks_subdir = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR)
+    # if not os.path.exists(full_tasks_subdir):
+    #     msg("  * Since the tasks path \"{0}\" (\"{1}\") " \
+    #         "doesn't exist, let's create it.".format(full_log_subdir,
+    #                                                  os.path.abspath(full_log_subdir)))
+    #     if not ARGS.off:
+    #         os.mkdir(full_tasks_subdir)
 
     if USE_LOGFILE:
         LOGFILE = logfile_opening()
