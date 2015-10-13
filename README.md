@@ -256,7 +256,7 @@ trash name is defined in the configuration file.
   --addtag ADDTAG       Add a tag to some file(s) in combination with the --to
                         option. (default: None)
   -c CONFIGFILE, --configfile CONFIGFILE
-                        config file, e.g. config.ini (default: katal.ini)
+                        config file, e.g. config.ini (default: None)
   --cleandbrm           Remove from the database the missing files in the
                         target path. (default: False)
   -ddcfg, --downloaddefaultcfg
@@ -270,29 +270,37 @@ trash name is defined in the configuration file.
                         options to display more informations about the process
                         : in this case, the --infos will be executed before
                         --select/--add (default: False)
+  -m, --mute            no output to the console; no question asked on the
+                        console (default: False)
+  -n NEW, --new NEW     create a new target directory (default: None)
+  --off                 don't write anything into the target directory or into
+                        the database, except into the current log file. Use
+                        this option to simulate an operation : you get the
+                        messages but no file is modified on disk, no directory
+                        is created. (default: False)
+  -q, --quiet           no welcome/goodbye/informations about the parameters/
+                        messages on console (default: False)
+  --rmnotags            remove all files without a tag (default: False)
+  --rmtags              remove all the tags of some file(s) in combination
+                        with the --to option. (default: False)
   -s, --select          select files according to what is described in the
                         configuration file without adding them to the target
                         directory. This option can't be used with the --add
                         one.If you want more informations about the process,
                         please use this option in combination with --infos .
                         (default: False)
+  --setstrtags SETSTRTAGS
+                        give the string tag to some file(s) in combination
+                        with the --to option. Overwrite the ancient string
+                        tag. (default: None)
+  --targetpath TARGETPATH
+                        target path, usually '.' (default: .)
   -ti, --targetinfos    display informations about the target directory in
                         --quiet mode (default: False)
   -tk TARGETKILL, --targetkill TARGETKILL
                         kill one file from the target directory.DO NOT GIVE A
                         PATH, just the file's name, without the path to the
                         target directory (default: None)
-  -m, --mute            no output to the console; no question asked on the
-                        console (default: False)
-  -q, --quiet           no welcome/goodbye/informations about the parameters/
-                        messages on console (default: False)
-  --rmnotags            remove all files without a tag (default: False)
-  --rmtags              remove all the tags of some file(s) in combination
-                        with the --to option. (default: False)
-  --setstrtags SETSTRTAGS
-                        give the string tag to some file(s) in combination
-                        with the --to option. Overwrite the ancient string
-                        tag. (default: None)
   --to TO               give the name of the file(s) concerned by
                         --setstrtags. wildcards accepted; e.g. to select all
                         .py files, use '*.py' . Please DON'T ADD the path to
