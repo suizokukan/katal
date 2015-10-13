@@ -949,39 +949,42 @@ def main_warmup():
     if PARAMETERS is None:
         sys.exit(-1)
 
+    if not os.path.exists(TARGET_PATH):
+        msg("  ! Since the target path \"{0}\" (\"{1}\") " \
+            "doesn't exist, let's create it.".format(TARGET_PATH,
+                                                     os.path.abspath(TARGET_PATH)))
+        if not ARGS.off:
+            os.mkdir(TARGET_PATH)
+
+    FULL_KATALSYS_SUBDIR = os.path.join(TARGET_PATH, KATALSYS_SUBDIR)
+    if not os.path.exists(FULL_KATALSYS_SUBDIR):
+        msg("  ! Since the system path \"{0}\" (\"{1}\") " \
+            "doesn't exist, let's create it.".format(FULL_KATALSYS_SUBDIR,
+                                                     os.path.abspath(FULL_KATALSYS_SUBDIR)))
+        if not ARGS.off:
+            os.mkdir(FULL_KATALSYS_SUBDIR)
+
+    FULL_TRASH_SUBDIR = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)
+    if not os.path.exists(FULL_TRASH_SUBDIR):
+        msg("  ! Since the trash path \"{0}\" (\"{1}\") " \
+            "doesn't exist, let's create it.".format(FULL_TRASH_SUBDIR,
+                                                     os.path.abspath(FULL_TRASH_SUBDIR)))
+        if not ARGS.off:
+            os.mkdir(FULL_TRASH_SUBDIR)
+
+    FULL_LOG_SUBDIR = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)
+    if not os.path.exists(FULL_LOG_SUBDIR):
+        msg("  ! Since the log path \"{0}\" (\"{1}\") " \
+            "doesn't exist, let's create it.".format(FULL_LOG_SUBDIR,
+                                                     os.path.abspath(FULL_LOG_SUBDIR)))
+        if not ARGS.off:
+            os.mkdir(FULL_LOG_SUBDIR)
+
     if USE_LOG_FILE:
         LOGFILE = logfile_opening()
         welcome_in_logfile()
 
     parameters_infos()
-
-    if not os.path.exists(TARGET_PATH):
-        msg("  ! Since the target path \"{0}\" " \
-            "doesn't exist, let's create it.".format(TARGET_PATH))
-        if not ARGS.off:
-            os.mkdir(TARGET_PATH)
-
-    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR)):
-        msg("  ! Since the system path \"{0}\" " \
-            "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH, KATALSYS_SUBDIR)))
-        if not ARGS.off:
-            os.mkdir(os.path.join(TARGET_PATH, KATALSYS_SUBDIR))
-
-    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)):
-        msg("  ! Since the trash path \"{0}\" " \
-            "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
-                                                                  KATALSYS_SUBDIR,
-                                                                  TRASH_SUBSUBDIR)))
-
-    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)):
-        msg("  ! Since the log path \"{0}\" " \
-            "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
-                                                                  KATALSYS_SUBDIR,
-                                                                  LOG_SUBSUBDIR)))
-        if not ARGS.off:
-            os.mkdir(os.path.join(TARGET_PATH,
-                                  KATALSYS_SUBDIR,
-                                  TRASH_SUBSUBDIR))
 
     if ARGS.infos:
         action__infos()
@@ -1068,7 +1071,7 @@ def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
     if not ARGS.mute and _for_console:
         print(_msg)
 
-    if USE_LOG_FILE and _for_logfile:
+    if USE_LOG_FILE and _for_logfile and LOGFILE is not None:
         LOGFILE.write(_msg+"\n")
 
 #///////////////////////////////////////////////////////////////////////////////
