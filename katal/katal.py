@@ -72,7 +72,7 @@ __license__ = "GPL-3.0"
 # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
 __licensepipy__ = 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
 # see https://www.python.org/dev/peps/pep-0440/
-__version__ = "0.1.0.dev0"
+__version__ = "0.1.0.dev1"
 __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"
 __status__ = "Beta"
@@ -1796,7 +1796,7 @@ def welcome():
         msg("  = expected config file : \"{0}\" (\"{1}\")".format(ARGS.configfile,
                                                                   os.path.abspath(ARGS.configfile)))
     else:
-        msg("  = no config file specified")
+        msg("  = no config file specified : let's search a config file in the current directory...")
 
     if ARGS.off:
         msg("  = --off option : no file will be modified, no directory will be created =")
