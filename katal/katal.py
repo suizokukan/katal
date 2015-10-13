@@ -114,7 +114,7 @@ HASHID_MAXLENGTH = 20
 STRTAGS_MAXLENGTH = 20
 
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
-USE_LOG_FILE = False  # (bool) initialized from the configuration file
+USE_LOGFILE = False  # (bool) initialized from the configuration file
 LOG_VERBOSITY = "high"  # initialized from the configuration file (see documentation:logfile)
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
@@ -862,7 +862,7 @@ def main():
 
         goodbye()
 
-        if USE_LOG_FILE:
+        if USE_LOGFILE:
             LOGFILE.close()
 
     except ProjectError as exception:
@@ -980,7 +980,7 @@ def main_warmup():
         if not ARGS.off:
             os.mkdir(FULL_LOG_SUBDIR)
 
-    if USE_LOG_FILE:
+    if USE_LOGFILE:
         LOGFILE = logfile_opening()
         welcome_in_logfile()
 
@@ -1071,7 +1071,7 @@ def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
     if not ARGS.mute and _for_console:
         print(_msg)
 
-    if USE_LOG_FILE and _for_logfile and LOGFILE is not None:
+    if USE_LOGFILE and _for_logfile and LOGFILE is not None:
         LOGFILE.write(_msg+"\n")
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1235,7 +1235,7 @@ def read_parameters_from_cfgfile(_configfile_name):
                 None if an error occured while reading the configuration file
                 or the expected configparser.ConfigParser object=.
     """
-    global USE_LOG_FILE, LOG_VERBOSITY
+    global USE_LOGFILE, LOG_VERBOSITY
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
     global HASHID_MAXLENGTH, STRTAGS_MAXLENGTH
@@ -1251,7 +1251,7 @@ def read_parameters_from_cfgfile(_configfile_name):
 
     try:
         parser.read(_configfile_name)
-        USE_LOG_FILE = parser["log file"]["use log file"] == "True"
+        USE_LOGFILE = parser["log file"]["use log file"] == "True"
         LOG_VERBOSITY = parser["log file"]["verbosity"]
         TARGET_PATH = ARGS.targetpath
         TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
