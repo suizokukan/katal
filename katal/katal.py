@@ -332,8 +332,9 @@ def action__new(targetname):
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("  = about to create a new target directory named \"{0}\" (\"{1}\")".format(targetname,
-                                                                                    os.path.abspath(targetname)))
+    msg("  = about to create a new target directory " \
+        "named \"{0}\" (\"{1}\")".format(targetname,
+                                         os.path.abspath(targetname)))
     if os.path.exists(targetname):
         msg("  ! can't go further : the directory already exists.")
         return
@@ -356,7 +357,8 @@ def action__new(targetname):
                             os.path.join(KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME))
                 msg("  ... done.")
             else:
-                print("  ! A problem occured : the creation of the target directory has been aborted.")
+                print("  ! A problem occured : " \
+                      "the creation of the target directory has been aborted.")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__infos():
@@ -955,7 +957,7 @@ def main_actions():
         read_sieves()
         action__select()
 
-        if not ARGS.mute and len(SELECT)>0:
+        if not ARGS.mute and len(SELECT) > 0:
             answer = \
                 input("\nDo you want to add the selected " \
                       "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
@@ -995,7 +997,8 @@ def main_warmup():
 
     configfile_name = ARGS.configfile
     if ARGS.configfile is None:
-        configfile_name = os.path.join(".", ARGS.targetpath, KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME)
+        configfile_name = os.path.join(".",
+                                       ARGS.targetpath, KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME)
         msg("  * config file name : \"{0}\" (\"{1}\")".format(configfile_name,
                                                               os.path.abspath(configfile_name)))
 
@@ -1005,7 +1008,7 @@ def main_warmup():
                                      os.path.abspath(configfile_name)))
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
         msg("    move this downloaded file into the $target/.katal/ directory .")
- 
+
         PARAMETERS = read_parameters_from_cfgfile(configfile_name)
         if PARAMETERS is None:
             sys.exit(-1)
@@ -1015,11 +1018,12 @@ def main_warmup():
         DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
 
         # list of the expected directories : if one directory is missing, let's create it.
-        for name, fullpath in (("target", TARGET_PATH),
-                               ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
-                               ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
-                               ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
-                               ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
+        for name, \
+            fullpath in (("target", TARGET_PATH),
+                         ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
+                         ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
+                         ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
+                         ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
             if not os.path.exists(fullpath):
                 msg("  * Since the {0} path \"{1}\" (\"{2}\") " \
                     "doesn't exist, let's create it.".format(name,
@@ -1781,9 +1785,10 @@ def welcome():
     if ARGS.quiet:
         return
 
-    strmsg = "=== {0} v.{1} (launched at {2}) ===".format(__projectname__,
-                                                          __version__,
-                                                          TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S"))
+    strmsg = "=== {0} v.{1} " \
+             "(launched at {2}) ===".format(__projectname__,
+                                            __version__,
+                                            TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S"))
     msg("="*len(strmsg))
     msg(strmsg)
     msg("="*len(strmsg))
