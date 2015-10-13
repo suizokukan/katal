@@ -103,7 +103,8 @@ TARGET_PATH = ""  # initialized from the configuration file.
 TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
 TARGET_DB = []  # see documentation:database; initializd by read_target_db()
-TRASH_SUBDIR = "kataltrash"
+KATALSYS_SUBDIR = ".katal"
+TRASH_SUBSUBDIR = "trash"
 
 # maximal length of the hashids displayed. Can't be greater than 44.
 HASHID_MAXLENGTH = 20
@@ -363,7 +364,7 @@ def action__rmnotags():
                 if not ARGS.off:
                     # removing the file from the target directory :
                     shutil.move(os.path.join(TARGET_PATH, name),
-                                os.path.join(TARGET_PATH, TRASH_SUBDIR, name))
+                                os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
                     # let's remove the file from the database :
                     db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
@@ -516,7 +517,7 @@ def action__target_kill(_filename):
             if not ARGS.off:
                 # let's remove _filename from the target directory :
                 shutil.move(os.path.join(TARGET_PATH, _filename),
-                            os.path.join(TARGET_PATH, TRASH_SUBDIR, _filename))
+                            os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR, _filename))
 
                 # let's remove _filename from the database :
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
@@ -952,17 +953,25 @@ def main_warmup():
 
     if not os.path.exists(TARGET_PATH):
         msg("  ! Since the target path \"{0}\" " \
-                  "doesn't exist, let's create it.".format(TARGET_PATH))
+            "doesn't exist, let's create it.".format(TARGET_PATH))
         if not ARGS.off:
             os.mkdir(TARGET_PATH)
 
-    if not os.path.exists(os.path.join(TARGET_PATH, TRASH_SUBDIR)):
+    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR)):
+        msg("  ! Since the system path \"{0}\" " \
+            "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH, KATALSYS_SUBDIR)))
+        if not ARGS.off:
+            os.mkdir(os.path.join(TARGET_PATH, KATALSYS_SUBDIR))
+
+    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)):
         msg("  ! Since the trash path \"{0}\" " \
-                  "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
-                                                                        TRASH_SUBDIR)))
+            "doesn't exist, let's create it.".format(os.path.join(TARGET_PATH,
+                                                                  KATALSYS_SUBDIR,
+                                                                  TRASH_SUBSUBDIR)))
         if not ARGS.off:
             os.mkdir(os.path.join(TARGET_PATH,
-                                  TRASH_SUBDIR))
+                                  KATALSYS_SUBDIR,
+                                  TRASH_SUBSUBDIR))
 
     if ARGS.infos:
         action__infos()
@@ -1068,8 +1077,8 @@ def parameters_infos():
     if ARGS.quiet:
         return
 
-    msg("  = source directory : \"{0}\" =".format(SOURCE_PATH))
-    msg("  = target directory : \"{0}\" =".format(TARGET_PATH))
+    msg("  = source directory : \"{0}\" (\"{1}\")".format(SOURCE_PATH,
+                                                          os.path.abspath(SOURCE_PATH)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_command_line_arguments():
@@ -1217,7 +1226,6 @@ def read_parameters_from_cfgfile(_configfile_name):
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
     global HASHID_MAXLENGTH, STRTAGS_MAXLENGTH
-    global TRASH_SUBDIR
 
     if not os.path.exists(_configfile_name):
         msg("  ! The config file \"{0}\" doesn't exist.".format(_configfile_name))
@@ -1231,7 +1239,6 @@ def read_parameters_from_cfgfile(_configfile_name):
         LOG_VERBOSITY = parser["log file"]["verbosity"]
         TARGET_PATH = ARGS.targetpath
         TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
-        TRASH_SUBDIR = parser["trash directory"]["name"]
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
