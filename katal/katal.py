@@ -86,6 +86,7 @@ ARGS = None # initialized by main()
 FREESPACE_MARGIN = 1.1
 
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
+DEFAULTCFGFILE_URL = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
 DATABASE_NAME = "katal.db"
 DATABASE_FULLNAME = ""  # initialized by main_warmup()
 TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
@@ -305,14 +306,12 @@ def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
         RETURNED VALUE :
             (bool) success
     """
-    url = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
-
     msg("  = downloading the default configuration file =")
-    msg("  ... downloading {0} from {1}".format(newname, url))
+    msg("  ... downloading {0} from {1}".format(newname, DEFAULTCFGFILE_URL))
 
     try:
         if not ARGS.off:
-            with urllib.request.urlopen(url) as response, \
+            with urllib.request.urlopen(DEFAULTCFGFILE_URL) as response, \
                  open(newname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
         return True
@@ -931,11 +930,6 @@ def main_actions():
 
         no PARAMETER, no RETURNED VALUE
     """
-    if ARGS.infos:
-        action__infos()
-    if ARGS.targetinfos:
-        show_infos_about_target_path()
-    
     if ARGS.cleandbrm:
         action__cleandbrm()
 
