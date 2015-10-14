@@ -27,6 +27,19 @@ pylint setup.py
 
 #-------------------------------------------------------------------------------
 echo
+echo    "  = next step : $ pylint tests/tests.py"
+read -p "  = go on ? ('y' to continue) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+
+pylint tests/tests.py
+
+
+#-------------------------------------------------------------------------------
+echo
 echo    "  = next step : $ nosetests"
 read -p "  = go on ? ('y' to continue) " -n 1 -r
 echo
