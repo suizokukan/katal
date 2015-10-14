@@ -142,7 +142,7 @@ trash name is defined in the configuration file.
         o the documentation, the error messages and katal.ini have been improved
 
         o 7 tests, pylint=10.0
-        o version packaged and send to Pypi (https://pypi.python.org/pypi/Katal)
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
 
     v.0.0.9 (2015_10_12)
     
