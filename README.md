@@ -123,6 +123,28 @@ trash name is defined in the configuration file.
     
 (A) history
 
+    v.0.1.0 (2015_10_14)
+    
+        o added the --targetpath option
+        o added the -n/--new option
+        o the configuration file, the trash/log/tasks subsubdirectories are now stored
+          inside a "katal system" subdirectory inside the target directory. 
+
+        o check_before_commit_a_new_version.sh > check_and_commit_a_new_version.sh
+          the script has 2 new steps : 'pylint tests/tests.py' and 'git commit -a'.
+        o added a global constant, DATABASE_FULLNAME
+        o added a new global constant, DEFAULTCFGFILE_URL
+        o removed the parameters_infos() function
+        o added a new function, create_subdirs_in_target_path(), to relieve main_warmup()
+        o the function action__downloadefaultcfg() now returns a (bool)success
+        o the function action__downloadefaultcfg() now takes an argument, newname.
+        o fixed the tests script (targetpath is defined outside the test class/methods)
+        o the documentation, the error messages and katal.ini have been improved
+
+        o 7 tests, pylint=10.0
+        o version packaged and send to Pypi (https://pypi.python.org/pypi/Katal)
+
+
     v.0.0.9 (2015_10_12)
     
         o --off option : don't write anything into the target directory or into
