@@ -133,3 +133,15 @@ then
 fi
 
 katal --version
+
+#-------------------------------------------------------------------------------
+echo
+echo    "  = next step : $ git commit -a"
+read -p "  = go on ? ('y' to continue) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+
+git commit -a
