@@ -14,7 +14,7 @@ Once the target directory is filled with some files, a database is added to the 
     or
 
     $ wget https://github.com/suizokukan/katal/blob/master/katal/katal.py
-    since katal.py is a stand-alone file.
+    Since katal.py is a stand-alone file, you may place this file in the target directory.
     
 #(4) how to use (in brief)
 
