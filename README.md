@@ -144,7 +144,6 @@ trash name is defined in the configuration file.
         o 7 tests, pylint=10.0
         o version packaged and send to Pypi (https://pypi.python.org/pypi/Katal)
 
-
     v.0.0.9 (2015_10_12)
     
         o --off option : don't write anything into the target directory or into
