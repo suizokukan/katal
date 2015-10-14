@@ -30,7 +30,6 @@ Once the target directory is filled with some files, a database is added to the 
 
     Check if everything's is alright :
 
-    $ pip --infos
     $ pip --select  ... and answer 'yes' to the final question if all the details are ok to you.    
 
 #(5) author
