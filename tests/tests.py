@@ -50,6 +50,7 @@ class Tests(unittest.TestCase):
 		Test of the katal.py::fill_select() function.
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile1.ini")
+        katal.ARGS.targetpath = os.path.join(".", "tests")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.read_sieves()
         katal.fill_select()
@@ -59,7 +60,7 @@ class Tests(unittest.TestCase):
         hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
         self.assertTrue(hashid in katal.SELECT)
 
-    #//////////////////////////////////////////////////////////////////////////
+   #//////////////////////////////////////////////////////////////////////////
     def test__fill_select2(self):
         """
 		Tests.test__fill_select2()
@@ -67,6 +68,7 @@ class Tests(unittest.TestCase):
 		Test of the katal.py::fill_select() function.
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile2.ini")
+        katal.ARGS.targetpath = os.path.join(".", "tests")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.read_sieves()
         katal.fill_select()
@@ -84,6 +86,7 @@ class Tests(unittest.TestCase):
 		Test of the katal.py::fill_select() function.
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile3.ini")
+        katal.ARGS.targetpath = os.path.join(".", "tests")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.read_sieves()
         katal.fill_select()
@@ -104,6 +107,7 @@ class Tests(unittest.TestCase):
 		Test of the katal.py::fill_select() function.
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile4.ini")
+        katal.ARGS.targetpath = os.path.join(".", "tests")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.read_sieves()
         katal.fill_select()
@@ -122,6 +126,7 @@ class Tests(unittest.TestCase):
 		Test of the katal.py::fill_select() function.
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile5.ini")
+        katal.ARGS.targetpath = os.path.join(".", "tests")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.read_sieves()
         katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
@@ -143,6 +148,7 @@ class Tests(unittest.TestCase):
 		Test of the katal.py::fill_select() function.
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile6.ini")
+        katal.ARGS.targetpath = os.path.join(".", "tests")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.read_sieves()
         katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
@@ -164,6 +170,7 @@ class Tests(unittest.TestCase):
 		Test of the katal.py::fill_select() function.
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile7.ini")
+        katal.ARGS.targetpath = os.path.join(".", "tests")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.read_sieves()
         katal.fill_select({"tests/data1/a.0":"2013-01-01 00:00",
