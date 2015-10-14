@@ -124,6 +124,7 @@ class Tests(unittest.TestCase):
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile5.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
         katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
                            "tests/data1/a.1":"2015-09-17 20:01",
@@ -145,6 +146,7 @@ class Tests(unittest.TestCase):
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile6.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
         katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
                            "tests/data1/a.1":"2015-09-17 20:01",
@@ -166,6 +168,7 @@ class Tests(unittest.TestCase):
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile7.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
         katal.fill_select({"tests/data1/a.0":"2013-01-01 00:00",
                            "tests/data1/a.1":"2013-01-01 00:00",
