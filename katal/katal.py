@@ -970,6 +970,9 @@ def main_actions():
     if ARGS.setstrtags:
         action__setstrtags(ARGS.setstrtags, ARGS.to)
 
+    if ARGS.infos:
+        action__infos()
+
     if ARGS.addtag:
         action__addtag(ARGS.addtag, ARGS.to)
 
@@ -1418,10 +1421,10 @@ def show_infos_about_source_path():
     global INFOS_ABOUT_SRC_PATH
 
     if not os.path.exists(SOURCE_PATH):
-        msg("Can't read source path {0}.".format(SOURCE_PATH))
+        msg("    ! Can't read source path {0}.".format(SOURCE_PATH))
         return
     if not os.path.isdir(SOURCE_PATH):
-        msg("(source path) {0} isn't a directory.".format(SOURCE_PATH))
+        msg("    ! (source path) {0} isn't a directory.".format(SOURCE_PATH))
         return
 
     msg("  = searching informations about the \"{0}\" (source) directory ... =".format(SOURCE_PATH))
