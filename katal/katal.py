@@ -351,7 +351,7 @@ def action__new(targetname):
     """
     msg("  = about to create a new target directory " \
         "named \"{0}\" (path : \"{1}\")".format(targetname,
-                                                    strpath(targetname)))
+                                                    normpath(targetname)))
     if os.path.exists(targetname):
         msg("  ! can't go further : the directory already exists.")
         return
@@ -625,7 +625,7 @@ def create_subdirs_in_target_path():
             msg("  * Since the {0} path \"{1}\" (path : \"{2}\") " \
                 "doesn't exist, let's create it.".format(name,
                                                          fullpath,
-                                                         strpath(fullpath)))
+                                                         normpath(fullpath)))
             if not ARGS.off:
                 os.mkdir(fullpath)
 
@@ -1030,12 +1030,12 @@ def main_warmup():
         configfile_name = os.path.join(".",
                                        ARGS.targetpath, KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME)
         msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
-                                                              strpath(configfile_name)))
+                                                              normpath(configfile_name)))
 
     if not os.path.exists(configfile_name) and ARGS.new is None:
         msg("  ! The config file \"{0}\" (path : \"{1}\") " \
             "doesn't exist. ".format(configfile_name,
-                                     strpath(configfile_name)))
+                                     normpath(configfile_name)))
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
         msg("    move this downloaded file into the $target/.katal/ directory .")
 
@@ -1061,7 +1061,7 @@ def main_warmup():
 
         if not ARGS.quiet:
             msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
-                                                                             strpath(SOURCE_PATH)))
+                                                                         normpath(SOURCE_PATH)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -1421,7 +1421,7 @@ def show_infos_about_source_path():
     global INFOS_ABOUT_SRC_PATH
 
     msg("  = informations about the \"{0}\" (path: \"{1}\") source directory =".format(SOURCE_PATH,
-                                                                                           strpath(SOURCE_PATH)))
+                                                                                           normpath(SOURCE_PATH)))
 
     if not os.path.exists(SOURCE_PATH):
         msg("    ! can't find source path \"{0}\" .".format(SOURCE_PATH))
@@ -1473,7 +1473,7 @@ def show_infos_about_target_path():
                 (int) 0 if ok, -1 if an error occured
     """
     msg("  = informations about the \"{0}\" (path: \"{1}\") target directory =".format(TARGET_PATH,
-                                                                                           strpath(TARGET_PATH)))
+                                                                                           normpath(TARGET_PATH)))
     
     def draw_table(_rows, _data):
         """
@@ -1632,13 +1632,16 @@ def size_as_str(_size):
                                                 _size)
 
 #///////////////////////////////////////////////////////////////////////////////
-def strpath(_path):
+def normpath(_path):
     """
-        strpath()
+        normpath()
         ________________________________________________________________________
 
         Return a human-readable (e.g. "~" -> "/home/myhome/" on Linux systems), 
-        normalized version of a path
+        normalized version of a path.
+
+        The returned string may be used as a parameter given to by 
+        os.path.exists() .
         ________________________________________________________________________
 
         PARAMETER : (str)_path
@@ -1819,11 +1822,11 @@ def welcome():
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     msg("  = target directory : \"{0}\" (path : \"{1}\")".format(ARGS.targetpath,
-                                                                     strpath(ARGS.targetpath)))
+                                                                     normpath(ARGS.targetpath)))
 
     if ARGS.configfile is not None:
         msg("  = expected config file : \"{0}\" (path : \"{1}\")".format(ARGS.configfile,
-                                                                             strpath(ARGS.configfile)))
+                                                                             normpath(ARGS.configfile)))
     else:
         msg("  = no config file specified : let's search a config file in the current directory...")
 
