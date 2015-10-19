@@ -190,7 +190,7 @@ def action__add():
                                                _database_index=len(TARGET_DB) + index)
 
         complete_source_filename = SELECT[hashid].complete_name
-        target_name = os.path.join(TARGET_PATH, short_target_name)
+        target_name = os.path.join(normpath(TARGET_PATH), short_target_name)
 
         sourcedate = \
          datetime.fromtimestamp(os.path.getmtime(complete_source_filename)).replace(second=0,
@@ -265,7 +265,7 @@ def action__cleandbrm():
     """
     msg("    = clean the database : remove missing files from the target directory =")
 
-    if not os.path.exists(DATABASE_FULLNAME):
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
         msg("    ! no database found.")
         return
 
@@ -275,9 +275,9 @@ def action__cleandbrm():
 
     files_to_be_rmved_from_the_db = []  # hashid of the files
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        if not os.path.exists(os.path.join(TARGET_PATH, db_record["name"])):
+        if not os.path.exists(os.path.join(normpath(TARGET_PATH), db_record["name"])):
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
-            msg("    o about to remove \"{0}\"".format(os.path.join(TARGET_PATH,
+            msg("    o about to remove \"{0}\"".format(os.path.join(normpath(TARGET_PATH),
                                                                     db_record["filename"])))
 
     if len(files_to_be_rmved_from_the_db) == 0:
@@ -352,16 +352,16 @@ def action__new(targetname):
     msg("  = about to create a new target directory " \
         "named \"{0}\" (path : \"{1}\")".format(targetname,
                                                     normpath(targetname)))
-    if os.path.exists(targetname):
+    if os.path.exists(normpath(targetname)):
         msg("  ! can't go further : the directory already exists.")
         return
 
     if not ARGS.off:
-        os.mkdir(targetname)
-        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR))
-        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
-        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
-        os.mkdir(os.path.join(targetname, KATALSYS_SUBDIR, LOG_SUBSUBDIR))
+        os.mkdir(normpath(targetname))
+        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR))
+        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, LOG_SUBSUBDIR))
 
     if not ARGS.mute:
         answer = \
@@ -369,7 +369,7 @@ def action__new(targetname):
                   "into the expected directory ? (y/N) ")
 
         if answer in ("y", "yes"):
-            if action__downloadefaultcfg(os.path.join(targetname,
+            if action__downloadefaultcfg(os.path.join(normpath(targetname),
                                                       KATALSYS_SUBDIR,
                                                       DEFAULT_CONFIGFILE_NAME)):
                 msg("  ... done.")
@@ -391,7 +391,7 @@ def action__rmnotags():
     """
     msg("  = removing all files with no tags (=moving them to the trash) =")
 
-    if not os.path.exists(DATABASE_FULLNAME):
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
         msg("    ! no database found.")
     else:
         db_connection = sqlite3.connect(DATABASE_FULLNAME)
@@ -410,8 +410,9 @@ def action__rmnotags():
                 msg("   o removing {0} from the database and from the target path".format(name))
                 if not ARGS.off:
                     # removing the file from the target directory :
-                    shutil.move(os.path.join(TARGET_PATH, name),
-                                os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
+                    shutil.move(os.path.join(normpath(TARGET_PATH), name),
+                                os.path.join(normpath(TARGET_PATH),
+                                             KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
                     # let's remove the file from the database :
                     db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
@@ -474,7 +475,7 @@ def action__select():
             short_target_name = create_target_name(_hashid=hashid,
                                                    _database_index=len(TARGET_DB) + index)
 
-            target_name = os.path.join(TARGET_PATH, short_target_name)
+            target_name = os.path.join(normpath(TARGET_PATH), short_target_name)
 
             msg("    o e.g. ... \"{0}\" " \
                 "would be copied as \"{1}\" .".format(complete_source_filename,
@@ -539,11 +540,11 @@ def action__target_kill(_filename):
     """
     msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) " \
         "and from its database =".format(_filename))
-    if not os.path.exists(os.path.join(TARGET_PATH, _filename)):
+    if not os.path.exists(os.path.join(normpath(TARGET_PATH), _filename)):
         msg("    ! can't find \"{0}\" file on disk.".format(_filename))
         return -1
 
-    if not os.path.exists(DATABASE_FULLNAME):
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
         msg("    ! no database found.")
         return -3
     else:
@@ -562,8 +563,9 @@ def action__target_kill(_filename):
         else:
             if not ARGS.off:
                 # let's remove _filename from the target directory :
-                shutil.move(os.path.join(TARGET_PATH, _filename),
-                            os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR, _filename))
+                shutil.move(os.path.join(normpath(TARGET_PATH), _filename),
+                            os.path.join(normpath(TARGET_PATH),
+                                         KATALSYS_SUBDIR, TRASH_SUBSUBDIR, _filename))
 
                 # let's remove _filename from the database :
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
@@ -617,17 +619,17 @@ def create_subdirs_in_target_path():
     """
     for name, \
         fullpath in (("target", TARGET_PATH),
-                     ("system", os.path.join(TARGET_PATH, KATALSYS_SUBDIR)),
-                     ("trash", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
-                     ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
-                     ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
-        if not os.path.exists(fullpath):
+                     ("system", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR)),
+                     ("trash", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
+                     ("log", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
+                     ("tasks", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
+        if not os.path.exists(normpath(fullpath)):
             msg("  * Since the {0} path \"{1}\" (path : \"{2}\") " \
                 "doesn't exist, let's create it.".format(name,
                                                          fullpath,
                                                          normpath(fullpath)))
             if not ARGS.off:
-                os.mkdir(fullpath)
+                os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(_hashid, _database_index):
@@ -739,19 +741,19 @@ def fill_select(_debug_datatime=None):
     number_of_discarded_files = 0
 
     file_index = 0  # number of the current file in the source directory.
-    for dirpath, _, filenames in os.walk(SOURCE_PATH):
+    for dirpath, _, filenames in os.walk(normpath(SOURCE_PATH)):
         for filename in filenames:
             file_index += 1
-            complete_name = os.path.join(dirpath, filename)
+            complete_name = os.path.join(normpath(dirpath), filename)
             size = os.stat(complete_name).st_size
             if _debug_datatime is None:
                 time = \
-                    datetime.fromtimestamp(os.path.getmtime(complete_name)).replace(second=0,
+                    datetime.fromtimestamp(os.path.getmtime(normpath(complete_name))).replace(second=0,
                                                                                     microsecond=0)
             else:
                 time = datetime.strptime(_debug_datatime[complete_name], DATETIME_FORMAT)
 
-            filename_no_extens, extension = os.path.splitext(filename)
+            filename_no_extens, extension = os.path.splitext(normpath(filename))
 
 	    # if we know the total amount of files to be selected (see the --infos option),
 	    # we can add the percentage done :
@@ -788,7 +790,7 @@ def fill_select(_debug_datatime=None):
                                                                                len(SELECT)),
                         _important_msg=False)
 
-                    SELECT_SIZE_IN_BYTES += os.stat(complete_name).st_size
+                    SELECT_SIZE_IN_BYTES += os.stat(normpath(complete_name)).st_size
                 else:
                     res = False
                     number_of_discarded_files += 1
@@ -822,7 +824,7 @@ def get_disk_free_space(_path):
                                                    None, None, ctypes.pointer(free_bytes))
         return free_bytes.value
     else:
-        stat = os.statvfs(_path)
+        stat = os.statvfs(normpath(_path))
         return stat.f_bavail * stat.f_frsize
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -893,7 +895,7 @@ def logfile_opening():
         # overwrite :
         log_mode = "w"
 
-        if os.path.exists(fullname):
+        if os.path.exists(normpath(fullname)):
             shutil.copyfile(fullname,
                             os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
                                          "oldlogfile_" + \
@@ -1027,12 +1029,14 @@ def main_warmup():
 
     configfile_name = ARGS.configfile
     if ARGS.configfile is None:
-        configfile_name = os.path.join(".",
-                                       ARGS.targetpath, KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME)
+        configfile_name = os.path.join(normpath("."),
+                                       normpath(ARGS.targetpath),
+                                       KATALSYS_SUBDIR,
+                                       DEFAULT_CONFIGFILE_NAME)
         msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
                                                               normpath(configfile_name)))
 
-    if not os.path.exists(configfile_name) and ARGS.new is None:
+    if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
         msg("  ! The config file \"{0}\" (path : \"{1}\") " \
             "doesn't exist. ".format(configfile_name,
                                      normpath(configfile_name)))
@@ -1046,7 +1050,7 @@ def main_warmup():
         else:
             msg("    ... config file found and read (ok)")
 
-        DATABASE_FULLNAME = os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)
+        DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
 
         # list of the expected directories : if one directory is missing, let's create it.
         create_subdirs_in_target_path()
@@ -1079,7 +1083,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
                 o _mode         : (str) "append" to add _tag to the other tags
                                         "set" to replace old tag(s) by a new one
     """
-    if not os.path.exists(DATABASE_FULLNAME):
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
         msg("    ! no database found.")
     else:
         db_connection = sqlite3.connect(DATABASE_FULLNAME)
@@ -1359,7 +1363,7 @@ def read_target_db():
 
         no PARAMETER, no RETURNED VALUE
     """
-    if not os.path.exists(DATABASE_FULLNAME):
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
         msg("  = creating the database in the target path...")
 
         # let's create a new database in the target directory :
@@ -1423,21 +1427,21 @@ def show_infos_about_source_path():
     msg("  = informations about the \"{0}\" (path: \"{1}\") source directory =".format(SOURCE_PATH,
                                                                                            normpath(SOURCE_PATH)))
 
-    if not os.path.exists(SOURCE_PATH):
+    if not os.path.exists(normpath(SOURCE_PATH)):
         msg("    ! can't find source path \"{0}\" .".format(SOURCE_PATH))
         return
-    if not os.path.isdir(SOURCE_PATH):
+    if not os.path.isdir(normpath(SOURCE_PATH)):
         msg("    ! source path \"{0}\" isn't a directory .".format(SOURCE_PATH))
         return
 
     total_size = 0
     files_number = 0
     extensions = dict()  # (str)extension : [number of files, total size]
-    for dirpath, _, fnames in os.walk(SOURCE_PATH):
+    for dirpath, _, fnames in os.walk(normpath(SOURCE_PATH)):
         for filename in fnames:
-            complete_name = os.path.join(dirpath, filename)
-            size = os.stat(complete_name).st_size
-            extension = os.path.splitext(filename)[1]
+            complete_name = os.path.join(normpath(dirpath), filename)
+            size = os.stat(normpath(complete_name)).st_size
+            extension = os.path.splitext(normpath(filename))[1]
 
             if extension in extensions:
                 extensions[extension][0] += 1
@@ -1522,14 +1526,15 @@ def show_infos_about_target_path():
 
         draw_line()
 
-    if not os.path.exists(TARGET_PATH):
+    if not os.path.exists(normpath(TARGET_PATH)):
         msg("Can't find target path \"{0}\".".format(TARGET_PATH))
         return -1
-    if not os.path.isdir(TARGET_PATH):
+    if not os.path.isdir(normpath(TARGET_PATH)):
         msg("target path \"{0}\" isn't a directory.".format(TARGET_PATH))
         return -1
 
-    if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)):
+    if not os.path.exists(os.path.join(normpath(TARGET_PATH),
+                                       KATALSYS_SUBDIR, DATABASE_NAME)):
         msg("    o no database in the target directory o")
     else:
         db_connection = sqlite3.connect(DATABASE_FULLNAME)
