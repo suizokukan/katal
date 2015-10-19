@@ -321,6 +321,24 @@ def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__infos():
+    """
+        action__infos()
+        ________________________________________________________________________
+
+        Display informations about the source and the target directory
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE
+                (int) 0 if ok, -1 if an error occured
+    """
+    msg("  = informations =")
+    show_infos_about_source_path()
+    return show_infos_about_target_path()
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__new(targetname):
     """
         action__new()
@@ -358,24 +376,6 @@ def action__new(targetname):
             else:
                 print("  ! A problem occured : " \
                       "the creation of the target directory has been aborted.")
-
-#///////////////////////////////////////////////////////////////////////////////
-def action__infos():
-    """
-        action__infos()
-        ________________________________________________________________________
-
-        Display informations about the source and the target directory
-        ________________________________________________________________________
-
-        no PARAMETER
-
-        RETURNED VALUE
-                (int) 0 if ok, -1 if an error occured
-    """
-    msg("  = informations =")
-    show_infos_about_source_path()
-    return show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rmnotags():
