@@ -540,7 +540,7 @@ def action__target_kill(_filename):
     msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) " \
         "and from its database =".format(_filename))
     if not os.path.exists(os.path.join(TARGET_PATH, _filename)):
-        msg("    ! Can't find \"{0}\" file on disk.".format(_filename))
+        msg("    ! can't find \"{0}\" file on disk.".format(_filename))
         return -1
 
     if not os.path.exists(DATABASE_FULLNAME):
@@ -557,7 +557,7 @@ def action__target_kill(_filename):
                 filename_hashid = db_record["hashid"]
 
         if filename_hashid is None:
-            msg("    ! Can't find \"{0}\" file in the database.".format(_filename))
+            msg("    ! can't find \"{0}\" file in the database.".format(_filename))
             res = -2
         else:
             if not ARGS.off:
@@ -1424,7 +1424,7 @@ def show_infos_about_source_path():
                                                                                            strpath(SOURCE_PATH)))
 
     if not os.path.exists(SOURCE_PATH):
-        msg("    ! Can't read source path {0} .".format(SOURCE_PATH))
+        msg("    ! can't read source path {0} .".format(SOURCE_PATH))
         return
     if not os.path.isdir(SOURCE_PATH):
         msg("    ! (source path) {0} isn't a directory .".format(SOURCE_PATH))
