@@ -677,6 +677,9 @@ def create_target_name(_hashid, _database_index):
     target_name = target_name.replace("DATE2",
                                       remove_illegal_characters(SELECT[_hashid].date))
 
+    target_name = target_name.replace("HEXDATE",
+                                      hex(time.strptime(SELECT[_hashid].date, DATETIME_FORMAT))[2:])
+
     target_name = target_name.replace("DATABASE_INDEX",
                                       remove_illegal_characters(str(_database_index)))
 
@@ -1416,10 +1419,10 @@ def show_infos_about_source_path():
 
     if not os.path.exists(SOURCE_PATH):
         msg("Can't read source path {0}.".format(SOURCE_PATH))
-        return -1
+        return
     if not os.path.isdir(SOURCE_PATH):
         msg("(source path) {0} isn't a directory.".format(SOURCE_PATH))
-        return -1
+        return
 
     msg("  = searching informations about the \"{0}\" (source) directory ... =".format(SOURCE_PATH))
 

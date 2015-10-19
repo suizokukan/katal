@@ -292,6 +292,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                                        SOURCE_EXTENSION2
                                        SIZE
                                        DATE2
+                                       HEXDATE
                                        DATABASE_INDEX
 
                                        n.b. : keywords ending by "2" are builded 
