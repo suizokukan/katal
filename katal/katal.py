@@ -122,7 +122,7 @@ LOG_VERBOSITY = "high"  # initialized from the configuration file (see documenta
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
 # are stored.
-SELECTELEMENT = namedtuple('SELECTELEMENT', ["complete_name",
+SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
                                              "path",
                                              "filename_no_extens",
                                              "extension",
@@ -189,7 +189,7 @@ def action__add():
         short_target_name = create_target_name(_hashid=hashid,
                                                _database_index=len(TARGET_DB) + index)
 
-        complete_source_filename = SELECT[hashid].complete_name
+        complete_source_filename = SELECT[hashid].fullname
         target_name = os.path.join(normpath(TARGET_PATH), short_target_name)
 
         sourcedate = \
@@ -351,7 +351,7 @@ def action__new(targetname):
     """
     msg("  = about to create a new target directory " \
         "named \"{0}\" (path : \"{1}\")".format(targetname,
-                                                    normpath(targetname)))
+                                                normpath(targetname)))
     if os.path.exists(normpath(targetname)):
         msg("  ! can't go further : the directory already exists.")
         return
@@ -471,7 +471,7 @@ def action__select():
         example_index = 0
         for index, hashid in enumerate(SELECT):
 
-            complete_source_filename = SELECT[hashid].complete_name
+            complete_source_filename = SELECT[hashid].fullname
             short_target_name = create_target_name(_hashid=hashid,
                                                    _database_index=len(TARGET_DB) + index)
 
@@ -619,10 +619,14 @@ def create_subdirs_in_target_path():
     """
     for name, \
         fullpath in (("target", TARGET_PATH),
-                     ("system", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR)),
-                     ("trash", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
-                     ("log", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
-                     ("tasks", os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
+                     ("system", os.path.join(normpath(TARGET_PATH),
+                                             KATALSYS_SUBDIR)),
+                     ("trash", os.path.join(normpath(TARGET_PATH),
+                                            KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
+                     ("log", os.path.join(normpath(TARGET_PATH),
+                                          KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
+                     ("tasks", os.path.join(normpath(TARGET_PATH),
+                                            KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
         if not os.path.exists(normpath(fullpath)):
             msg("  * Since the {0} path \"{1}\" (path : \"{2}\") " \
                 "doesn't exist, let's create it.".format(name,
@@ -680,7 +684,8 @@ def create_target_name(_hashid, _database_index):
                                       remove_illegal_characters(SELECT[_hashid].date))
 
     target_name = target_name.replace("HEXDATE",
-                                      hex(time.strptime(SELECT[_hashid].date, DATETIME_FORMAT))[2:])
+                                      hex(int(datetime.strptime(SELECT[_hashid].date,
+                                                                DATETIME_FORMAT).timestamp()))[2:])
 
     target_name = target_name.replace("DATABASE_INDEX",
                                       remove_illegal_characters(str(_database_index)))
@@ -744,14 +749,14 @@ def fill_select(_debug_datatime=None):
     for dirpath, _, filenames in os.walk(normpath(SOURCE_PATH)):
         for filename in filenames:
             file_index += 1
-            complete_name = os.path.join(normpath(dirpath), filename)
-            size = os.stat(complete_name).st_size
+            fullname = os.path.join(normpath(dirpath), filename)
+            size = os.stat(fullname).st_size
             if _debug_datatime is None:
                 time = \
-                    datetime.fromtimestamp(os.path.getmtime(normpath(complete_name))).replace(second=0,
-                                                                                    microsecond=0)
+                datetime.fromtimestamp(os.path.getmtime(normpath(fullname))).replace(second=0,
+                                                                                     microsecond=0)
             else:
-                time = datetime.strptime(_debug_datatime[complete_name], DATETIME_FORMAT)
+                time = datetime.strptime(_debug_datatime[fullname], DATETIME_FORMAT)
 
             filename_no_extens, extension = os.path.splitext(normpath(filename))
 
@@ -770,15 +775,15 @@ def fill_select(_debug_datatime=None):
                 number_of_discarded_files += 1
 
                 msg("    - {0} (sieves described in the config file)" \
-                    " discarded \"{1}\"".format(prefix, complete_name),
+                    " discarded \"{1}\"".format(prefix, fullname),
                     _important_msg=False)
             else:
                 # is filename already stored in <TARGET_DB> ?
-                _hash = hashfile64(complete_name)
+                _hash = hashfile64(fullname)
 
                 if _hash not in TARGET_DB and _hash not in SELECT:
                     res = True
-                    SELECT[_hash] = SELECTELEMENT(complete_name=complete_name,
+                    SELECT[_hash] = SELECTELEMENT(fullname=fullname,
                                                   path=dirpath,
                                                   filename_no_extens=filename_no_extens,
                                                   extension=extension,
@@ -786,17 +791,17 @@ def fill_select(_debug_datatime=None):
                                                   date=time.strftime(DATETIME_FORMAT))
 
                     msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix,
-                                                                               complete_name,
+                                                                               fullname,
                                                                                len(SELECT)),
                         _important_msg=False)
 
-                    SELECT_SIZE_IN_BYTES += os.stat(normpath(complete_name)).st_size
+                    SELECT_SIZE_IN_BYTES += os.stat(normpath(fullname)).st_size
                 else:
                     res = False
                     number_of_discarded_files += 1
 
                     msg("    - {0} (similar hashid) " \
-                        " discarded \"{1}\"".format(prefix, complete_name),
+                        " discarded \"{1}\"".format(prefix, fullname),
                         _important_msg=False)
 
     return number_of_discarded_files
@@ -972,9 +977,6 @@ def main_actions():
     if ARGS.setstrtags:
         action__setstrtags(ARGS.setstrtags, ARGS.to)
 
-    if ARGS.infos:
-        action__infos()
-
     if ARGS.addtag:
         action__addtag(ARGS.addtag, ARGS.to)
 
@@ -1034,7 +1036,7 @@ def main_warmup():
                                        KATALSYS_SUBDIR,
                                        DEFAULT_CONFIGFILE_NAME)
         msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
-                                                              normpath(configfile_name)))
+                                                                     normpath(configfile_name)))
 
     if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
         msg("  ! The config file \"{0}\" (path : \"{1}\") " \
@@ -1066,6 +1068,9 @@ def main_warmup():
         if not ARGS.quiet:
             msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
                                                                          normpath(SOURCE_PATH)))
+
+        if ARGS.infos:
+            action__infos()
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -1424,8 +1429,9 @@ def show_infos_about_source_path():
     """
     global INFOS_ABOUT_SRC_PATH
 
-    msg("  = informations about the \"{0}\" (path: \"{1}\") source directory =".format(SOURCE_PATH,
-                                                                                           normpath(SOURCE_PATH)))
+    msg("  = informations about the \"{0}\" " \
+        "(path: \"{1}\") source directory =".format(SOURCE_PATH,
+                                                    normpath(SOURCE_PATH)))
 
     if not os.path.exists(normpath(SOURCE_PATH)):
         msg("    ! can't find source path \"{0}\" .".format(SOURCE_PATH))
@@ -1439,8 +1445,8 @@ def show_infos_about_source_path():
     extensions = dict()  # (str)extension : [number of files, total size]
     for dirpath, _, fnames in os.walk(normpath(SOURCE_PATH)):
         for filename in fnames:
-            complete_name = os.path.join(normpath(dirpath), filename)
-            size = os.stat(normpath(complete_name)).st_size
+            fullname = os.path.join(normpath(dirpath), filename)
+            size = os.stat(normpath(fullname)).st_size
             extension = os.path.splitext(normpath(filename))[1]
 
             if extension in extensions:
@@ -1476,9 +1482,10 @@ def show_infos_about_target_path():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
-    msg("  = informations about the \"{0}\" (path: \"{1}\") target directory =".format(TARGET_PATH,
-                                                                                           normpath(TARGET_PATH)))
-    
+    msg("  = informations about the \"{0}\" " \
+        "(path: \"{1}\") target directory =".format(TARGET_PATH,
+                                                    normpath(TARGET_PATH)))
+
     def draw_table(_rows, _data):
         """
                 Draw a table with some <_rows> and fill it with _data.
@@ -1642,15 +1649,15 @@ def normpath(_path):
         normpath()
         ________________________________________________________________________
 
-        Return a human-readable (e.g. "~" -> "/home/myhome/" on Linux systems), 
+        Return a human-readable (e.g. "~" -> "/home/myhome/" on Linux systems),
         normalized version of a path.
 
-        The returned string may be used as a parameter given to by 
+        The returned string may be used as a parameter given to by
         os.path.exists() .
         ________________________________________________________________________
 
         PARAMETER : (str)_path
-        
+
         RETURNED VALUE : the expected string
     """
     res = os.path.normpath(os.path.expanduser(_path))
@@ -1658,7 +1665,7 @@ def normpath(_path):
     if res == ".":
         res = os.getcwd()
 
-    return res    
+    return res
 
 #///////////////////////////////////////////////////////////////////////////////
 def the_file_has_to_be_added(_filename, _size, _date):
@@ -1827,11 +1834,11 @@ def welcome():
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     msg("  = target directory : \"{0}\" (path : \"{1}\")".format(ARGS.targetpath,
-                                                                     normpath(ARGS.targetpath)))
+                                                                 normpath(ARGS.targetpath)))
 
     if ARGS.configfile is not None:
         msg("  = expected config file : \"{0}\" (path : \"{1}\")".format(ARGS.configfile,
-                                                                             normpath(ARGS.configfile)))
+                                                                         normpath(ARGS.configfile)))
     else:
         msg("  = no config file specified : let's search a config file in the current directory...")
 

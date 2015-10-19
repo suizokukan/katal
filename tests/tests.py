@@ -113,7 +113,7 @@ class Tests(unittest.TestCase):
 
         hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
         self.assertTrue(hashid in katal.SELECT)
-        self.assertTrue(katal.SELECT[hashid].complete_name, "ddddd.6")
+        self.assertTrue(katal.SELECT[hashid].fullname, "ddddd.6")
 
     #//////////////////////////////////////////////////////////////////////////
     def test__fill_select5(self):
