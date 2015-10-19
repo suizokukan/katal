@@ -1072,6 +1072,9 @@ def main_warmup():
         if ARGS.infos:
             action__infos()
 
+        if ARGS.targetinfos:
+            show_infos_about_target_path()
+
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
     """
