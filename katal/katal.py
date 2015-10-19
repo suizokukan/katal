@@ -350,8 +350,8 @@ def action__new(targetname):
         no PARAMETER, no RETURNED VALUE
     """
     msg("  = about to create a new target directory " \
-        "named \"{0}\" (\"{1}\")".format(targetname,
-                                         os.path.abspath(targetname)))
+        "named \"{0}\" (normpath : \"{1}\")".format(targetname,
+                                                    os.path.normpath(targetname)))
     if os.path.exists(targetname):
         msg("  ! can't go further : the directory already exists.")
         return
@@ -622,10 +622,10 @@ def create_subdirs_in_target_path():
                      ("log", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
                      ("tasks", os.path.join(TARGET_PATH, KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
         if not os.path.exists(fullpath):
-            msg("  * Since the {0} path \"{1}\" (\"{2}\") " \
+            msg("  * Since the {0} path \"{1}\" (normpath : \"{2}\") " \
                 "doesn't exist, let's create it.".format(name,
                                                          fullpath,
-                                                         os.path.abspath(fullpath)))
+                                                         os.path.normpath(fullpath)))
             if not ARGS.off:
                 os.mkdir(fullpath)
 
@@ -1029,13 +1029,13 @@ def main_warmup():
     if ARGS.configfile is None:
         configfile_name = os.path.join(".",
                                        ARGS.targetpath, KATALSYS_SUBDIR, DEFAULT_CONFIGFILE_NAME)
-        msg("  * config file name : \"{0}\" (\"{1}\")".format(configfile_name,
-                                                              os.path.abspath(configfile_name)))
+        msg("  * config file name : \"{0}\" (normpath : \"{1}\")".format(configfile_name,
+                                                              os.path.normpath(configfile_name)))
 
     if not os.path.exists(configfile_name) and ARGS.new is None:
-        msg("  ! The config file \"{0}\" (\"{1}\") " \
+        msg("  ! The config file \"{0}\" (normpath : \"{1}\") " \
             "doesn't exist. ".format(configfile_name,
-                                     os.path.abspath(configfile_name)))
+                                     os.path.normpath(configfile_name)))
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
         msg("    move this downloaded file into the $target/.katal/ directory .")
 
@@ -1060,8 +1060,8 @@ def main_warmup():
                 "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
         if not ARGS.quiet:
-            msg("  = source directory : \"{0}\" (\"{1}\")".format(SOURCE_PATH,
-                                                                  os.path.abspath(SOURCE_PATH)))
+            msg("  = source directory : \"{0}\" (normpath : \"{1}\")".format(SOURCE_PATH,
+                                                                             os.path.normpath(SOURCE_PATH)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -1420,14 +1420,15 @@ def show_infos_about_source_path():
     """
     global INFOS_ABOUT_SRC_PATH
 
+    msg("  = informations about the \"{0}\" (normpath: \"{1}\") source directory =".format(SOURCE_PATH,
+                                                                                           os.path.normpath(SOURCE_PATH)))
+
     if not os.path.exists(SOURCE_PATH):
-        msg("    ! Can't read source path {0}.".format(SOURCE_PATH))
+        msg("    ! Can't read source path {0} .".format(SOURCE_PATH))
         return
     if not os.path.isdir(SOURCE_PATH):
-        msg("    ! (source path) {0} isn't a directory.".format(SOURCE_PATH))
+        msg("    ! (source path) {0} isn't a directory .".format(SOURCE_PATH))
         return
-
-    msg("  = searching informations about the \"{0}\" (source) directory ... =".format(SOURCE_PATH))
 
     total_size = 0
     files_number = 0
@@ -1471,6 +1472,9 @@ def show_infos_about_target_path():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
+    msg("  = informations about the \"{0}\" (normpath: \"{1}\") target directory =".format(TARGET_PATH,
+                                                                                           os.path.normpath(TARGET_PATH)))
+    
     def draw_table(_rows, _data):
         """
                 Draw a table with some <_rows> and fill it with _data.
@@ -1524,8 +1528,6 @@ def show_infos_about_target_path():
     if not os.path.isdir(TARGET_PATH):
         msg("(target path) {0} isn't a directory.".format(TARGET_PATH))
         return -1
-
-    msg("  = informations about the \"{0}\" (target) directory =".format(TARGET_PATH))
 
     if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)):
         msg("    o no database in the target directory o")
@@ -1795,12 +1797,12 @@ def welcome():
     msg("="*len(strmsg))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
-    msg("  = target directory : \"{0}\" (\"{1}\")".format(ARGS.targetpath,
-                                                          os.path.abspath(ARGS.targetpath)))
+    msg("  = target directory : \"{0}\" (normpath : \"{1}\")".format(ARGS.targetpath,
+                                                                     os.path.normpath(ARGS.targetpath)))
 
     if ARGS.configfile is not None:
-        msg("  = expected config file : \"{0}\" (\"{1}\")".format(ARGS.configfile,
-                                                                  os.path.abspath(ARGS.configfile)))
+        msg("  = expected config file : \"{0}\" (normpath : \"{1}\")".format(ARGS.configfile,
+                                                                             os.path.normpath(ARGS.configfile)))
     else:
         msg("  = no config file specified : let's search a config file in the current directory...")
 
