@@ -399,6 +399,7 @@ trash name is defined in the configuration file.
     o  show_infos_about_target_path()       : display informations about target path
     o  size_as_str()                        : return a size in bytes as a human-readable
                                               string
+    o  strpath()                            : return a human-readable, normalized version of a path
     o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
                                             : the target directory
     o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
