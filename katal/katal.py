@@ -1424,10 +1424,10 @@ def show_infos_about_source_path():
                                                                                            strpath(SOURCE_PATH)))
 
     if not os.path.exists(SOURCE_PATH):
-        msg("    ! can't read source path {0} .".format(SOURCE_PATH))
+        msg("    ! can't find source path \"{0}\" .".format(SOURCE_PATH))
         return
     if not os.path.isdir(SOURCE_PATH):
-        msg("    ! (source path) {0} isn't a directory .".format(SOURCE_PATH))
+        msg("    ! source path \"{0}\" isn't a directory .".format(SOURCE_PATH))
         return
 
     total_size = 0
@@ -1523,10 +1523,10 @@ def show_infos_about_target_path():
         draw_line()
 
     if not os.path.exists(TARGET_PATH):
-        msg("Can't read target path {0}.".format(TARGET_PATH))
+        msg("Can't find target path \"{0}\".".format(TARGET_PATH))
         return -1
     if not os.path.isdir(TARGET_PATH):
-        msg("(target path) {0} isn't a directory.".format(TARGET_PATH))
+        msg("target path \"{0}\" isn't a directory.".format(TARGET_PATH))
         return -1
 
     if not os.path.exists(os.path.join(TARGET_PATH, KATALSYS_SUBDIR, DATABASE_NAME)):
