@@ -277,7 +277,7 @@ def action__cleandbrm():
         if not os.path.exists(os.path.join(normpath(TARGET_PATH), db_record["name"])):
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
             msg("    o about to remove \"{0}\"".format(os.path.join(normpath(TARGET_PATH),
-                                                                    db_record["filename"])))
+                                                                    db_record["name"])))
 
     if len(files_to_be_rmved_from_the_db) == 0:
         msg("    ! no file to be removed : the database is ok.")
@@ -286,9 +286,9 @@ def action__cleandbrm():
             if not ARGS.off:
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
                 db_connection.commit()
-            msg("    o ... done")
 
     db_connection.close()
+    msg("    o ... done : remove {0} file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
