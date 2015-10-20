@@ -614,6 +614,7 @@ def create_subdirs_in_target_path():
 
         no PARAMETERS, no RETURNED VALUE
     """
+    # (str)name for the message, (str)full path :
     for name, \
         fullpath in (("target", TARGET_PATH),
                      ("system", os.path.join(normpath(TARGET_PATH),
