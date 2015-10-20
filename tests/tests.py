@@ -27,13 +27,14 @@
 #          since there IS a 'configfile' member for the ARGS class.
 # pylint: disable=E1101
 
-import os
 from collections import namedtuple
+import os
 import unittest
 
 from katal import katal
-katal.ARGS = namedtuple("ARGS", ("configfile", "mute",
-                                 "targetpath", "tests"))
+katal.ARGS = namedtuple("ARGS", ("configfile", "mute", "targetpath",))
+katal.ARGS.mute = True
+katal.ARGS.targetpath = "tests"
 
 ################################################################################
 class Tests(unittest.TestCase):

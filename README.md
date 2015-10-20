@@ -373,8 +373,9 @@ trash name is defined in the configuration file.
                                               from various informations read from a
                                               source file
     o  eval_sieve_for_a_file()              : evaluate a file according to a sieve
-    o  fill_select                          : fill SELECT and SELECT_SIZE_IN_BYTES from
+    o  fill_select()                        : fill SELECT and SELECT_SIZE_IN_BYTES from
                                               the files stored in SOURCE_PATH.
+    o  fill_select__checks()                : final checks at the end of fill_select()
     o  get_disk_free_space()                : return the available space on disk
     o  goodbye()                            : display the goodbye message
     o  logfile_opening()                    : open the log file

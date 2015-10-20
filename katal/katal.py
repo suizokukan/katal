@@ -56,6 +56,7 @@ import ctypes
 import hashlib
 from datetime import datetime
 import fnmatch
+import itertools
 import os
 import platform
 import re
@@ -127,7 +128,8 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
                                              "filename_no_extens",
                                              "extension",
                                              "size",
-                                             "date"])
+                                             "date",
+                                             "targetname",])
 
 SELECT = {} # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
@@ -186,11 +188,8 @@ def action__add():
     len_select = len(SELECT)
     for index, hashid in enumerate(SELECT):
 
-        short_target_name = create_target_name(_hashid=hashid,
-                                               _database_index=len(TARGET_DB) + index)
-
         complete_source_filename = SELECT[hashid].fullname
-        target_name = os.path.join(normpath(TARGET_PATH), short_target_name)
+        target_name = os.path.join(normpath(TARGET_PATH), SELECT[hashid].targetname)
 
         sourcedate = \
          datetime.fromtimestamp(os.path.getmtime(complete_source_filename)).replace(second=0,
@@ -207,7 +206,7 @@ def action__add():
             shutil.copyfile(complete_source_filename, target_name)
 
         files_to_be_added.append((hashid,
-                                  short_target_name,
+                                  target_name,
                                   complete_source_filename,
                                   sourcedate,
                                   ""))
@@ -469,13 +468,11 @@ def action__select():
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add:
         example_index = 0
-        for index, hashid in enumerate(SELECT):
+        for hashid in SELECT:
 
             complete_source_filename = SELECT[hashid].fullname
-            short_target_name = create_target_name(_hashid=hashid,
-                                                   _database_index=len(TARGET_DB) + index)
 
-            target_name = os.path.join(normpath(TARGET_PATH), short_target_name)
+            target_name = os.path.join(normpath(TARGET_PATH), SELECT[hashid].targetname)
 
             msg("    o e.g. ... \"{0}\" " \
                 "would be copied as \"{1}\" .".format(complete_source_filename,
@@ -636,7 +633,13 @@ def create_subdirs_in_target_path():
                 os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
-def create_target_name(_hashid, _database_index):
+def create_target_name(_hashid,
+                       _filename_no_extens,
+                       _path,
+                       _extension,
+                       _size,
+                       _date,
+                       _database_index):
     """
         create_target_name()
         ________________________________________________________________________
@@ -652,6 +655,11 @@ def create_target_name(_hashid, _database_index):
 
         PARAMETERS
                 o _hashid                       : (str)
+                o _filename_no_extens           : (str)
+                o _path                         : (str
+                o _extension                    : (str)
+                o _size                         : (int)
+                o _date                         : (str) see DATETIME_FORMAT
                 o _database_index               : (int)
 
         RETURNED VALUE
@@ -659,32 +667,23 @@ def create_target_name(_hashid, _database_index):
     """
     target_name = PARAMETERS["target"]["name of the target files"]
 
-    target_name = target_name.replace("HASHID",
-                                      _hashid)
+    target_name = target_name.replace("HASHID", _hashid)
 
-    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2",
-                                      remove_illegal_characters(SELECT[_hashid].filename_no_extens))
-    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION",
-                                      SELECT[_hashid].filename_no_extens)
+    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2", _filename_no_extens)
+    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION", _filename_no_extens)
 
-    target_name = target_name.replace("SOURCE_PATH2",
-                                      remove_illegal_characters(SELECT[_hashid].path))
-    target_name = target_name.replace("SOURCE_PATH",
-                                      SELECT[_hashid].path)
+    target_name = target_name.replace("SOURCE_PATH2", _path)
+    target_name = target_name.replace("SOURCE_PATH", _path)
 
-    target_name = target_name.replace("SOURCE_EXTENSION2",
-                                      remove_illegal_characters(SELECT[_hashid].extension))
-    target_name = target_name.replace("SOURCE_EXTENSION",
-                                      SELECT[_hashid].extension)
+    target_name = target_name.replace("SOURCE_EXTENSION2", remove_illegal_characters(_extension))
+    target_name = target_name.replace("SOURCE_EXTENSION", _extension)
 
-    target_name = target_name.replace("SIZE",
-                                      str(SELECT[_hashid].size))
+    target_name = target_name.replace("SIZE", str(_size))
 
-    target_name = target_name.replace("DATE2",
-                                      remove_illegal_characters(SELECT[_hashid].date))
+    target_name = target_name.replace("DATE2", remove_illegal_characters(_date))
 
     target_name = target_name.replace("HEXDATE",
-                                      hex(int(datetime.strptime(SELECT[_hashid].date,
+                                      hex(int(datetime.strptime(_date,
                                                                 DATETIME_FORMAT).timestamp()))[2:])
 
     target_name = target_name.replace("DATABASE_INDEX",
@@ -732,12 +731,12 @@ def fill_select(_debug_datatime=None):
         SOURCE_PATH. This function is used by action__select() .
         ________________________________________________________________________
 
-        no PARAMETER
+        PARAMETERS
                 o  _debug_datatime : None (normal value) or a dict of DATETIME_FORMAT
                                      strings if in debug/test mode.
 
         RETURNED VALUE
-                (int) the number of discard files
+                (int) the number of discarded files
     """
     global SELECT, SELECT_SIZE_IN_BYTES
 
@@ -774,21 +773,30 @@ def fill_select(_debug_datatime=None):
             if not res:
                 number_of_discarded_files += 1
 
-                msg("    - {0} (sieves described in the config file)" \
-                    " discarded \"{1}\"".format(prefix, fullname),
+                msg("    - {0} discarded \"{1}\" " \
+                    ": incompatibility with the sieves".format(prefix, fullname),
                     _important_msg=False)
             else:
-                # is filename already stored in <TARGET_DB> ?
                 _hash = hashfile64(fullname)
 
+                # is filename already stored in <TARGET_DB> ?
                 if _hash not in TARGET_DB and _hash not in SELECT:
-                    res = True
+                    # no, so we may add _hash to SELECT...
+                    _targetname = create_target_name(_hashid=_hash,
+                                                     _filename_no_extens=filename_no_extens,
+                                                     _path=dirpath,
+                                                     _extension=extension,
+                                                     _size=size,
+                                                     _date=time.strftime(DATETIME_FORMAT),
+                                                     _database_index=len(TARGET_DB) + len(SELECT))
+
                     SELECT[_hash] = SELECTELEMENT(fullname=fullname,
                                                   path=dirpath,
                                                   filename_no_extens=filename_no_extens,
                                                   extension=extension,
                                                   size=size,
-                                                  date=time.strftime(DATETIME_FORMAT))
+                                                  date=time.strftime(DATETIME_FORMAT),
+                                                  targetname=_targetname)
 
                     msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix,
                                                                                fullname,
@@ -804,7 +812,75 @@ def fill_select(_debug_datatime=None):
                         " discarded \"{1}\"".format(prefix, fullname),
                         _important_msg=False)
 
-    return number_of_discarded_files
+    return fill_select__checks(_number_of_discarded_files=number_of_discarded_files,
+                               _prefix=prefix,
+                               _fullname=fullname)
+
+#///////////////////////////////////////////////////////////////////////////////
+def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
+    """
+        fill_select__checks()
+        ________________________________________________________________________
+
+        To be called at the end of fill_select() : remove some files from SELECT
+        if they don't pass the checks :
+                (1) future filename's can't be in conflict with another file in SELECT
+                (2) future filename's can't be in conflict with another file already
+                    stored in the target path :
+        ________________________________________________________________________
+
+        no PARAMETER
+                o _number_of_discarded_files    : (int) see fill_select()
+                o _prefix                       : (str) see fill_select()
+                o _fullname                     : (str) see fill_select()
+
+        RETURNED VALUE
+                (int) the number of discarded files
+    """
+    # (1) future filename's can't be in conflict with another file in SELECT
+    to_be_discarded = []        # a list of hash.
+    for (selectedfile_hash1, selectedfile_hash2) in itertools.combinations(SELECT, 2):
+
+        if SELECT[selectedfile_hash1].targetname == SELECT[selectedfile_hash2].targetname:
+            msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" would be used " \
+                "two times for two different files !".format(_prefix,
+                                                             _fullname,
+                                                             SELECT[selectedfile_hash2].targetname))
+
+            to_be_discarded.append(selectedfile_hash2)
+
+    # (2) future filename's can't be in conflict with another file already
+    # stored in the target path :
+    for selectedfile_hash in SELECT:
+        if os.path.exists(os.path.join(normpath(TARGET_PATH),
+                                       SELECT[selectedfile_hash].targetname)):
+            msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already " \
+                "exists in the target path !".format(_prefix,
+                                                     _fullname,
+                                                     SELECT[selectedfile_hash].targetname))
+
+            to_be_discarded.append(selectedfile_hash)
+
+    # final message and deletion :
+    if len(to_be_discarded) == 0:
+        msg("    o  everything ok : no anomaly detected. See details above.")
+    else:
+        if len(to_be_discarded) == 1:
+            ending = "y"
+        else:
+            ending = "ies"
+        msg("    !  beware : {0} anomal{1} detected. " \
+            "See details above.".format(len(to_be_discarded),
+                                        ending))
+
+        for _hash in to_be_discarded:
+            # e.g. , _hash may have discarded two times (same target name + file
+            # already present on disk), hence the following condition :
+            if _hash in SELECT:
+                del SELECT[_hash]
+                _number_of_discarded_files += 1
+
+    return _number_of_discarded_files
 
 #///////////////////////////////////////////////////////////////////////////////
 def get_disk_free_space(_path):
@@ -1043,7 +1119,7 @@ def main_warmup():
             "doesn't exist. ".format(configfile_name,
                                      normpath(configfile_name)))
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
-        msg("    move this downloaded file into the $target/.katal/ directory .")
+        msg("    move this downloaded file into the target/.katal/ directory .")
 
     elif ARGS.new is None:
         PARAMETERS = read_parameters_from_cfgfile(configfile_name)
