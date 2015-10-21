@@ -145,6 +145,11 @@ DATETIME_FORMAT_LENGTH = 16
 #                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 AUTHORIZED_EVALCHARS = " TFadlsievruxnot0123456789&|^()"
 
+# string used to create the database :
+SQL__CREATE_DB = 'CREATE TABLE dbfiles ' \
+                 '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
+                 'sourcename TEXT, sourcedate INTEGER, strtags TEXT)'
+
 ################################################################################
 class ProjectError(BaseException):
     """
@@ -484,9 +489,7 @@ def action__rebase(_newtargetpath):
     newdb_cursor = newdb_connection.cursor()
 
     if not ARGS.off:
-        newdb_cursor.execute('CREATE TABLE dbfiles ' \
-                             '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
-                             'sourcename TEXT, sourcedate INTEGER, strtags TEXT)')
+        newdb_cursor.execute(SQL__CREATE_DB)
 
     olddb_connection.commit()
     olddb_connection.close()
@@ -1612,9 +1615,7 @@ def read_target_db():
         db_cursor = db_connection.cursor()
 
         if not ARGS.off:
-            db_cursor.execute('CREATE TABLE dbfiles ' \
-                              '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
-                              'sourcename TEXT, sourcedate INTEGER, strtags TEXT)')
+            db_cursor.execute(SQL__CREATE_DB)
 
         db_connection.commit()
         db_connection.close()
