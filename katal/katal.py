@@ -276,21 +276,23 @@ def action__cleandbrm():
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
         if not os.path.exists(os.path.join(normpath(TARGET_PATH), db_record["name"])):
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
-            msg("    o about to remove \"{0}\" from the database".format(os.path.join(normpath(TARGET_PATH),
-                                                                                      db_record["name"])))
+            msg("    o about to remove \"{0}\" " \
+                "from the database".format(os.path.join(normpath(TARGET_PATH),
+                                                        db_record["name"])))
 
     if len(files_to_be_rmved_from_the_db) == 0:
         msg("    ! no file to be removed : the database is ok.")
     else:
         for hashid in files_to_be_rmved_from_the_db:
             if not ARGS.off:
-                msg("    o removing \"{0}\" from the database".format(os.path.join(normpath(TARGET_PATH),
-                                                                                   db_record["name"])))
+                msg("    o removing \"{0}\" record " \
+                    "from the database".format(hashid))
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
                 db_connection.commit()
 
     db_connection.close()
-    msg("    o ... done : remove {0} file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
+    msg("    o ... done : remove {0} " \
+        "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
