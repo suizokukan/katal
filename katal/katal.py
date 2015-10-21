@@ -192,8 +192,8 @@ def action__add():
         target_name = os.path.join(normpath(TARGET_PATH), SELECT[hashid].targetname)
 
         sourcedate = \
-         datetime.fromtimestamp(os.path.getmtime(complete_source_filename)).replace(second=0,
-                                                                                    microsecond=0)
+         datetime.utcfromtimestamp(os.path.getmtime(complete_source_filename)).replace(second=0,
+                                                                                       microsecond=0)
         # converting the datetime object in epoch value (=the number of seconds from 1970-01-01 :
         sourcedate -= datetime(1970, 1, 1)
         sourcedate = sourcedate.total_seconds()
@@ -425,7 +425,7 @@ def action__rebase(_newtargetpath):
         fullname = normpath(os.path.join(SOURCE_PATH, db_record["name"]))
         filename_no_extens, extension = os.path.splitext(fullname)
         size = os.stat(fullname).st_size
-        date = datetime.fromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
+        date = datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
         new_name = create_target_name(_hashid=db_record["hashid"],
                                       _filename_no_extens=filename_no_extens,
                                       _path=db_record["sourcename"],
@@ -822,8 +822,8 @@ def fill_select(_debug_datatime=None):
             size = os.stat(fullname).st_size
             if _debug_datatime is None:
                 time = \
-                datetime.fromtimestamp(os.path.getmtime(normpath(fullname))).replace(second=0,
-                                                                                     microsecond=0)
+                datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname))).replace(second=0,
+                                                                                        microsecond=0)
             else:
                 time = datetime.strptime(_debug_datatime[fullname], DATETIME_FORMAT)
 
@@ -1715,7 +1715,7 @@ def show_infos_about_target_path():
         rows_data = []
         row_index = 0
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            sourcedate = datetime.fromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
+            sourcedate = datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
 
             rows_data.append((db_record["hashid"],
                               db_record["name"],
@@ -1733,8 +1733,8 @@ def show_infos_about_target_path():
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
                               ("name", TARGETNAME_MAXLENGTH, "|"),
                               ("tags", STRTAGS_MAXLENGTH, "|"),
-                              ("(source) name", SOURCENAME_MAXLENGTH, "|"),
-                              ("(source) date", DATETIME_FORMAT_LENGTH, "|")),
+                              ("source name", SOURCENAME_MAXLENGTH, "|"),
+                              ("source date", DATETIME_FORMAT_LENGTH, "|")),
                        _data=rows_data)
 
         db_connection.close()
