@@ -416,40 +416,80 @@ def action__rebase(_newtargetpath):
     msg("    o config file found and read (ok)")
     msg("    o new filenames' format : {0}".format(to_parameters["target"]["name of the target files"]))
 
+    if not ARGS.off:
+        new_db = os.path.join(normpath(_newtargetpath), KATALSYS_SUBDIR, DATABASE_NAME)
+        if os.path.exists(new_db):
+            # let's delete the new database :
+            os.remove(new_db)
+
+    # let's compute the new names :
     files = dict()      # hashid : (old name, new name)
     filenames = set()
-    db_connection = sqlite3.connect(DATABASE_FULLNAME)
-    db_connection.row_factory = sqlite3.Row
-    db_cursor = db_connection.cursor()
+    olddb_connection = sqlite3.connect(DATABASE_FULLNAME)
+    olddb_connection.row_factory = sqlite3.Row
+    olddb_cursor = olddb_connection.cursor()
 
-    for index, db_record in enumerate(db_cursor.execute('SELECT * FROM dbfiles')):
-        fullname = normpath(os.path.join(SOURCE_PATH, db_record["name"]))
+    anomalies_nbr = 0
+    for index, olddb_record in enumerate(olddb_cursor.execute('SELECT * FROM dbfiles')):
+        fullname = normpath(os.path.join(SOURCE_PATH, olddb_record["name"]))
         filename_no_extens, extension = get_filename_and_extension(fullname)
         
         size = os.stat(fullname).st_size
-        date = datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
+        date = datetime.utcfromtimestamp(olddb_record["sourcedate"]).strftime(DATETIME_FORMAT)
         new_name = create_target_name(_parameters=to_parameters,
-                                      _hashid=db_record["hashid"],
+                                      _hashid=olddb_record["hashid"],
                                       _filename_no_extens=filename_no_extens,
-                                      _path=db_record["sourcename"],
+                                      _path=olddb_record["sourcename"],
                                       _extension=extension,
                                       _size=size,
                                       _date=date,
                                       _database_index=index)
         new_name = normpath(os.path.join(_newtargetpath, new_name))
 
-        msg("    o {0} : {1} -> {2}".format(db_record["hashid"],
-                                            db_record["name"],
-                                            new_name))
+        msg("      o {0} : {1} would be copied as {2}".format(olddb_record["hashid"],
+                                                              olddb_record["name"],
+                                                              new_name))
 
         if new_name in filenames:
-            msg("    ! anomaly : ancient file {1} should be renamed as {0} but this name still exists in new target directory !".format(new_name, fullname))
+            msg("      ! anomaly : ancient file {1} should be renamed as {0} " \
+                "but this name would have been already created in the new target directory ! " \
+                "".format(new_name, fullname))
+            msg("        Two different files from the ancient target directory " \
+                "can't bear the same name in the new target directory !")
+            anomalies_nbr += 1
+        elif os.path.exists(new_name):
+            msg("      ! anomaly : ancient file {1} should be renamed as {0} " \
+                "but this name already exists in new target directory !".format(new_name, fullname))
+            anomalies_nbr += 1
         else:
-            files[db_record["hashid"]] = (fullname, new_name)
+            files[olddb_record["hashid"]] = (fullname, new_name)
             filenames.add(new_name)
 
-    db_connection.commit()
-    db_connection.close()
+    go_on = True
+    if anomalies_nbr!=0:
+        go_on = False
+        answer = \
+            input("\nAt least one anomaly detected (see details above) " \
+                  "Are you sure you want to go on ? (y/N) ")
+
+        if answer in ("y", "yes"):
+            go_on = True
+
+    if not go_on:
+        return
+
+    # let's write the new database :
+    newdb_connection = sqlite3.connect(DATABASE_FULLNAME)
+    newdb_connection.row_factory = sqlite3.Row
+    newdb_cursor = newdb_connection.cursor()
+
+    if not ARGS.off:
+        newdb_cursor.execute('CREATE TABLE dbfiles ' \
+                             '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
+                             'sourcename TEXT, sourcedate INTEGER, strtags TEXT)')
+
+    olddb_connection.commit()
+    olddb_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rmnotags():
