@@ -1571,7 +1571,7 @@ def remove_illegal_characters(_src):
                 the expected string, i.e. <_src> without illegal characters.
     """
     res = _src
-    for char in ("*", "/", "\\", ".", "[", "]", ":", ";", "|", "=", ",", "?", "<", ">"):
+    for char in ("*", "/", "\\", ".", "[", "]", ":", ";", "|", "=", ",", "?", "<", ">", "-"):
         res = res.replace(char, "_")
     return res
 
