@@ -426,17 +426,24 @@ def action__rebase(_newtargetpath):
         filename_no_extens, extension = os.path.splitext(fullname)
         size = os.stat(fullname).st_size
         date = datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
-        new_name = create_target_name(_hashid=db_record["hashid"],
+        new_name = create_target_name(_parameters=to_parameters,
+                                      _hashid=db_record["hashid"],
                                       _filename_no_extens=filename_no_extens,
                                       _path=db_record["sourcename"],
                                       _extension=extension,
                                       _size=size,
                                       _date=date,
                                       _database_index=index)
+        new_name = normpath(os.path.join(_newtargetpath, new_name))
 
         msg("    o {0} : {1} -> {2}".format(db_record["hashid"],
                                             db_record["name"],
                                             new_name))
+
+        files[db_record["hashid"]] = (fullname, new_name)
+
+    for hashid in files:
+        print(files[hashid])
 
     db_connection.commit()
     db_connection.close()
@@ -699,7 +706,8 @@ def create_subdirs_in_target_path():
                 os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
-def create_target_name(_hashid,
+def create_target_name(_parameters,
+                       _hashid,
                        _filename_no_extens,
                        _path,
                        _extension,
@@ -712,7 +720,7 @@ def create_target_name(_hashid,
 
         Create the name of a file (a target file) from various informations
         stored in SELECT. The function reads the string stored in
-        PARAMETERS["target"]["name of the target files"] and replaces some
+        _parameters["target"]["name of the target files"] and replaces some
         keywords in the string by the parameters given to this function.
 
         see the available keywords in the documentation.
@@ -720,6 +728,9 @@ def create_target_name(_hashid,
         ________________________________________________________________________
 
         PARAMETERS
+                o _parameters                   : an object returned by 
+                                                  read_parameters_from_cfgfile(),
+                                                  like PARAMETERS
                 o _hashid                       : (str)
                 o _filename_no_extens           : (str)
                 o _path                         : (str
@@ -731,7 +742,7 @@ def create_target_name(_hashid,
         RETURNED VALUE
                 the expected string
     """
-    target_name = PARAMETERS["target"]["name of the target files"]
+    target_name = _parameters["target"]["name of the target files"]
 
     target_name = target_name.replace("HASHID", _hashid)
 
@@ -852,7 +863,8 @@ def fill_select(_debug_datatime=None):
                 # is filename already stored in <TARGET_DB> ?
                 if _hash not in TARGET_DB and _hash not in SELECT:
                     # no, so we may add _hash to SELECT...
-                    _targetname = create_target_name(_hashid=_hash,
+                    _targetname = create_target_name(_parameters=PARAMETERS,
+                                                     _hashid=_hash,
                                                      _filename_no_extens=filename_no_extens,
                                                      _path=dirpath,
                                                      _extension=extension,
