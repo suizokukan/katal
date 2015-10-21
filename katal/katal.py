@@ -204,6 +204,7 @@ def action__add():
                                                                     target_name))
         if not ARGS.off:
             shutil.copyfile(complete_source_filename, target_name)
+            os.utime(target_name, (sourcedate, sourcedate))
 
         files_to_be_added.append((hashid,
                                   target_name,
