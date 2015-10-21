@@ -104,6 +104,24 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     
 #(8) history
 
+    v.0.1.1 (2015_10_21)
+
+        o fixed create_target_name() : added HEXDATE as a name format
+        o added 2 checks at the end of fill_select()
+          The function fill_select__checks() checks that :
+          (1) future filename's can't be in conflict with another file in SELECT
+          (2) future filename's can't be in conflict with another file already
+          stored in the target path
+
+        o fixed a bug in action__cleandbrm()
+        o fixed main_warmup() : show informations if the -ti/--targetinfos paramater is given
+        o fixed show_infos_about_source_path() : no returned value
+        o added the call to actions__infos() if the --infos option is used
+        o added normpath() function, used every time a os.path.* function is called
+
+        o 7 tests, pylint=10.0
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.0 (2015_10_14)
     
         o added the --targetpath option
