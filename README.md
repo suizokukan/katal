@@ -377,6 +377,9 @@ trash name is defined in the configuration file.
     o  action__downloadefaultcfg()          : download the default configuration file
     o  action__infos()                      : display informations about the source
                                               and the target directory
+    o  action__rebase()                     : copy a target directory into a new one
+    o  action__rebase__files()              : --rebase : select the files to be copied.
+    o  action__rebase__write()              : --rebase : write the files into the new target direc.
     o  action__rmnotags()                   : Remove all files if they have no tags.
     o  action__rmtags()                     : remove the entire string tags of some files
     o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and

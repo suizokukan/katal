@@ -196,9 +196,9 @@ def action__add():
         complete_source_filename = SELECT[hashid].fullname
         target_name = os.path.join(normpath(TARGET_PATH), SELECT[hashid].targetname)
 
-        sourcedate = \
-         datetime.utcfromtimestamp(os.path.getmtime(complete_source_filename)).replace(second=0,
-                                                                                       microsecond=0)
+        sourcedate = datetime.utcfromtimestamp(os.path.getmtime(complete_source_filename))
+        sourcedate = sourcedate.replace(second=0, microsecond=0)
+
         # converting the datetime object in epoch value (=the number of seconds from 1970-01-01 :
         sourcedate -= datetime(1970, 1, 1)
         sourcedate = sourcedate.total_seconds()
@@ -410,46 +410,91 @@ def action__rebase(_newtargetpath):
     to_configfile = os.path.join(_newtargetpath,
                                  KATALSYS_SUBDIR,
                                  DEFAULT_CONFIGFILE_NAME)
-    msg("    o trying to read dest config file {0} (path : \"{1}\") .".format(to_configfile,
-                                                                              normpath(to_configfile)))
-    to_parameters = read_parameters_from_cfgfile(normpath(to_configfile))
+    msg("    o trying to read dest config file {0} " \
+        "(path : \"{1}\") .".format(to_configfile,
+                                    normpath(to_configfile)))
+    dest_params = read_parameters_from_cfgfile(normpath(to_configfile))
 
-    if to_parameters is None:
+    if dest_params is None:
         msg("    ! can't read the dest config file !")
         return
 
     msg("    o config file found and read (ok)")
-    msg("    o new filenames' format : {0}".format(to_parameters["target"]["name of the target files"]))
+    msg("    o new filenames' format : " \
+        "{0}".format(dest_params["target"]["name of the target files"]))
 
+    new_db = os.path.join(normpath(_newtargetpath), KATALSYS_SUBDIR, DATABASE_NAME)
     if not ARGS.off:
-        new_db = os.path.join(normpath(_newtargetpath), KATALSYS_SUBDIR, DATABASE_NAME)
         if os.path.exists(new_db):
             # let's delete the new database :
             os.remove(new_db)
 
     # let's compute the new names :
-    files = dict()      # hashid : (old name, new name)
-    filenames = set()
     olddb_connection = sqlite3.connect(DATABASE_FULLNAME)
     olddb_connection.row_factory = sqlite3.Row
     olddb_cursor = olddb_connection.cursor()
 
+    files, anomalies_nbr = action__rebase__files(olddb_cursor, dest_params, _newtargetpath)
+
+    go_on = True
+    if anomalies_nbr != 0:
+        go_on = False
+        answer = \
+            input("\nAt least one anomaly detected (see details above) " \
+                  "Are you sure you want to go on ? (y/N) ")
+
+        if answer in ("y", "yes"):
+            go_on = True
+
+    if not go_on:
+        olddb_connection.close()
+        return
+    else:
+        action__rebase__write(new_db, files)
+        olddb_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
+def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
+    """
+        action__rebase__files()
+        ________________________________________________________________________
+
+        Return a dict of the files to be copied (old name, new name, ...) and
+        the number of anomalies.
+        ________________________________________________________________________
+
+        PARAMETER :
+                o _olddb_cursor         : cursor to the source database
+                o _dest_params          : an object returned by read_parameters_from_cfgfile(),
+                                          like PARAMETERS
+                o _newtargetpath        : (str) path to the new target directory.
+
+        RETURNED VALUE :
+                (files, (int)number of anomalies)
+
+                files : a dict hashid::(source name, new name, source date, source strtags)
+    """
+    files = dict()      # dict to be returned.
+    filenames = set()   # to be used to avoir doubloons.
+
     anomalies_nbr = 0
-    for index, olddb_record in enumerate(olddb_cursor.execute('SELECT * FROM dbfiles')):
+    for index, olddb_record in enumerate(_olddb_cursor.execute('SELECT * FROM dbfiles')):
         fullname = normpath(os.path.join(SOURCE_PATH, olddb_record["name"]))
         filename_no_extens, extension = get_filename_and_extension(fullname)
-        
+
         size = os.stat(fullname).st_size
-        date = datetime.utcfromtimestamp(olddb_record["sourcedate"]).strftime(DATETIME_FORMAT)
-        new_name = create_target_name(_parameters=to_parameters,
-                                      _hashid=olddb_record["hashid"],
-                                      _filename_no_extens=filename_no_extens,
-                                      _path=olddb_record["sourcename"],
-                                      _extension=extension,
-                                      _size=size,
-                                      _date=date,
-                                      _database_index=index)
+        date = olddb_record["sourcedate"]
+        new_name = \
+            create_target_name(_parameters=_dest_params,
+                               _hashid=olddb_record["hashid"],
+                               _filename_no_extens=filename_no_extens,
+                               _path=olddb_record["sourcename"],
+                               _extension=extension,
+                               _size=size,
+                               _date=datetime.utcfromtimestamp(date).strftime(DATETIME_FORMAT),
+                               _database_index=index)
         new_name = normpath(os.path.join(_newtargetpath, new_name))
+        strtags = olddb_record["strtags"]
 
         msg("      o {0} : {1} would be copied as {2}".format(olddb_record["hashid"],
                                                               olddb_record["name"],
@@ -467,32 +512,68 @@ def action__rebase(_newtargetpath):
                 "but this name already exists in new target directory !".format(new_name, fullname))
             anomalies_nbr += 1
         else:
-            files[olddb_record["hashid"]] = (fullname, new_name)
+            files[olddb_record["hashid"]] = (fullname, new_name, date, strtags)
             filenames.add(new_name)
 
-    go_on = True
-    if anomalies_nbr!=0:
-        go_on = False
-        answer = \
-            input("\nAt least one anomaly detected (see details above) " \
-                  "Are you sure you want to go on ? (y/N) ")
+    return files, anomalies_nbr
 
-        if answer in ("y", "yes"):
-            go_on = True
+#///////////////////////////////////////////////////////////////////////////////
+def action__rebase__write(_new_db, _files):
+    """
+        action__rebase__write()
+        ________________________________________________________________________
 
-    if not go_on:
-        return
+        Write the files described by _files in the new target directory.
+        ________________________________________________________________________
 
+        PARAMETER :
+                o _new_db               : (str) new database's name
+                o _files                : (dict) see action__rebase__files()
+
+        no RETURNED VALUE
+    """
     # let's write the new database :
-    newdb_connection = sqlite3.connect(DATABASE_FULLNAME)
+    newdb_connection = sqlite3.connect(_new_db)
     newdb_connection.row_factory = sqlite3.Row
     newdb_cursor = newdb_connection.cursor()
 
-    if not ARGS.off:
-        newdb_cursor.execute(SQL__CREATE_DB)
+    try:
+        if not ARGS.off:
+            newdb_cursor.execute(SQL__CREATE_DB)
 
-    olddb_connection.commit()
-    olddb_connection.close()
+        for futurefile_hashid in _files:
+            futurefile = _files[futurefile_hashid]
+            file_to_be_added = (futurefile_hashid,      # hashid
+                                futurefile[1],          # new name
+                                futurefile[0],          # sourcename
+                                futurefile[2],          # sourcedate
+                                futurefile[3])          # tags
+
+            msg("    o adding a file in the new database")
+            msg("      o hashid : {0}".format(futurefile_hashid))
+            msg("      o source name : {0}".format(futurefile[0]))
+            msg("      o desti. name : {0}".format(futurefile[1]))
+            msg("      o source date : {0}".format(futurefile[2]))
+            msg("      o tags : \"{0}\"".format(futurefile[3]))
+
+            newdb_cursor.execute('INSERT INTO dbfiles VALUES (?,?,?,?,?)', file_to_be_added)
+            newdb_connection.commit()
+
+    except sqlite3.IntegrityError as exception:
+        msg("!!! An error occured while writing the new database : "+str(exception))
+        raise ProjectError("An error occured while writing the new database : "+str(exception))
+
+    newdb_connection.close()
+
+    # let's copy the files :
+    for futurefile_hashid in _files:
+        futurefile = _files[futurefile_hashid]
+        old_name, new_name = futurefile[0], futurefile[1]
+
+        msg("    o copying \"{0}\" as \"{1}\"".format(old_name, new_name))
+        shutil.copyfile(old_name, new_name)
+
+    msg("    ... done")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rmnotags():
@@ -774,7 +855,7 @@ def create_target_name(_parameters,
         ________________________________________________________________________
 
         PARAMETERS
-                o _parameters                   : an object returned by 
+                o _parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
                                                   like PARAMETERS
                 o _hashid                       : (str)
@@ -878,9 +959,8 @@ def fill_select(_debug_datatime=None):
             fullname = os.path.join(normpath(dirpath), filename)
             size = os.stat(fullname).st_size
             if _debug_datatime is None:
-                time = \
-                datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname))).replace(second=0,
-                                                                                        microsecond=0)
+                time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
+                time = time.replace(second=0, microsecond=0)
             else:
                 time = datetime.strptime(_debug_datatime[fullname], DATETIME_FORMAT)
 
@@ -1791,7 +1871,8 @@ def show_infos_about_target_path():
         rows_data = []
         row_index = 0
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            sourcedate = datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
+            sourcedate = \
+                datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
 
             rows_data.append((db_record["hashid"],
                               db_record["name"],
