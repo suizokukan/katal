@@ -420,10 +420,22 @@ def action__rebase(_newtargetpath):
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
-    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        msg("   o {0} : {1} -> {2}".format(db_record["hashid"],
-                                           db_record["name"],
-                                           "xxx"))
+    for index, db_record in enumerate(db_cursor.execute('SELECT * FROM dbfiles')):
+        fullname = normpath(os.path.join(SOURCE_PATH, db_record["name"]))
+        filename_no_extens, extension = os.path.splitext(fullname)
+        size = os.stat(fullname).st_size
+        date = datetime.fromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
+        new_name = create_target_name(_hashid=db_record["hashid"],
+                                      _filename_no_extens=filename_no_extens,
+                                      _path=db_record["sourcename"],
+                                      _extension=extension,
+                                      _size=size,
+                                      _date=date,
+                                      _database_index=index)
+
+        msg("    o {0} : {1} -> {2}".format(db_record["hashid"],
+                                            db_record["name"],
+                                            new_name))
 
     db_connection.commit()
     db_connection.close()
