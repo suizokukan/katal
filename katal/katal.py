@@ -1242,6 +1242,7 @@ def main():
 
         welcome()
         main_warmup()
+        main_actions_tags()
         main_actions()
 
         goodbye()
@@ -1272,20 +1273,8 @@ def main_actions():
     if ARGS.cleandbrm:
         action__cleandbrm()
 
-    if ARGS.rmnotags:
-        action__rmnotags()
-
     if ARGS.hashid:
         show_hashid_of_a_file(ARGS.hashid)
-
-    if ARGS.setstrtags:
-        action__setstrtags(ARGS.setstrtags, ARGS.to)
-
-    if ARGS.addtag:
-        action__addtag(ARGS.addtag, ARGS.to)
-
-    if ARGS.rmtags:
-        action__rmtags(ARGS.to)
 
     if ARGS.targetkill:
         action__target_kill(ARGS.targetkill)
@@ -1316,6 +1305,30 @@ def main_actions():
 
     if ARGS.rebase:
         action__rebase(ARGS.rebase)
+
+#///////////////////////////////////////////////////////////////////////////////
+def main_actions_tags():
+    """
+        main_actions_tags()
+        ________________________________________________________________________
+
+        Call the different actions required by the arguments of the command line.
+        Function dedicated to the operations on tags.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    if ARGS.rmnotags:
+        action__rmnotags()
+
+    if ARGS.setstrtags:
+        action__setstrtags(ARGS.setstrtags, ARGS.to)
+
+    if ARGS.addtag:
+        action__addtag(ARGS.addtag, ARGS.to)
+
+    if ARGS.rmtags:
+        action__rmtags(ARGS.to)
 
 #///////////////////////////////////////////////////////////////////////////////
 def main_warmup():
