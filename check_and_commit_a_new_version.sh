@@ -3,7 +3,7 @@ echo "=== this a bunch of various tests to be executed before committing a new v
 
 #-------------------------------------------------------------------------------
 echo
-echo    "  = next step : $ pylint katal.py"
+echo    "  = next step : $ pylint katal/katal.py"
 read -p "  = go on ? ('y' to continue) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]
