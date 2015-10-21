@@ -127,14 +127,14 @@ class Tests(unittest.TestCase):
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
-        katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
-                           "tests/data1/a.1":"2015-09-17 20:01",
-                           "tests/data1/b.2":"2015-09-17 20:01",
-                           "tests/data1/b.3":"2015-09-17 20:01",
-                           "tests/data1/c.4":"2015-09-17 20:01",
-                           "tests/data1/c.5":"2015-09-17 20:01",
-                           "tests/data1/ddddX.6":"2015-09-17 20:01",
-                           "tests/data1/ddddd.6":"2015-09-17 20:01",})
+        katal.fill_select({katal.normpath("tests/data1/a.0"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/a.1"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/b.2"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/b.3"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/c.4"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/c.5"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/ddddX.6"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/ddddd.6"):"2015-09-17 20:01",})
 
         self.assertEqual(len(katal.SELECT), 0)
 
@@ -149,14 +149,14 @@ class Tests(unittest.TestCase):
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
-        katal.fill_select({"tests/data1/a.0":"2015-09-17 20:01",
-                           "tests/data1/a.1":"2015-09-17 20:01",
-                           "tests/data1/b.2":"2015-09-17 20:01",
-                           "tests/data1/b.3":"2015-09-17 20:01",
-                           "tests/data1/c.4":"2015-09-17 20:01",
-                           "tests/data1/c.5":"2015-09-17 20:01",
-                           "tests/data1/ddddX.6":"2015-09-17 20:01",
-                           "tests/data1/ddddd.6":"2015-09-17 20:01",})
+        katal.fill_select({katal.normpath("tests/data1/a.0"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/a.1"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/b.2"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/b.3"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/c.4"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/c.5"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/ddddX.6"):"2015-09-17 20:01",
+                           katal.normpath("tests/data1/ddddd.6"):"2015-09-17 20:01",})
 
         self.assertEqual(len(katal.SELECT), 3)
 
@@ -171,13 +171,13 @@ class Tests(unittest.TestCase):
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
-        katal.fill_select({"tests/data1/a.0":"2013-01-01 00:00",
-                           "tests/data1/a.1":"2013-01-01 00:00",
-                           "tests/data1/b.2":"2014-01-01 00:00",
-                           "tests/data1/b.3":"2014-01-01 00:00",
-                           "tests/data1/c.4":"2015-01-01 00:00",
-                           "tests/data1/c.5":"2015-01-01 00:00",
-                           "tests/data1/ddddX.6":"2015-09-01 00:00",
-                           "tests/data1/ddddd.6":"2015-09-01 00:00",})
+        katal.fill_select({katal.normpath("tests/data1/a.0"):"2013-01-01 00:00",
+                           katal.normpath("tests/data1/a.1"):"2013-01-01 00:00",
+                           katal.normpath("tests/data1/b.2"):"2014-01-01 00:00",
+                           katal.normpath("tests/data1/b.3"):"2014-01-01 00:00",
+                           katal.normpath("tests/data1/c.4"):"2015-01-01 00:00",
+                           katal.normpath("tests/data1/c.5"):"2015-01-01 00:00",
+                           katal.normpath("tests/data1/ddddX.6"):"2015-09-01 00:00",
+                           katal.normpath("tests/data1/ddddd.6"):"2015-09-01 00:00",})
 
         self.assertEqual(len(katal.SELECT), 3)
