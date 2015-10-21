@@ -415,6 +415,19 @@ def action__rebase(_newtargetpath):
     msg("    o config file found and read (ok)")
     msg("    o new filenames' format : {0}".format(to_parameters["target"]["name of the target files"]))
 
+    files = dict()      # hashid : (old name, new name)
+    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection.row_factory = sqlite3.Row
+    db_cursor = db_connection.cursor()
+
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        msg("   o {0} : {1} -> {2}".format(db_record["hashid"],
+                                           db_record["name"],
+                                           "xxx"))
+
+    db_connection.commit()
+    db_connection.close()
+
 #///////////////////////////////////////////////////////////////////////////////
 def action__rmnotags():
     """
