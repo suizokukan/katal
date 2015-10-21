@@ -1791,7 +1791,7 @@ def normpath(_path):
 
         RETURNED VALUE : the expected string
     """
-    res = os.path.normpath(os.path.expanduser(_path))
+    res = os.path.normpath(os.path.expanduser(os.path.abspath(_path)))
 
     if res == ".":
         res = os.getcwd()
