@@ -381,6 +381,41 @@ def action__new(targetname):
                       "the creation of the target directory has been aborted.")
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__rebase(_newtargetpath):
+    """
+        action__rebase()
+        ________________________________________________________________________
+
+        Copy the current target directory into a new one, modifying the filenames.
+        ________________________________________________________________________
+
+        PARAMETER :
+                o _newtargetpath        : (str) path to the new target directory.
+
+        no RETURNED VALUE
+    """
+    msg("  = copying the current target directory into a new one =")
+    msg("    o from {0} (path : \"{1}\")".format(SOURCE_PATH,
+                                                 normpath(SOURCE_PATH)))
+
+    msg("    o to   {0} (path : \"{1}\")".format(_newtargetpath,
+                                                 normpath(_newtargetpath)))
+
+    to_configfile = os.path.join(_newtargetpath,
+                                 KATALSYS_SUBDIR,
+                                 DEFAULT_CONFIGFILE_NAME)
+    msg("    o trying to read dest config file {0} (path : \"{1}\") .".format(to_configfile,
+                                                                              normpath(to_configfile)))
+    to_parameters = read_parameters_from_cfgfile(normpath(to_configfile))
+
+    if to_parameters is None:
+        msg("    ! can't read the dest config file !")
+        return
+
+    msg("    o config file found and read (ok)")
+    msg("    o new filenames' format : {0}".format(to_parameters["target"]["name of the target files"]))
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__rmnotags():
     """
         action__rmnotags
@@ -1091,6 +1126,9 @@ def main_actions():
     if ARGS.new:
         action__new(ARGS.new)
 
+    if ARGS.rebase:
+        action__rebase(ARGS.rebase)
+
 #///////////////////////////////////////////////////////////////////////////////
 def main_warmup():
     """
@@ -1314,6 +1352,15 @@ def read_command_line_arguments():
                         action="store_true",
                         help="no welcome/goodbye/informations about the parameters/ messages " \
                              "on console")
+
+    parser.add_argument('--rebase',
+                        type=str,
+                        help="copy the current target directory into a new one : you " \
+                             "rename the files in the target directory and in the database. " \
+                             "First, use the --new option to create a new target directory, " \
+                             "modify the .ini file of the new target directory " \
+                             "(modify [target]name of the target files), " \
+                             "then use --rebase with the name of the new target directory")
 
     parser.add_argument('--rmnotags',
                         action="store_true",
