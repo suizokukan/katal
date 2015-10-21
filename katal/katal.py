@@ -797,6 +797,10 @@ def fill_select(_debug_datatime=None):
     SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
 
+    # these variables will be used by fill_select__checks() too.
+    prefix = ""
+    fullname = ""
+
     file_index = 0  # number of the current file in the source directory.
     for dirpath, _, filenames in os.walk(normpath(SOURCE_PATH)):
         for filename in filenames:
