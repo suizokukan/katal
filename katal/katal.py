@@ -417,13 +417,15 @@ def action__rebase(_newtargetpath):
     msg("    o new filenames' format : {0}".format(to_parameters["target"]["name of the target files"]))
 
     files = dict()      # hashid : (old name, new name)
+    filenames = set()
     db_connection = sqlite3.connect(DATABASE_FULLNAME)
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
     for index, db_record in enumerate(db_cursor.execute('SELECT * FROM dbfiles')):
         fullname = normpath(os.path.join(SOURCE_PATH, db_record["name"]))
-        filename_no_extens, extension = os.path.splitext(fullname)
+        filename_no_extens, extension = get_filename_and_extension(fullname)
+        
         size = os.stat(fullname).st_size
         date = datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
         new_name = create_target_name(_parameters=to_parameters,
@@ -440,10 +442,11 @@ def action__rebase(_newtargetpath):
                                             db_record["name"],
                                             new_name))
 
-        files[db_record["hashid"]] = (fullname, new_name)
-
-    for hashid in files:
-        print(files[hashid])
+        if new_name in filenames:
+            msg("    ! anomaly : ancient file {1} should be renamed as {0} but this name still exists in new target directory !".format(new_name, fullname))
+        else:
+            files[db_record["hashid"]] = (fullname, new_name)
+            filenames.add(new_name)
 
     db_connection.commit()
     db_connection.close()
@@ -838,17 +841,13 @@ def fill_select(_debug_datatime=None):
             else:
                 time = datetime.strptime(_debug_datatime[fullname], DATETIME_FORMAT)
 
-            filename_no_extens, extension = os.path.splitext(normpath(filename))
+            filename_no_extens, extension = get_filename_and_extension(normpath(filename))
 
 	    # if we know the total amount of files to be selected (see the --infos option),
 	    # we can add the percentage done :
             prefix = ""
             if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
-
-            # the extension stored in SELECT does not begin with a dot.
-            if extension.startswith("."):
-                extension = extension[1:]
 
             res = the_file_has_to_be_added(filename, size, time)
             if not res:
@@ -989,6 +988,30 @@ def get_disk_free_space(_path):
     else:
         stat = os.statvfs(normpath(_path))
         return stat.f_bavail * stat.f_frsize
+
+#///////////////////////////////////////////////////////////////////////////////
+def get_filename_and_extension(_path):
+    """
+        get_filename_and_extension()
+        ________________________________________________________________________
+
+        Return
+        ________________________________________________________________________
+
+        PARAMETERS
+                o  _path        : (str) the source path
+
+        RETURNED VALUE
+                (str)filename without extension, (str)the extension without the
+                initial dot.
+    """
+    filename_no_extens, extension = os.path.splitext(_path)
+
+    # the extension can't begin with a dot.
+    if extension.startswith("."):
+        extension = extension[1:]
+
+    return filename_no_extens, extension
 
 #///////////////////////////////////////////////////////////////////////////////
 def goodbye():

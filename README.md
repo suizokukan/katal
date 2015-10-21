@@ -395,6 +395,7 @@ trash name is defined in the configuration file.
                                               the files stored in SOURCE_PATH.
     o  fill_select__checks()                : final checks at the end of fill_select()
     o  get_disk_free_space()                : return the available space on disk
+    o  get_filename_and_extension()         : return (filename_no_extension, extension)
     o  goodbye()                            : display the goodbye message
     o  logfile_opening()                    : open the log file
     o  hashfile64()                         : return the footprint of a file, encoded
