@@ -541,7 +541,7 @@ def action__rebase__write(_new_db, _files):
         if not ARGS.off:
             newdb_cursor.execute(SQL__CREATE_DB)
 
-        for futurefile_hashid in _files:
+        for index, futurefile_hashid in enumerate(_files):
             futurefile = _files[futurefile_hashid]
             file_to_be_added = (futurefile_hashid,      # hashid
                                 futurefile[1],          # new name
@@ -549,7 +549,7 @@ def action__rebase__write(_new_db, _files):
                                 futurefile[2],          # sourcedate
                                 futurefile[3])          # tags
 
-            msg("    o adding a file in the new database")
+            msg("    o ({0}/{1}) adding a file in the new database".format(index+1, len(_files)))
             msg("      o hashid : {0}".format(futurefile_hashid))
             msg("      o source name : {0}".format(futurefile[0]))
             msg("      o desti. name : {0}".format(futurefile[1]))
@@ -566,11 +566,12 @@ def action__rebase__write(_new_db, _files):
     newdb_connection.close()
 
     # let's copy the files :
-    for futurefile_hashid in _files:
+    for index, futurefile_hashid in enumerate(_files):
         futurefile = _files[futurefile_hashid]
         old_name, new_name = futurefile[0], futurefile[1]
 
-        msg("    o copying \"{0}\" as \"{1}\"".format(old_name, new_name))
+        msg("    o ({0}/{1}) copying \"{2}\" as \"{3}\"".format(index+1, len(_files),
+                                                                old_name, new_name))
         shutil.copyfile(old_name, new_name)
 
     msg("    ... done")
