@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
- # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 ################################################################################
 #    Katal Copyright (C) 2012 Suizokukan
 #    Contact: suizokukan _A.T._ orange dot fr
