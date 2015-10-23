@@ -892,6 +892,14 @@ def create_target_name(_parameters,
                                       hex(int(datetime.strptime(_date,
                                                                 DATETIME_FORMAT).timestamp()))[2:])
 
+    target_name = target_name.replace("INTTIMESTAMP",
+                                      str(int(datetime.strptime(_date,
+                                                                DATETIME_FORMAT).timestamp())))
+
+    target_name = target_name.replace("HEXTIMESTAMP",
+                                      hex(int(datetime.strptime(_date,
+                                                                DATETIME_FORMAT).timestamp()))[2:])
+
     target_name = target_name.replace("DATABASE_INDEX",
                                       remove_illegal_characters(str(_database_index)))
 

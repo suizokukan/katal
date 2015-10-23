@@ -306,12 +306,14 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                                        SOURCENAME_WITHOUT_EXTENSION2
                                        SOURCE_PATH
                                        SOURCE_PATH2
-                                       SOURCE_EXTENSION
-                                       SOURCE_EXTENSION2
+                                       SOURCE_EXTENSION     (no . character)
+                                       SOURCE_EXTENSION2    (no . character)
                                        SIZE
                                        DATE2
                                        HEXDATE
                                        DATABASE_INDEX
+                                       INTTIMESTAMP         (e.g. 1445584562)
+                                       HEXTIMESTAMP         (e.g. 5629DED0)
 
                                        n.b. : keywords ending by "2" are builded 
                                               against a set of illegal characters
