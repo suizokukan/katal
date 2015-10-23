@@ -15,7 +15,6 @@ The name Katal comes from the Ancient Greek κατάλογος ("enrolment, regi
 
 installation
 ============
-If you want to install katal on your system :
 $pip install katal
 
 Since katal.py is a stand-alone file, you can download katal.py in the target directory and use it directly :
