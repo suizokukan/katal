@@ -558,8 +558,9 @@ def action__rebase__write(_new_db, _files):
             msg("      o source date : {0}".format(strdate))
             msg("      o tags : \"{0}\"".format(futurefile[3]))
 
-            newdb_cursor.execute('INSERT INTO dbfiles VALUES (?,?,?,?,?)', file_to_be_added)
-            newdb_connection.commit()
+            if not ARGS.off:
+                newdb_cursor.execute('INSERT INTO dbfiles VALUES (?,?,?,?,?)', file_to_be_added)
+                newdb_connection.commit()
 
     except sqlite3.IntegrityError as exception:
         msg("!!! An error occured while writing the new database : "+str(exception))
@@ -574,7 +575,8 @@ def action__rebase__write(_new_db, _files):
 
         msg("    o ({0}/{1}) copying \"{2}\" as \"{3}\"".format(index+1, len(_files),
                                                                 old_name, new_name))
-        shutil.copyfile(old_name, new_name)
+        if not ARGS.off:
+            shutil.copyfile(old_name, new_name)
 
     msg("    ... done")
 
