@@ -1605,7 +1605,8 @@ def read_command_line_arguments():
 
     parser.add_argument('-tk', '--targetkill',
                         type=str,
-                        help="kill one file from the target directory." \
+                        help="kill (=move to the trash directory) one file from " \
+                             "the target directory." \
                              "DO NOT GIVE A PATH, just the file's name, " \
                              "without the path to the target directory ")
 
