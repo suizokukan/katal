@@ -328,6 +328,9 @@ def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
 
     except urllib.error.URLError as exception:
         msg("  ! An error occured : "+str(exception))
+        msg("  ... if you can't download the default config file, what about simply")
+        msg("  ... copy another config file to the target directory ?")
+        msg("  ... In a target directory, the config file is in the \"{0}\" directory.".format(os.path.join(KATALSYS_SUBDIR)))
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
