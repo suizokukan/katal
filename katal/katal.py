@@ -549,11 +549,12 @@ def action__rebase__write(_new_db, _files):
                                 futurefile[2],          # sourcedate
                                 futurefile[3])          # tags
 
+            strdate = datetime.utcfromtimestamp(futurefile[2]).strftime(DATETIME_FORMAT)
             msg("    o ({0}/{1}) adding a file in the new database".format(index+1, len(_files)))
             msg("      o hashid : {0}".format(futurefile_hashid))
             msg("      o source name : {0}".format(futurefile[0]))
             msg("      o desti. name : {0}".format(futurefile[1]))
-            msg("      o source date : {0}".format(futurefile[2]))
+            msg("      o source date : {0}".format(strdate))
             msg("      o tags : \"{0}\"".format(futurefile[3]))
 
             newdb_cursor.execute('INSERT INTO dbfiles VALUES (?,?,?,?,?)', file_to_be_added)
