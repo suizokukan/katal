@@ -104,6 +104,31 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     
 #(8) history
 
+    v.0.1.2 (2015_10_23)
+
+        o added the --rebase option : copy a target directory into a new one and change
+          the filenames.
+        o added two filename's formats : INTTIMESTAMP and HEXTIMESTAMP
+        o fixed action__add()
+          action__add() modifies the timestamp of the files in the target path so that
+          this timestamp is equal to the original file.
+
+        o replace fromtimestamp() by utcfromtimestamp()
+        o improved normpath() : special strings like ".." are now developped.
+        o improved remove_illegal_characters() : added the ("-", " ") characters to the list
+          of the forbidden characters.
+        o modified create_target_name()
+          create_target_name() takes from now another parameter, the _parameter one,
+          allowing to choose which config file is choosed when calling the function.
+        o added the SQL__CREATE_DB constant
+        o added main_actions_tags() function to relief main_actions().
+        o improved messages in action__rebase__write() : added the number of the current
+          file to be copied.
+        o fixed the message displayed in action__rebase__write()
+
+        o 7 tests, pylint=10.0
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+    
     v.0.1.1 (2015_10_21)
 
         o fixed create_target_name() : added HEXDATE as a name format
