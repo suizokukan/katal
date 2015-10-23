@@ -1427,28 +1427,32 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
 
         files_to_be_modified = []       # a list of (hashids, name)
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            if fnmatch.fnmatch(db_record["name"], _to):
+            if fnmatch.fnmatch(db_record["name"], os.path.join(normpath(TARGET_PATH), _to)):
                 files_to_be_modified.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_modified) == 0:
-            msg("    * no files match the given regex.")
+            msg("    * no files match the given name(s) given as a parameter.")
         else:
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
 
-                if _mode == "set" and not ARGS.off:
-                    msg("    o applying the string tag \"{0}\" to {1}.".format(_tag, filename))
+                msg("    o applying the string tag \"{0}\" to {1}.".format(_tag, filename))
+
+                if ARGS.off:
+                    pass
+
+                elif _mode == "set":
                     sqlorder = 'UPDATE dbfiles SET strtags=? WHERE hashid=?'
                     db_connection.execute(sqlorder, (_tag, hashid))
 
-                elif _mode == "append" and not ARGS.off:
-                    msg("    o adding the string tag \"{0}\" to {1}.".format(_tag, filename))
+                elif _mode == "append":
                     sqlorder = 'UPDATE dbfiles SET strtags = strtags || \"{0}{1}\" ' \
                                'WHERE hashid=\"{2}\"'.format(TAG_SEPARATOR, _tag, hashid)
                     db_connection.executescript(sqlorder)
 
                 else:
-                    raise ProjectError("_mode argument {0} isn't know".format(_mode))
+                    raise ProjectError("_mode argument \"{0}\" isn't known".format(_mode))
+
             db_connection.commit()
 
         db_connection.close()
