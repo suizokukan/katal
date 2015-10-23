@@ -268,7 +268,7 @@ def action__cleandbrm():
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("    = clean the database : remove missing files from the target directory =")
+    msg("  = clean the database : remove missing files from the target directory =")
 
     if not os.path.exists(normpath(DATABASE_FULLNAME)):
         msg("    ! no database found.")
@@ -297,8 +297,9 @@ def action__cleandbrm():
                 db_connection.commit()
 
     db_connection.close()
-    msg("    o ... done : remove {0} " \
-        "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
+    if not ARGS.off:
+        msg("    o ... done : remove {0} " \
+            "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
