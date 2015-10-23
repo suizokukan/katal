@@ -1012,9 +1012,9 @@ def fill_select(_debug_datatime=None):
                                                   date=time.strftime(DATETIME_FORMAT),
                                                   targetname=_targetname)
 
-                    msg("    + {0} selected {1} ({2} file(s) selected)".format(prefix,
-                                                                               fullname,
-                                                                               len(SELECT)),
+                    msg("    + {0} selected {1} (file selected #{2})".format(prefix,
+                                                                             fullname,
+                                                                             len(SELECT)),
                         _important_msg=False)
 
                     SELECT_SIZE_IN_BYTES += os.stat(normpath(fullname)).st_size
