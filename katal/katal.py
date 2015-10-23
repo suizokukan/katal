@@ -753,7 +753,7 @@ def action__target_kill(_filename):
 
         filename_hashid = None
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            if db_record["name"] == _filename:
+            if db_record["name"] == os.path.join(normpath(TARGET_PATH), _filename):
                 filename_hashid = db_record["hashid"]
 
         if filename_hashid is None:
