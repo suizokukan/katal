@@ -888,10 +888,6 @@ def create_target_name(_parameters,
 
     target_name = target_name.replace("DATE2", remove_illegal_characters(_date))
 
-    target_name = target_name.replace("HEXDATE",
-                                      hex(int(datetime.strptime(_date,
-                                                                DATETIME_FORMAT).timestamp()))[2:])
-
     target_name = target_name.replace("INTTIMESTAMP",
                                       str(int(datetime.strptime(_date,
                                                                 DATETIME_FORMAT).timestamp())))
