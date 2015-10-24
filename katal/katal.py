@@ -2186,7 +2186,7 @@ def welcome():
     msg("="*len(strmsg))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
-    msg("  = target directory : \"{0}\" (path : \"{1}\")".format(ARGS.targetpath,
+    msg("  = target directory given as parameter : \"{0}\" (path : \"{1}\")".format(ARGS.targetpath,
                                                                  normpath(ARGS.targetpath)))
 
     if ARGS.configfile is not None:
