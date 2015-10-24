@@ -2178,7 +2178,8 @@ def welcome():
         msg("  = expected config file : \"{0}\" (path : \"{1}\")".format(ARGS.configfile,
                                                                          normpath(ARGS.configfile)))
     else:
-        msg("  = no config file specified : let's search a config file in the current directory...")
+        msg("  = no config file specified on the command line : " \
+            "let's search a config file in the current directory...")
 
     if ARGS.off:
         msg("  = --off option : no file will be modified, no directory will be created =")

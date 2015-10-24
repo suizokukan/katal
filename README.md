@@ -87,7 +87,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             tag. (default: None)
       --targetpath TARGETPATH
                             target path, usually '.' (default: .)
-      -ti, --targetinfos    display informations about the target directory (default: False)
+      -ti, --targetinfos    display informations about the target directory s(default: False)
       -tk TARGETKILL, --targetkill TARGETKILL
                             kill one file from the target directory.DO NOT GIVE A
                             PATH, just the file's name, without the path to the
