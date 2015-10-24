@@ -1154,14 +1154,11 @@ def goodbye():
         goodbye()
         ________________________________________________________________________
 
-        If not in quiet mode (see --quiet option), display a goodbye message.
+        display a goodbye message.
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
     """
-    if ARGS.quiet:
-        return
-
     msg("=== exit (stopped at {0}; " \
         "total duration time : {1}) ===".format(datetime.now().strftime(DATETIME_FORMAT),
                                                 datetime.now() - TIMESTAMP_BEGIN))
@@ -1248,9 +1245,6 @@ def main():
     try:
         ARGS = read_command_line_arguments()
         check_args()
-
-        if ARGS.targetinfos:
-            ARGS.quiet = True
 
         welcome()
         main_warmup()
@@ -1400,9 +1394,8 @@ def main_warmup():
             msg("  ! warning : " \
                 "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
-        if not ARGS.quiet:
-            msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
-                                                                         normpath(SOURCE_PATH)))
+        msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
+                                                                     normpath(SOURCE_PATH)))
 
         if ARGS.infos:
             action__infos()
@@ -1568,11 +1561,6 @@ def read_command_line_arguments():
                              "Use this option to simulate an operation : you get the messages " \
                              "but no file is modified on disk, no directory is created.")
 
-    parser.add_argument('-q', '--quiet',
-                        action="store_true",
-                        help="no welcome/goodbye/informations about the parameters/ messages " \
-                             "on console")
-
     parser.add_argument('--rebase',
                         type=str,
                         help="copy the current target directory into a new one : you " \
@@ -1615,14 +1603,14 @@ def read_command_line_arguments():
 
     parser.add_argument('-ti', '--targetinfos',
                         action="store_true",
-                        help="display informations about the target directory in --quiet mode")
+                        help="display informations about the target directory")
 
     parser.add_argument('-tk', '--targetkill',
                         type=str,
                         help="kill (=move to the trash directory) one file from " \
                              "the target directory." \
                              "DO NOT GIVE A PATH, just the file's name, " \
-                             "without the path to the target directory ")
+                             "without the path to the target directory")
 
     parser.add_argument('--to',
                         type=str,
@@ -2174,9 +2162,6 @@ def welcome():
 
         sys.exit(-1) if the config file doesn't exist.
     """
-    if ARGS.quiet:
-        return
-
     strmsg = "=== {0} v.{1} " \
              "(launched at {2}) ===".format(__projectname__,
                                             __version__,

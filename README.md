@@ -72,8 +72,6 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             this option to simulate an operation : you get the
                             messages but no file is modified on disk, no directory
                             is created. (default: False)
-      -q, --quiet           no welcome/goodbye/informations about the parameters/
-                            messages on console (default: False)
       --rmnotags            remove all files without a tag (default: False)
       --rmtags              remove all the tags of some file(s) in combination
                             with the --to option. (default: False)
@@ -89,8 +87,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             tag. (default: None)
       --targetpath TARGETPATH
                             target path, usually '.' (default: .)
-      -ti, --targetinfos    display informations about the target directory in
-                            --quiet mode (default: False)
+      -ti, --targetinfos    display informations about the target directory (default: False)
       -tk TARGETKILL, --targetkill TARGETKILL
                             kill one file from the target directory.DO NOT GIVE A
                             PATH, just the file's name, without the path to the
