@@ -1609,7 +1609,9 @@ def read_command_line_arguments():
     parser.add_argument('--targetpath',
                         type=str,
                         default=".",
-                        help="target path, usually '.'")
+                        help="target path, usually '.' . If you set path to . (=dot character)" \
+                             ", it means that the source path is the current directory" \
+                             " (=the directory where the script katal.py has been launched)")
 
     parser.add_argument('-ti', '--targetinfos',
                         action="store_true",
