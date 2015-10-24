@@ -1297,14 +1297,14 @@ def main_actions():
 
             if answer in ("y", "yes"):
                 action__add()
-                action__infos()
+                show_infos_about_target_path()
 
     if ARGS.add:
         read_target_db()
         read_sieves()
         action__select()
         action__add()
-        action__infos()
+        show_infos_about_target_path()
 
     if ARGS.new:
         action__new(ARGS.new)
