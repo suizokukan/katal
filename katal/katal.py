@@ -1369,6 +1369,9 @@ def main_warmup():
                                        DEFAULT_CONFIGFILE_NAME)
         msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
                                                                      normpath(configfile_name)))
+    else:
+        msg("  * config file given as a parameter : \"{0}\" (path : \"{1}\"".format(configfile_name,
+                                                                     normpath(configfile_name)))
 
     if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
         msg("  ! The config file \"{0}\" (path : \"{1}\") " \
