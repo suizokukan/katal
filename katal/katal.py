@@ -1528,7 +1528,7 @@ def read_command_line_arguments():
                         help="Add a tag to some file(s) in combination " \
                              "with the --to option. ")
 
-    parser.add_argument('-c', '--configfile',
+    parser.add_argument('-cfg', '--configfile',
                         type=str,
                         help="config file, e.g. config.ini")
 

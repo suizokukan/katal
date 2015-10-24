@@ -49,7 +49,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             (default: False)
       --addtag ADDTAG       Add a tag to some file(s) in combination with the --to
                             option. (default: None)
-      -c CONFIGFILE, --configfile CONFIGFILE
+      -cfg CONFIGFILE, --configfile CONFIGFILE
                             config file, e.g. config.ini (default: None)
       --cleandbrm           Remove from the database the missing files in the
                             target path. (default: False)
