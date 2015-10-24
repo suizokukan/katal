@@ -1592,7 +1592,10 @@ def read_command_line_arguments():
                         type=str,
                         help="give the string tag to some file(s) in combination " \
                              "with the --to option. " \
-                             "Overwrite the ancient string tag.")
+                             "Overwrite the ancient string tag. " \
+                             "If you want to empty the tags' string, please use a space, " \
+                             "not an empty string : otherwise the parameter given " \
+                             "to the script wouldn't be taken in account by the shell")
 
     parser.add_argument('--targetpath',
                         type=str,
