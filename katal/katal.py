@@ -330,7 +330,8 @@ def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
         msg("  ! An error occured : "+str(exception))
         msg("  ... if you can't download the default config file, what about simply")
         msg("  ... copy another config file to the target directory ?")
-        msg("  ... In a target directory, the config file is in the \"{0}\" directory.".format(os.path.join(KATALSYS_SUBDIR)))
+        msg("  ... In a target directory, the config file is " \
+            "in the \"{0}\" directory.".format(os.path.join(KATALSYS_SUBDIR)))
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1364,8 +1365,9 @@ def main_warmup():
         msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
                                                                      normpath(configfile_name)))
     else:
-        msg("  * config file given as a parameter : \"{0}\" (path : \"{1}\"".format(configfile_name,
-                                                                     normpath(configfile_name)))
+        msg("  * config file given as a parameter : \"{0}\" " \
+            "(path : \"{1}\"".format(configfile_name,
+                                     normpath(configfile_name)))
 
     if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
         msg("  ! The config file \"{0}\" (path : \"{1}\") " \
@@ -2174,8 +2176,9 @@ def welcome():
     msg("="*len(strmsg))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
-    msg("  = target directory given as parameter : \"{0}\" (path : \"{1}\")".format(ARGS.targetpath,
-                                                                 normpath(ARGS.targetpath)))
+    msg("  = target directory given as parameter : \"{0}\" " \
+        "(path : \"{1}\")".format(ARGS.targetpath,
+                                  normpath(ARGS.targetpath)))
 
     if ARGS.configfile is not None:
         msg("  = expected config file : \"{0}\" (path : \"{1}\")".format(ARGS.configfile,
