@@ -116,6 +116,21 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v.0.1.3 (2015_10_25)
+
+        o remove HEXDATE from the target file's formats.
+        o remove the --quiet option
+        o rename option : -c > -cfg
+
+        o after --add or --select the informations about the target path are displayed,
+          not about the source directory
+        o fixed a critical bug in action__target_kill()
+        o various messages improved
+        o improved the documentation
+
+        o 7 tests, pylint=10.0
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.2 (2015_10_23)
 
         o added the --rebase option : copy a target directory into a new one and change
