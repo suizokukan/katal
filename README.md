@@ -125,7 +125,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
         o after --add or --select the informations about the target path are displayed,
           not about the source directory
         o fixed a critical bug in action__target_kill()
-        o various messages improved
+        o improved various messages
         o improved the documentation
 
         o 7 tests, pylint=10.0
