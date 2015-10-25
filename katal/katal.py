@@ -649,7 +649,7 @@ def action__select():
     # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
     number_of_discarded_files = fill_select()
 
-    msg("    o size of the selected files : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
+    msg("    o size of the selected file(s) : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
     if len(SELECT) == 0:
         msg("    ! no file selected ! " \
