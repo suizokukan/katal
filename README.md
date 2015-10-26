@@ -1,11 +1,11 @@
 #(1) Katal
 A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3.
 
-Create a catalogue from various source directories, without any doubloon. Add some tags to the files.
+Create a catalogue from various source directories, without any duplicate. Add some tags to the files.
 
 #(2) purpose
-Read a directory, select some files according to a configuration file (leaving aside the doubloons), copy the selected files in a target directory.
-Once the target directory is filled with some files, a database is added to the directory to avoid future doubloons. You can add new files to the target directory by using Katal one more time, with a different source directory.
+Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
+Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
 #(3) installation
 

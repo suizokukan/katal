@@ -26,10 +26,10 @@
         ________________________________________________________________________
 
         Read a directory, select some files according to a configuration file
-        (leaving aside the doubloons), copy the selected files in a target
+        (leaving aside the duplicates), copy the selected files in a target
         directory.
         Once the target directory is filled with some files, a database is added
-        to the directory to avoid future doubloons. You can add new files to
+        to the directory to avoid future duplicates. You can add new files to
         the target directory by using Katal one more time, with a different
         source directory.
         ________________________________________________________________________
@@ -480,7 +480,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                 files : a dict hashid::(source name, new name, source date, source strtags)
     """
     files = dict()      # dict to be returned.
-    filenames = set()   # to be used to avoir doubloons.
+    filenames = set()   # to be used to avoid duplicates.
 
     anomalies_nbr = 0
     for index, olddb_record in enumerate(_olddb_cursor.execute('SELECT * FROM dbfiles')):
