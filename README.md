@@ -18,7 +18,7 @@ Once the target directory is filled with some files, a database is added to the 
     
 #(4) how to use (in brief)
 
-    Don't forget : Katal is Python3 project, not a Python2 !
+    Don't forget : Katal is Python3 project, not a Python2 project !
 
     Create the target directory :
     

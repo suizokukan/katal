@@ -5,6 +5,8 @@ Katal by suizokukan (suizokukan AT orange DOT fr)
 
 A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3.
 
+Note : this Python3 project can't be used with python2.
+
 project's purpose
 =================
 
