@@ -20,17 +20,17 @@ Once the target directory is filled with some files, a database is added to the 
 
     Create the target directory :
     
-    $ pip --new myworkingdirectory
+    $ katal --new myworkingdirectory
 
     Check if everything's is alright :
 
-    $ pip --infos
+    $ katal --infos
 
     Modify the .ini file (myworkingdirectory/.katal/katal.ini), choose a source.
 
     Check if everything's is alright :
 
-    $ pip --select  ... and answer 'yes' to the final question if all the details are ok to you.    
+    $ katal --select  ... and answer 'yes' to the final question if all the details are ok to you.    
 
 #(5) author
 suizokukan (suizokukan AT orange DOT fr)
