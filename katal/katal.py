@@ -340,7 +340,7 @@ def action__findtag(_tag):
         action__findtag()
         ________________________________________________________________________
 
-        Display the files tagged with _tag. _tag is a simple string, not a 
+        Display the files tagged with _tag. _tag is a simple string, not a
         regex. The function searches a substring _tag in the tags string.
         ________________________________________________________________________
 
@@ -354,7 +354,7 @@ def action__findtag(_tag):
     if not os.path.exists(normpath(DATABASE_FULLNAME)):
         msg("    ! no database found.")
         return
-    
+
     db_connection = sqlite3.connect(DATABASE_FULLNAME)
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
@@ -364,14 +364,16 @@ def action__findtag(_tag):
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
         if _tag in db_record["strtags"]:
             number_of_res += 1
-            msg("    o \"{0}\" : \"{1}\"".format(db_record["name"], db_record["strtags"]))
+
+            msg("    o \"{0}\" : \"{1}\"".format(db_record["name"],
+                                                 tagsstr_repr(db_record["strtags"])))
 
     if number_of_res == 0:
         msg("    o no file matches the tag \"{0}\" .".format(_tag))
     elif number_of_res == 1:
-        msg("    o one file matches the tag \"{1}\" .".format(number_of_res, _tag))
+        msg("    o one file matches the tag \"{0}\" .".format(_tag))
     else:
-        msg("    o {0} files match the tag \"{1}\" .".format(number_of_res, _tag))        
+        msg("    o {0} files match the tag \"{1}\" .".format(number_of_res, _tag))
 
     db_connection.commit()
     db_connection.close()
@@ -1863,6 +1865,28 @@ def show_infos_about_source_path():
 
     INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
 
+#//////////////////////////////////////////////////////////////////////////////
+def tagsstr_repr(_strtags):
+    """
+        tagsstr_repr()
+        ________________________________________________________________________
+
+        Improve the way a tags string can be displayed.
+        ________________________________________________________________________
+
+        PARAMETER
+            _strtags : the raw tags string
+
+        RETURNED VALUE
+            the expected (str)string
+    """
+    # let's remove the first tag separator :
+    strtags = _strtags
+    if strtags.startswith(TAG_SEPARATOR):
+        strtags = strtags[1:]
+
+    return strtags
+
 #///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_target_path():
     """
@@ -1954,7 +1978,7 @@ def show_infos_about_target_path():
 
             rows_data.append((db_record["hashid"],
                               db_record["name"],
-                              db_record["strtags"],
+                              tagsstr_repr(db_record["strtags"]),
                               db_record["sourcename"],
                               sourcedate))
 

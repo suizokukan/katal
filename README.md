@@ -467,6 +467,7 @@ trash name is defined in the configuration file.
     o  modify_the_tag_of_some_files()       : modify the tag(s) of some files
     o  msg()                                : display a message on console, write the
                                               same message in the log file.
+    o  normpath()                           : return a human-readable, normalized version of a path
     o  read_command_line_arguments()        : read the command line arguments
     o  read_parameters_from_cfgfile()       : read the configuration file
     o  read_sieves()                        : initialize SIEVES from the configuration file
@@ -480,7 +481,7 @@ trash name is defined in the configuration file.
     o  show_infos_about_target_path()       : display informations about target path
     o  size_as_str()                        : return a size in bytes as a human-readable
                                               string
-    o  normpath()                           : return a human-readable, normalized version of a path
+    o  tagsstr_repr()                       : return an improved representation of a tags string
     o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
                                             : the target directory
     o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
