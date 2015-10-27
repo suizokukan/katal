@@ -430,6 +430,8 @@ trash name is defined in the configuration file.
     o  action__addtag()                     : add one tag to the string tags of some files
     o  action__cleandbrm()                  : remove from the database the missing files
     o  action__downloadefaultcfg()          : download the default configuration file
+    o  action__findtag()                    : display the files tagged with the _tag parameter
+                                              which is a simple string, not a regex.
     o  action__infos()                      : display informations about the source
                                               and the target directory
     o  action__rebase()                     : copy a target directory into a new one

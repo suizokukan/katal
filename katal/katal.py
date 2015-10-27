@@ -335,6 +335,48 @@ def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__findtag(_tag):
+    """
+        action__findtag()
+        ________________________________________________________________________
+
+        Display the files tagged with _tag. _tag is a simple string, not a 
+        regex. The function searches a substring _tag in the tags string.
+        ________________________________________________________________________
+
+        PARAMETER
+            o _tag : (str)the searched tag
+
+        no RETURNED VALUE
+    """
+    msg("  = searching the files with the tag \"{0}\" =".format(_tag))
+
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+        msg("    ! no database found.")
+        return
+    
+    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection.row_factory = sqlite3.Row
+    db_cursor = db_connection.cursor()
+
+    number_of_res = 0
+
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        if _tag in db_record["strtags"]:
+            number_of_res += 1
+            msg("    o \"{0}\" : \"{1}\"".format(db_record["name"], db_record["strtags"]))
+
+    if number_of_res == 0:
+        msg("    o no file matches the tag \"{0}\" .".format(_tag))
+    elif number_of_res == 1:
+        msg("    o one file matches the tag \"{1}\" .".format(number_of_res, _tag))
+    else:
+        msg("    o {0} files match the tag \"{1}\" .".format(number_of_res, _tag))        
+
+    db_connection.commit()
+    db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__infos():
     """
         action__infos()
@@ -1313,6 +1355,9 @@ def main_actions():
     if ARGS.rebase:
         action__rebase(ARGS.rebase)
 
+    if ARGS.findtag:
+        action__findtag(ARGS.findtag)
+
 #///////////////////////////////////////////////////////////////////////////////
 def main_actions_tags():
     """
@@ -1536,6 +1581,11 @@ def read_command_line_arguments():
                         help="Download the default config file and overwrite the file having " \
                              "the same name. This is done before the script reads the parameters " \
                              "in the config file")
+
+    parser.add_argument('--findtag',
+                        type=str,
+                        help="find the files in the target directory with the given tag. " \
+                              "The tag is a simple string, not a regex.")
 
     parser.add_argument('--hashid',
                         type=str,
