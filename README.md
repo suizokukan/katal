@@ -9,7 +9,7 @@ Once the target directory is filled with some files, a database is added to the 
 
 #(3) installation
 
-    $ pip install katal
+    $ pip3 install katal
 
     or
 
