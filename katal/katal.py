@@ -1037,7 +1037,7 @@ def fill_select(_debug_datatime=None):
                     ": incompatibility with the sieves".format(prefix, fullname),
                     _important_msg=False)
             else:
-                _hash = hashfile64(fullname)
+                _hash = hashfile64(fullname, size, time)
 
                 # is filename already stored in <TARGET_DB> ?
                 if _hash not in TARGET_DB and _hash not in SELECT:
@@ -1209,7 +1209,7 @@ def goodbye():
                                                 datetime.now() - TIMESTAMP_BEGIN))
 
 #///////////////////////////////////////////////////////////////////////////////
-def hashfile64(_filename):
+def hashfile64(_filename, _size, _timestamp):
     """
         hashfile64()
         ________________________________________________________________________
@@ -1219,6 +1219,8 @@ def hashfile64(_filename):
 
         PARAMETER
                 o _filename : (str) file's name
+                o _size     : (int) file's size
+                o _timestamp: (int) file's timestamp
 
         RETURNED VALUE
                 the expected string. If you use sha256 as a hasher, the
@@ -1235,6 +1237,11 @@ def hashfile64(_filename):
         while len(buf) > 0:
             hasher.update(buf)
             buf = afile.read(65536)
+
+    hasher.update(str(_filename).encode())
+    hasher.update(str(_size).encode())
+    hasher.update(str(_timestamp).encode())
+
     return b64encode(hasher.digest()).decode()
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -2021,7 +2028,7 @@ def shortstr(_str, _max_length):
     return _str
 
 #///////////////////////////////////////////////////////////////////////////////
-def show_hashid_of_a_file(filename):
+def show_hashid_of_a_file(_filename):
     """
         show_hashid_of_a_file()
         ________________________________________________________________________
@@ -2030,12 +2037,17 @@ def show_hashid_of_a_file(filename):
         ________________________________________________________________________
 
         PARAMETER
-                o filename : (str) source filename
+                o _filename : (str) source filename
 
         no RETURNED VALUE
     """
-    msg("  = hashid of \"{0}\" : \"{1}\"".format(filename,
-                                                 hashfile64(filename)))
+    _size = os.stat(_filename).st_size
+    _timestamp = datetime.utcfromtimestamp(os.path.getmtime(_filename))
+
+    msg("  = hashid of \"{0}\" : \"{1}\"".format(_filename,
+                                                 hashfile64(_filename,
+                                                            _size,
+                                                            _timestamp)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def size_as_str(_size):
