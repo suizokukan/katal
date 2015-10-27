@@ -114,8 +114,8 @@ LOG_SUBSUBDIR = "logs"
 # maximal length of the hashids displayed. Can't be greater than 44.
 HASHID_MAXLENGTH = 20
 
-# maximal length of the strtags displayed.
-STRTAGS_MAXLENGTH = 20
+# maximal length of the tagsstr displayed.
+TAGSSTR_MAXLENGTH = 20
 
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOGFILE = False  # (bool) initialized from the configuration file
@@ -148,7 +148,7 @@ AUTHORIZED_EVALCHARS = " TFadlsievruxnot0123456789&|^()"
 # string used to create the database :
 SQL__CREATE_DB = 'CREATE TABLE dbfiles ' \
                  '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
-                 'sourcename TEXT, sourcedate INTEGER, strtags TEXT)'
+                 'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
 
 ################################################################################
 class ProjectError(BaseException):
@@ -228,7 +228,7 @@ def action__add():
         msg("!!! files_to_be_added : ")
         for file_to_be_added in files_to_be_added:
             msg("     ! hashid={0}; name={1}; sourcename={2}; " \
-                "sourcedate={3}; strtags={4}".format(*file_to_be_added))
+                "sourcedate={3}; tagsstr={4}".format(*file_to_be_added))
         raise ProjectError("An error occured while writing the database : "+str(exception))
 
     db_connection.commit()
@@ -253,7 +253,7 @@ def action__addtag(_tag, _to):
                 o _to           : (str) a regex string describing what files are
                                   concerned
     """
-    msg("  = let's add the string tag \"{0}\" to {1}".format(_tag, _to))
+    msg("  = let's add the tag string \"{0}\" to {1}".format(_tag, _to))
     modify_the_tag_of_some_files(_tag=_tag, _to=_to, _mode="append")
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -341,7 +341,7 @@ def action__findtag(_tag):
         ________________________________________________________________________
 
         Display the files tagged with _tag. _tag is a simple string, not a
-        regex. The function searches a substring _tag in the tags string.
+        regex. The function searches a substring _tag in the tags' string.
         ________________________________________________________________________
 
         PARAMETER
@@ -362,11 +362,11 @@ def action__findtag(_tag):
     number_of_res = 0
 
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        if _tag in db_record["strtags"]:
+        if _tag in db_record["tagsstr"]:
             number_of_res += 1
 
             msg("    o \"{0}\" : \"{1}\"".format(db_record["name"],
-                                                 tagsstr_repr(db_record["strtags"])))
+                                                 tagsstr_repr(db_record["tagsstr"])))
 
     if number_of_res == 0:
         msg("    o no file matches the tag \"{0}\" .".format(_tag))
@@ -521,7 +521,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         RETURNED VALUE :
                 (files, (int)number of anomalies)
 
-                files : a dict hashid::(source name, new name, source date, source strtags)
+                files : a dict hashid::(source name, new name, source date, source tagsstr)
     """
     files = dict()      # dict to be returned.
     filenames = set()   # to be used to avoid duplicates.
@@ -543,7 +543,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                                _date=datetime.utcfromtimestamp(date).strftime(DATETIME_FORMAT),
                                _database_index=index)
         new_name = normpath(os.path.join(_newtargetpath, new_name))
-        strtags = olddb_record["strtags"]
+        tagsstr = olddb_record["tagsstr"]
 
         msg("      o {0} : {1} would be copied as {2}".format(olddb_record["hashid"],
                                                               olddb_record["name"],
@@ -561,7 +561,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                 "but this name already exists in new target directory !".format(new_name, fullname))
             anomalies_nbr += 1
         else:
-            files[olddb_record["hashid"]] = (fullname, new_name, date, strtags)
+            files[olddb_record["hashid"]] = (fullname, new_name, date, tagsstr)
             filenames.add(new_name)
 
     return files, anomalies_nbr
@@ -651,7 +651,7 @@ def action__rmnotags():
 
         files_to_be_removed = []    # list of (hashid, name)
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            if db_record["strtags"] == "":
+            if db_record["tagsstr"] == "":
                 files_to_be_removed.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_removed) == 0:
@@ -741,32 +741,32 @@ def action__rmtags(_to):
         action__rmtags()
         ________________________________________________________________________
 
-        Remove the string tag(s) in the target directory, overwriting ancient tags.
+        Remove the tags' string(s) in the target directory, overwriting ancient tags.
         ________________________________________________________________________
 
         PARAMETERS
                 o _to           : (str) a regex string describing what files are
                                   concerned
     """
-    msg("  = let's remove the string tags in {0}".format(_to))
-    action__setstrtags(_strtags="", _to=_to)
+    msg("  = let's remove the tags' string(s) in {0}".format(_to))
+    action__settagsstr(_tagsstr="", _to=_to)
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__setstrtags(_strtags, _to):
+def action__settagsstr(_tagsstr, _to):
     """
-        action__setstrtags()
+        action__settagsstr()
         ________________________________________________________________________
 
-        Set the string tag(s) in the target directory, overwriting ancient tags.
+        Set the tags' string(s) in the target directory, overwriting ancient tags.
         ________________________________________________________________________
 
         PARAMETERS
-                o _strtags      : (str) the new string tags
+                o _tagsstr      : (str) the new tags' strings
                 o _to           : (str) a regex string describing what files are
                                   concerned
     """
-    msg("  = let's apply the string tag \"{0}\" to {1}".format(_strtags, _to))
-    modify_the_tag_of_some_files(_tag=_strtags, _to=_to, _mode="set")
+    msg("  = let's apply the tag string\"{0}\" to {1}".format(_tagsstr, _to))
+    modify_the_tag_of_some_files(_tag=_tagsstr, _to=_to, _mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__target_kill(_filename):
@@ -843,9 +843,9 @@ def check_args():
     if ARGS.add is True and ARGS.select is True:
         raise ProjectError("--select and --add can't be used simultaneously")
 
-    # --setstrtags must be used with --to :
-    if ARGS.setstrtags and not ARGS.to:
-        raise ProjectError("please use --to in combination with --setstrtags")
+    # --settagsstr must be used with --to :
+    if ARGS.settagsstr and not ARGS.to:
+        raise ProjectError("please use --to in combination with --settagsstr")
 
     # --addtag must be used with --to :
     if ARGS.addtag and not ARGS.to:
@@ -1375,8 +1375,8 @@ def main_actions_tags():
     if ARGS.rmnotags:
         action__rmnotags()
 
-    if ARGS.setstrtags:
-        action__setstrtags(ARGS.setstrtags, ARGS.to)
+    if ARGS.settagsstr:
+        action__settagsstr(ARGS.settagsstr, ARGS.to)
 
     if ARGS.addtag:
         action__addtag(ARGS.addtag, ARGS.to)
@@ -1486,17 +1486,17 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
 
-                msg("    o applying the string tag \"{0}\" to {1}.".format(_tag, filename))
+                msg("    o applying the tag string \"{0}\" to {1}.".format(_tag, filename))
 
                 if ARGS.off:
                     pass
 
                 elif _mode == "set":
-                    sqlorder = 'UPDATE dbfiles SET strtags=? WHERE hashid=?'
+                    sqlorder = 'UPDATE dbfiles SET tagsstr=? WHERE hashid=?'
                     db_connection.execute(sqlorder, (_tag, hashid))
 
                 elif _mode == "append":
-                    sqlorder = 'UPDATE dbfiles SET strtags = strtags || \"{0}{1}\" ' \
+                    sqlorder = 'UPDATE dbfiles SET tagsstr = tagsstr || \"{0}{1}\" ' \
                                'WHERE hashid=\"{2}\"'.format(TAG_SEPARATOR, _tag, hashid)
                     db_connection.executescript(sqlorder)
 
@@ -1642,11 +1642,11 @@ def read_command_line_arguments():
                      "If you want more informations about the process, please " \
                  "use this option in combination with --infos .")
 
-    parser.add_argument('--setstrtags',
+    parser.add_argument('--settagsstr',
                         type=str,
-                        help="give the string tag to some file(s) in combination " \
+                        help="give the tag to some file(s) in combination " \
                              "with the --to option. " \
-                             "Overwrite the ancient string tag. " \
+                             "Overwrite the ancient tag string. " \
                              "If you want to empty the tags' string, please use a space, " \
                              "not an empty string : otherwise the parameter given " \
                              "to the script wouldn't be taken in account by the shell")
@@ -1671,7 +1671,7 @@ def read_command_line_arguments():
 
     parser.add_argument('--to',
                         type=str,
-                        help="give the name of the file(s) concerned by --setstrtags. " \
+                        help="give the name of the file(s) concerned by --settagsstr. " \
                         "wildcards accepted; e.g. to select all .py files, use '*.py' . " \
                         "Please DON'T ADD the path to the target directory, only the filenames")
 
@@ -1701,7 +1701,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     global USE_LOGFILE, LOG_VERBOSITY
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
-    global HASHID_MAXLENGTH, STRTAGS_MAXLENGTH
+    global HASHID_MAXLENGTH, TAGSSTR_MAXLENGTH
 
     parser = configparser.ConfigParser()
 
@@ -1714,7 +1714,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
-        STRTAGS_MAXLENGTH = int(parser["display"]["tag.max length on console"])
+        TAGSSTR_MAXLENGTH = int(parser["display"]["tag.max length on console"])
     except BaseException as exception:
         msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -1866,26 +1866,26 @@ def show_infos_about_source_path():
     INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
 
 #//////////////////////////////////////////////////////////////////////////////
-def tagsstr_repr(_strtags):
+def tagsstr_repr(_tagsstr):
     """
         tagsstr_repr()
         ________________________________________________________________________
 
-        Improve the way a tags string can be displayed.
+        Improve the way a tags' string can be displayed.
         ________________________________________________________________________
 
         PARAMETER
-            _strtags : the raw tags string
+            _tagsstr : the raw tags' string
 
         RETURNED VALUE
             the expected (str)string
     """
     # let's remove the first tag separator :
-    strtags = _strtags
-    if strtags.startswith(TAG_SEPARATOR):
-        strtags = strtags[1:]
+    tagsstr = _tagsstr
+    if tagsstr.startswith(TAG_SEPARATOR):
+        tagsstr = tagsstr[1:]
 
-    return strtags
+    return tagsstr
 
 #///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_target_path():
@@ -1978,7 +1978,7 @@ def show_infos_about_target_path():
 
             rows_data.append((db_record["hashid"],
                               db_record["name"],
-                              tagsstr_repr(db_record["strtags"]),
+                              tagsstr_repr(db_record["tagsstr"]),
                               db_record["sourcename"],
                               sourcedate))
 
@@ -1991,7 +1991,7 @@ def show_infos_about_target_path():
             # required by Windows terminal)
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
                               ("name", TARGETNAME_MAXLENGTH, "|"),
-                              ("tags", STRTAGS_MAXLENGTH, "|"),
+                              ("tags", TAGSSTR_MAXLENGTH, "|"),
                               ("source name", SOURCENAME_MAXLENGTH, "|"),
                               ("source date", DATETIME_FORMAT_LENGTH, "|")),
                        _data=rows_data)

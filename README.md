@@ -42,79 +42,82 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(7) arguments
 
-      -h, --help            show this help message and exit
-      --add                 select files according to what is described in the
-                            configuration file then add them to the target
-                            directory. This option can't be used with the --select
-                            one.If you want more informations about the process,
-                            please use this option in combination with --infos .
-                            (default: False)
-      --addtag ADDTAG       Add a tag to some file(s) in combination with the --to
-                            option. (default: None)
-      -cfg CONFIGFILE, --configfile CONFIGFILE
-                            config file, e.g. config.ini (default: None)
-      --cleandbrm           Remove from the database the missing files in the
-                            target path. (default: False)
-      -ddcfg, --downloaddefaultcfg
-                            Download the default config file and overwrite the
-                            file having the same name. This is done before the
-                            script reads the parameters in the config file
-                            (default: False)
-      --hashid HASHID       return the hash id of the given file (default: None)
-      --infos               display informations about the source directory given
-                            in the configuration file. Help the --select/--add
-                            options to display more informations about the process
-                            : in this case, the --infos will be executed before
-                            --select/--add (default: False)
-      -m, --mute            no output to the console; no question asked on the
-                            console (default: False)
-      -n NEW, --new NEW     create a new target directory (default: None)
-      --off                 don't write anything into the target directory or into
-                            the database, except into the current log file. Use
-                            this option to simulate an operation : you get the
-                            messages but no file is modified on disk, no directory
-                            is created. (default: False)
-      --rebase REBASE       copy the current target directory into a new one : you
-                            rename the files in the target directory and in the
-                            database. First, use the --new option to create a new
-                            target directory, modify the .ini file of the new
-                            target directory (modify [target]name of the target
-                            files), then use --rebase with the name of the new
-                            target directory (default: None)
-      --rmnotags            remove all files without a tag (default: False)
-      --rmtags              remove all the tags of some file(s) in combination
-                            with the --to option. (default: False)
-      -s, --select          select files according to what is described in the
-                            configuration file without adding them to the target
-                            directory. This option can't be used with the --add
-                            one.If you want more informations about the process,
-                            please use this option in combination with --infos .
-                            (default: False)
-      --setstrtags SETSTRTAGS
-                            give the string tag to some file(s) in combination
-                            with the --to option. Overwrite the ancient string
-                            tag. If you want to empty the tags' string, please use
-                            a space, not an empty string : otherwise the parameter
-                            given to the script wouldn't be taken in account by
-                            the shell (default: None)
-      --targetpath TARGETPATH
-                            target path, usually '.' . If you set path to . (=dot
-                            character), it means that the source path is the
-                            current directory (=the directory where the script
-                            katal.py has been launched) (default: .)
-      -ti, --targetinfos    display informations about the target directory
-                            (default: False)
-      -tk TARGETKILL, --targetkill TARGETKILL
-                            kill (=move to the trash directory) one file from the
-                            target directory.DO NOT GIVE A PATH, just the file's
-                            name, without the path to the target directory
-                            (default: None)
-      --to TO               give the name of the file(s) concerned by
-                            --setstrtags. wildcards accepted; e.g. to select all
-                            .py files, use '*.py' . Please DON'T ADD the path to
-                            the target directory, only the filenames (default:
-                            None)
-      --version             show the version and exit
+  -h, --help            show this help message and exit
+  --add                 select files according to what is described in the
+                        configuration file then add them to the target
+                        directory. This option can't be used with the --select
+                        one.If you want more informations about the process,
+                        please use this option in combination with --infos .
+                        (default: False)
+  --addtag ADDTAG       Add a tag to some file(s) in combination with the --to
+                        option. (default: None)
+  -cfg CONFIGFILE, --configfile CONFIGFILE
+                        config file, e.g. config.ini (default: None)
+  --cleandbrm           Remove from the database the missing files in the
+                        target path. (default: False)
+  -ddcfg, --downloaddefaultcfg
+                        Download the default config file and overwrite the
+                        file having the same name. This is done before the
+                        script reads the parameters in the config file
+                        (default: False)
+  --findtag FINDTAG     find the files in the target directory with the given
+                        tag. The tag is a simple string, not a regex.
+                        (default: None)
+  --hashid HASHID       return the hash id of the given file (default: None)
+  --infos               display informations about the source directory given
+                        in the configuration file. Help the --select/--add
+                        options to display more informations about the process
+                        : in this case, the --infos will be executed before
+                        --select/--add (default: False)
+  -m, --mute            no output to the console; no question asked on the
+                        console (default: False)
+  -n NEW, --new NEW     create a new target directory (default: None)
+  --off                 don't write anything into the target directory or into
+                        the database, except into the current log file. Use
+                        this option to simulate an operation : you get the
+                        messages but no file is modified on disk, no directory
+                        is created. (default: False)
+  --rebase REBASE       copy the current target directory into a new one : you
+                        rename the files in the target directory and in the
+                        database. First, use the --new option to create a new
+                        target directory, modify the .ini file of the new
+                        target directory (modify [target]name of the target
+                        files), then use --rebase with the name of the new
+                        target directory (default: None)
+  --rmnotags            remove all files without a tag (default: False)
+  --rmtags              remove all the tags of some file(s) in combination
+                        with the --to option. (default: False)
+  -s, --select          select files according to what is described in the
+                        configuration file without adding them to the target
+                        directory. This option can't be used with the --add
+                        one.If you want more informations about the process,
+                        please use this option in combination with --infos .
+                        (default: False)
+  --settagsstr SETTAGSSTR
+                        give the tag to some file(s) in combination with the
+                        --to option. Overwrite the ancient tag string. If you
+                        want to empty the tags' string, please use a space,
+                        not an empty string : otherwise the parameter given to
+                        the script wouldn't be taken in account by the shell
+                        (default: None)
+  --targetpath TARGETPATH
+                        target path, usually '.' . If you set path to . (=dot
+                        character), it means that the source path is the
+                        current directory (=the directory where the script
+                        katal.py has been launched) (default: .)
+  -ti, --targetinfos    display informations about the target directory
+                        (default: False)
+  -tk TARGETKILL, --targetkill TARGETKILL
+                        kill (=move to the trash directory) one file from the
+                        target directory.DO NOT GIVE A PATH, just the file's
+                        name, without the path to the target directory
+                        (default: None)
+  --to TO               give the name of the file(s) concerned by
+                        --settagsstr. wildcards accepted; e.g. to select all
+                        .py files, use '*.py' . Please DON'T ADD the path to
+                        the target directory, only the filenames (default:
+                        None)
+  --version             show the version and exit
 
 #(8) history
 
@@ -408,7 +411,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
     o name text UNIQUE                      : (target) name
     o sourcename text                       : complete path + name + extension
     o sourcedate integer                    : epoch time
-    o strtags text                          : a list of tags separated by the TAG_SEPARATOR
+    o tagsstr text                          : a list of tags separated by the TAG_SEPARATOR
                                               symbol.
 
 ##(9.6) trash directory
@@ -421,13 +424,13 @@ trash name is defined in the configuration file.
         hashid (primary key): varchar(44)
         name                : text
         sourcename          : text
-        strtags             : text
+        tagsstr             : text
 
 ##(9.8) the functions
 
     o  action__add()                        : add the source files to the target
                                               path.
-    o  action__addtag()                     : add one tag to the string tags of some files
+    o  action__addtag()                     : add one tag to the tags' string of the given files
     o  action__cleandbrm()                  : remove from the database the missing files
     o  action__downloadefaultcfg()          : download the default configuration file
     o  action__findtag()                    : display the files tagged with the _tag parameter
@@ -438,10 +441,10 @@ trash name is defined in the configuration file.
     o  action__rebase__files()              : --rebase : select the files to be copied.
     o  action__rebase__write()              : --rebase : write the files into the new target direc.
     o  action__rmnotags()                   : Remove all files if they have no tags.
-    o  action__rmtags()                     : remove the entire string tags of some files
+    o  action__rmtags()                     : remove the entire tags' string of some files
     o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                               display what's going on.
-    o  action__setstrtags()                 : Modify the string tag in the target directory,
+    o  action__settagsstr()                 : Modify the tags string in the target directory,
                                               overwriting ancient tags.
     o  action__target_kill()                : delete a filename from the target directory
                                               and from the database
