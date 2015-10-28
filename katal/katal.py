@@ -1056,22 +1056,15 @@ def fill_select(_debug_datatime=None):
                 tobeadded, partialhashid, hashid = thefilehastobeadded__db(filename, size, time)
 
                 if tobeadded:
-                    pass
-                else:
-                    pass
-
-^^^^$$$ pourquoi not in SELEDT ?
-                # is filename already stored in <TARGET_DB> ?
-                if hashid not in TARGET_DB and hashid not in SELECT:
-                    # no, so we may add hashid to SELECT...
+                    # ok, let's add <filename> to SELECT...
                     targetname = create_target_name(_parameters=PARAMETERS,
-                                                     _hashid=hashid,
-                                                     _filename_no_extens=filename_no_extens,
-                                                     _path=dirpath,
-                                                     _extension=extension,
-                                                     _size=size,
-                                                     _date=time.strftime(DATETIME_FORMAT),
-                                                     _database_index=len(TARGET_DB) + len(SELECT))
+                                                    _hashid=hashid,
+                                                    _filename_no_extens=filename_no_extens,
+                                                    _path=dirpath,
+                                                    _extension=extension,
+                                                    _size=size,
+                                                    _date=time.strftime(DATETIME_FORMAT),
+                                                    _database_index=len(TARGET_DB) + len(SELECT))
 
                     SELECT[hashid] = SELECTELEMENT(fullname=fullname,
                                                    partialhashid=partialhashid,
@@ -1089,6 +1082,7 @@ def fill_select(_debug_datatime=None):
 
                     SELECT_SIZE_IN_BYTES += size
                 else:
+                    # no, let's discard <filename> :
                     number_of_discarded_files += 1
 
                     msg("    - {0} (similar hashid) " \
@@ -2022,6 +2016,7 @@ def show_infos_about_target_path():
         if row_index == 0:
             msg("    ! (empty database)")
         else:
+            msg("    o {0} file(s) in the database :".format(row_index))
             # beware : characters like "║" are forbidden (think to the cp1252 encoding
             # required by Windows terminal)
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
