@@ -117,6 +117,10 @@ HASHID_MAXLENGTH = 20
 # maximal length of the tagsstr displayed.
 TAGSSTR_MAXLENGTH = 20
 
+# How many bytes have to be read to compute the partial hashid ?
+# See the hashfile64() function.
+PARTIALHASHID_BYTESNBR = 1000000
+
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOGFILE = False  # (bool) initialized from the configuration file
 LOG_VERBOSITY = "high"  # initialized from the configuration file (see documentation:logfile)
@@ -1230,7 +1234,9 @@ def hashfile64(_filename, _size, _timestamp, _stop_after=None):
         hashfile64()
         ________________________________________________________________________
 
-        return the footprint of a file, encoded with the base 64.
+        return the footprint of a file, encoded with the base 64. If _stop_after
+        is set to an integer, only the beginning of the file will be used to
+        compute the hash (see PARTIALHASHID_BYTESNBR constant).
         ________________________________________________________________________
 
         PARAMETER
@@ -2152,7 +2158,8 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
     if len(res) == 0:
         return (True,
                 hashfile64(_filename=_filename,
-                           _size=_size, _timestamp=_timestamp, _stop_after=1000000),
+                           _size=_size, _timestamp=_timestamp,
+                           _stop_after=PARTIALHASHID_BYTESNBR),
                 hashfile64(_filename=_filename,
                            _size=_size, _timestamp=_timestamp))
 
@@ -2160,7 +2167,8 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
     # to the partial hashid of _filename ?
     new_res = []
     src_partialhashid = hashfile64(_filename=_filename,
-                                   _size=_size, _timestamp=_timestamp, _stop_after=1000000)
+                                   _size=_size, _timestamp=_timestamp,
+                                   _stop_after=PARTIALHASHID_BYTESNBR)
     for hashid in res:
         target_partialhashid, _ = TARGET_DB[hashid]
         if target_partialhashid == src_partialhashid:
