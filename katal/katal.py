@@ -1053,7 +1053,7 @@ def fill_select(_debug_datatime=None):
                     ": incompatibility with the sieves".format(prefix, fullname),
                     _important_msg=False)
             else:
-                tobeadded, partialhashid, hashid = thefilehastobeadded__db(filename, size, time)
+                tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size, time)
 
                 if tobeadded:
                     # ok, let's add <filename> to SELECT...
