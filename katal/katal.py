@@ -146,8 +146,11 @@ DATETIME_FORMAT_LENGTH = 16
 AUTHORIZED_EVALCHARS = " TFadlsievruxnot0123456789&|^()"
 
 # string used to create the database :
-SQL__CREATE_DB = 'CREATE TABLE dbfiles ' \
-                 '(hashid varchar(44) PRIMARY KEY UNIQUE, name TEXT UNIQUE, ' \
+SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
+                 'hashid varchar(44) PRIMARY KEY UNIQUE, ' \
+                 'partialhashid varchar(44), ' \
+                 'size INTEGER, ' \
+                 'name TEXT UNIQUE, ' \
                  'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
 
 ################################################################################

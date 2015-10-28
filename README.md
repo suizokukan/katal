@@ -407,7 +407,9 @@ In every target directory a database is created and filled. Its name is set by t
 global variable DATABASE_NAME.
 TARGET_DB is a list of hashids and initialized by read_target_db().
     
-    o hashid varchar(44) PRIMARY KEY UNIQUE : hashid
+    o hashid varchar(44) PRIMARY KEY UNIQUE : hashid (of all the file)
+    o partialhashid varchar(44)             : hashid (of the beginning of the file)
+    o size integer                          : size
     o name text UNIQUE                      : (target) name
     o sourcename text                       : complete path + name + extension
     o sourcedate integer                    : epoch time
@@ -416,7 +418,7 @@ TARGET_DB is a list of hashids and initialized by read_target_db().
 
 ##(9.6) trash directory
 the deleted files are placed in a trashed directory placed inside the target directory. The
-trash name is defined in the configuration file.    
+trash name is defined in the configuration file.
 
 
 ##(9.7) the database
