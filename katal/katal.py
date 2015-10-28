@@ -43,7 +43,7 @@
 # pylint: disable=C0302
 
 # Pylint : disabling the "Use of eval" warning
-# -> eval() is used in the the_file_has_to_be_added() function
+# -> eval() is used in the thefilehastobeadded__sieves() function
 # -> see below how this function is protected against malicious code execution.
 # -> see AUTHORIZED_EVALCHARS
 # pylint: disable=W0123
@@ -991,11 +991,11 @@ def eval_sieve_for_a_file(_sieve, _filename, _size, _date):
     res = True
 
     if res and "name" in _sieve:
-        res = the_file_has_to_be_added__name(_sieve, _filename)
+        res = thefilehastobeadded__siev_name(_sieve, _filename)
     if res and "size" in _sieve:
-        res = the_file_has_to_be_added__size(_sieve, _size)
+        res = thefilehastobeadded__siev_size(_sieve, _size)
     if res and "date" in _sieve:
-        res = the_file_has_to_be_added__date(_sieve, _date)
+        res = thefilehastobeadded__siev_date(_sieve, _date)
 
     return res
 
@@ -1046,7 +1046,7 @@ def fill_select(_debug_datatime=None):
             if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
 
-            if not the_file_has_to_be_added(filename, size, time):
+            if not thefilehastobeadded__sieves(filename, size, time):
                 number_of_discarded_files += 1
 
                 msg("    - {0} discarded \"{1}\" " \
@@ -2128,9 +2128,9 @@ def normpath(_path):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_has_to_be_added__sieves(_filename, _size, _date):
+def thefilehastobeadded__sieves(_filename, _size, _date):
     """
-        the_file_has_to_be_added__sieves()
+        thefilehastobeadded__sieves()
         ________________________________________________________________________
 
         Return True if a file (_filename, _size) can be choosed and added to
@@ -2172,12 +2172,12 @@ def the_file_has_to_be_added__sieves(_filename, _size, _date):
                            "contains an error. Python message : "+str(exception))
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_has_to_be_added__date(_sieve, _date):
+def thefilehastobeadded__siev_date(_sieve, _date):
     """
-        the_file_has_to_be_added__date()
+        thefilehastobeadded__siev_date()
         ________________________________________________________________________
 
-        Function used by the_file_has_to_be_added() : check if the date of a
+        Function used by thefilehastobeadded__sieves() : check if the date of a
         file matches the sieve given as a parameter.
         ________________________________________________________________________
 
@@ -2203,12 +2203,12 @@ def the_file_has_to_be_added__date(_sieve, _date):
         raise ProjectError("Can't analyse a 'date' field : "+_sieve["date"])
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_has_to_be_added__name(_sieve, _filename):
+def thefilehastobeadded__siev_name(_sieve, _filename):
     """
-        the_file_has_to_be_added__name()
+        thefilehastobeadded__siev_name()
         ________________________________________________________________________
 
-        Function used by the_file_has_to_be_added() : check if the name of a
+        Function used by thefilehastobeadded__sieves() : check if the name of a
         file matches the sieve given as a parameter.
         ________________________________________________________________________
 
@@ -2222,12 +2222,12 @@ def the_file_has_to_be_added__name(_sieve, _filename):
     return re.match(_sieve["name"], _filename) is not None
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_has_to_be_added__size(_sieve, _size):
+def thefilehastobeadded__siev_size(_sieve, _size):
     """
-        the_file_has_to_be_added__size()
+        thefilehastobeadded__siev_size()
         ________________________________________________________________________
 
-        Function used by the_file_has_to_be_added() : check if the size of a
+        Function used by thefilehastobeadded__sieves() : check if the size of a
         file matches the sieve given as a parameter.
         ________________________________________________________________________
 

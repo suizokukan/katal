@@ -486,9 +486,10 @@ trash name is defined in the configuration file.
     o  size_as_str()                        : return a size in bytes as a human-readable
                                               string
     o  tagsstr_repr()                       : return an improved representation of a tags string
-    o  the_file_has_to_be_added()           : return True if a file can be choosed and added to
+    o  thefilehastobeadded__sieves()        : return True if a file can be choosed and added to
                                             : the target directory
-    o  the_file_has_to_be_added__name()     : a part of the_file_has_to_be_added()
-    o  the_file_has_to_be_added__size()     : a part of the_file_has_to_be_added()
+    o  thefilehastobeadded__siev_date()     : a part of thefilehastobeadded__sieves()
+    o  thefilehastobeadded__siev_name()     : a part of thefilehastobeadded__sieves()
+    o  thefilehastobeadded__siev_size()     : a part of thefilehastobeadded__sieves()
     o  welcome()                            : display a welcome message on screen
     o  welcome_in_logfile()                 : display a welcome message in the log file
