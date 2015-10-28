@@ -37,7 +37,6 @@ fi
 
 pylint tests/tests.py
 
-
 #-------------------------------------------------------------------------------
 echo
 echo    "  = next step : $ nosetests"
@@ -60,7 +59,7 @@ then
     exit 1
 fi
     
-python setup.py sdist bdist_wheel register -r test
+python3 setup.py sdist bdist_wheel register -r test
 
 #-------------------------------------------------------------------------------
 echo
@@ -72,7 +71,7 @@ then
     exit 1
 fi
 
-python setup.py sdist bdist_wheel upload -r test
+python3 setup.py sdist bdist_wheel upload -r test
 
 #-------------------------------------------------------------------------------
 echo
@@ -84,7 +83,7 @@ then
     exit 1
 fi
     
-python setup.py sdist bdist_wheel register -r pypi
+python3 setup.py sdist bdist_wheel register -r pypi
 
 #-------------------------------------------------------------------------------
 echo
@@ -96,7 +95,7 @@ then
     exit 1
 fi
 
-python setup.py sdist bdist_wheel upload -r pypi
+python3 setup.py sdist bdist_wheel upload -r pypi
 
 #-------------------------------------------------------------------------------
 echo
@@ -108,7 +107,7 @@ then
     exit 1
 fi
 
-sudo pip uninstall katal
+sudo pip3 uninstall katal
 
 #-------------------------------------------------------------------------------
 echo
@@ -120,7 +119,7 @@ then
     exit 1
 fi
 
-sudo pip install katal
+sudo pip3 install katal
 
 #-------------------------------------------------------------------------------
 echo
