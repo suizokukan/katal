@@ -105,7 +105,7 @@ INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_sou
 TARGET_PATH = ""  # initialized from the configuration file.
 TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
                           # fixed the way source filenames are displayed.
-TARGET_DB = []  # see documentation:database; initializd by read_target_db()
+TARGET_DB = dict()  # see documentation:database; initializd by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
 TASKS_SUBSUBDIR = "tasks"
@@ -1053,19 +1053,19 @@ def fill_select(_debug_datatime=None):
                     ": incompatibility with the sieves".format(prefix, fullname),
                     _important_msg=False)
             else:
-                _partialhash = hashfile64(_filename=fullname,
-                                          _size=size,
-                                          _timestamp=time,
-                                          _stop_after=1000000)
-                _hash = hashfile64(_filename=fullname,
-                                   _size=size,
-                                   _timestamp=time)
+                tobeadded, partialhashid, hashid = thefilehastobeadded__db(filename, size, time)
 
+                if tobeadded:
+                    pass
+                else:
+                    pass
+
+^^^^$$$ pourquoi not in SELEDT ?
                 # is filename already stored in <TARGET_DB> ?
-                if _hash not in TARGET_DB and _hash not in SELECT:
-                    # no, so we may add _hash to SELECT...
-                    _targetname = create_target_name(_parameters=PARAMETERS,
-                                                     _hashid=_hash,
+                if hashid not in TARGET_DB and hashid not in SELECT:
+                    # no, so we may add hashid to SELECT...
+                    targetname = create_target_name(_parameters=PARAMETERS,
+                                                     _hashid=hashid,
                                                      _filename_no_extens=filename_no_extens,
                                                      _path=dirpath,
                                                      _extension=extension,
@@ -1073,14 +1073,14 @@ def fill_select(_debug_datatime=None):
                                                      _date=time.strftime(DATETIME_FORMAT),
                                                      _database_index=len(TARGET_DB) + len(SELECT))
 
-                    SELECT[_hash] = SELECTELEMENT(fullname=fullname,
-                                                  partialhashid=_partialhash,
-                                                  path=dirpath,
-                                                  filename_no_extens=filename_no_extens,
-                                                  extension=extension,
-                                                  size=size,
-                                                  date=time.strftime(DATETIME_FORMAT),
-                                                  targetname=_targetname)
+                    SELECT[hashid] = SELECTELEMENT(fullname=fullname,
+                                                   partialhashid=partialhashid,
+                                                   path=dirpath,
+                                                   filename_no_extens=filename_no_extens,
+                                                   extension=extension,
+                                                   size=size,
+                                                   date=time.strftime(DATETIME_FORMAT),
+                                                   targetname=targetname)
 
                     msg("    + {0} selected {1} (file selected #{2})".format(prefix,
                                                                              fullname,
@@ -1822,7 +1822,7 @@ def read_target_db():
     db_cursor = db_connection.cursor()
 
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        TARGET_DB.append(db_record["hashid"])
+        TARGET_DB[db_record["hashid"]] = (db_record["partialhashid"], db_record["size"])
 
     db_connection.close()
 
@@ -2126,6 +2126,74 @@ def normpath(_path):
         res = os.getcwd()
 
     return res
+
+#///////////////////////////////////////////////////////////////////////////////
+def thefilehastobeadded__db(_filename, _size, _timestamp):
+    """
+        thefilehastobeadded__db()
+        ________________________________________________________________________
+
+        Return True if the file isn't already known in the database.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _filename     : (str) file's name
+                o _size         : (int) file's size, in bytes.
+                o _timestamp    : (int) file's timestamp
+
+        RETURNED VALUE
+                either (False, None, None)
+                either (True, partial hashid, hashid)
+    """
+    # a list of hashid(s) :
+    res = []
+
+    # (1) how many file(s) in the database have a size equal to _size ?
+    for hashid in TARGET_DB:
+        _, target_size = TARGET_DB[hashid]
+        if target_size == _size:
+            res.append(hashid)
+
+    if len(res) == 0:
+        return (True,
+                hashfile64(_filename=_filename,
+                           _size=_size, _timestamp=_timestamp, _stop_after=1000000),
+                hashfile64(_filename=_filename,
+                           _size=_size, _timestamp=_timestamp))
+
+    # (2) how many file(s) among those in <res> have a partial hashid equal
+    # to the partial hashid of _filename ?
+    new_res = []
+    src_partialhashid = hashfile64(_filename=_filename,
+                                   _size=_size, _timestamp=_timestamp, _stop_after=1000000)
+    for hashid in res:
+        target_partialhashid, _ = TARGET_DB[hashid]
+        if target_partialhashid == src_partialhashid:
+            new_res.append(hashid)
+
+    res = new_res
+    if len(res) == 0:
+        return (True,
+                src_partialhashid,
+                hashfile64(_filename=_filename,
+                           _size=_size, _timestamp=_timestamp))
+
+    # (3) how many file(s) among those in <res> have an hashid equal to the
+    # hashid of _filename ?
+    new_res = []
+    src_hashid = hashfile64(_filename=_filename, _size=_size, _timestamp=_timestamp)
+    for hashid in res:
+        target_hashid, _ = TARGET_DB[hashid]
+        if target_hashid == src_hashid:
+            new_res.append(hashid)
+
+    res = new_res
+    if len(res) == 0:
+        return (True,
+                src_partialhashid,
+                src_hashid)
+
+    return (False, None, None)
 
 #///////////////////////////////////////////////////////////////////////////////
 def thefilehastobeadded__sieves(_filename, _size, _date):

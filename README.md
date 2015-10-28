@@ -405,7 +405,7 @@ set to True.
 ##(9.5) database
 In every target directory a database is created and filled. Its name is set by the
 global variable DATABASE_NAME.
-TARGET_DB is a list of hashids and initialized by read_target_db().
+TARGET_DB is initialized by read_target_db(); hashid:(partialhashid, size)
     
     o hashid varchar(44) PRIMARY KEY UNIQUE : hashid (of all the file)
     o partialhashid varchar(44)             : hashid (of the beginning of the file)
@@ -486,6 +486,7 @@ trash name is defined in the configuration file.
     o  size_as_str()                        : return a size in bytes as a human-readable
                                               string
     o  tagsstr_repr()                       : return an improved representation of a tags string
+    o  thefilehastobeaddes__db()            : return True if the file isn't already known in the database
     o  thefilehastobeadded__sieves()        : return True if a file can be choosed and added to
                                             : the target directory
     o  thefilehastobeadded__siev_date()     : a part of thefilehastobeadded__sieves()
