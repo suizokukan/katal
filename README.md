@@ -323,7 +323,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 ##(9.1) exit codes
                  0      : success
                 -1      : can't read the parameters from the configuration file
-                -2      : a ProjectError exception has been raised
+                -2      : a KatalError exception has been raised
                 -3      : an unexpected exception exception has been raised
 
 ##(9.2) configuration file

@@ -155,9 +155,9 @@ SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
                  'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
 
 ################################################################################
-class ProjectError(BaseException):
+class KatalError(BaseException):
     """
-        ProjectError class
+        KatalError class
 
         A very basic class called when an error is raised by the program.
     """
@@ -236,7 +236,7 @@ def action__add():
         for file_to_be_added in files_to_be_added:
             msg("     ! hashid={0}; partialhashid={1}; size={2}; name={3}; sourcename={4}; " \
                 "sourcedate={5}; tagsstr={6}".format(*file_to_be_added))
-        raise ProjectError("An error occured while writing the database : "+str(exception))
+        raise KatalError("An error occured while writing the database : "+str(exception))
 
     db_connection.commit()
     db_connection.close()
@@ -629,7 +629,7 @@ def action__rebase__write(_new_db, _files):
 
     except sqlite3.IntegrityError as exception:
         msg("!!! An error occured while writing the new database : "+str(exception))
-        raise ProjectError("An error occured while writing the new database : "+str(exception))
+        raise KatalError("An error occured while writing the new database : "+str(exception))
 
     newdb_connection.close()
 
@@ -858,19 +858,19 @@ def check_args():
     """
     # --select and --add can't be used simultaneously.
     if ARGS.add is True and ARGS.select is True:
-        raise ProjectError("--select and --add can't be used simultaneously")
+        raise KatalError("--select and --add can't be used simultaneously")
 
     # --settagsstr must be used with --to :
     if ARGS.settagsstr and not ARGS.to:
-        raise ProjectError("please use --to in combination with --settagsstr")
+        raise KatalError("please use --to in combination with --settagsstr")
 
     # --addtag must be used with --to :
     if ARGS.addtag and not ARGS.to:
-        raise ProjectError("please use --to in combination with --addtag")
+        raise KatalError("please use --to in combination with --addtag")
 
     # --rmtags must be used with --to :
     if ARGS.rmtags and not ARGS.to:
-        raise ProjectError("please use --to in combination with --rmtags")
+        raise KatalError("please use --to in combination with --rmtags")
 
 #///////////////////////////////////////////////////////////////////////////////
 def create_subdirs_in_target_path():
@@ -1311,7 +1311,7 @@ def main():
         no PARAMETER, no RETURNED VALUE
 
         o  sys.exit(-1) is called if the config file is ill-formed.
-        o  sys.exit(-2) is called if a ProjectError exception is raised
+        o  sys.exit(-2) is called if a KatalError exception is raised
         o  sys.exit(-3) is called if another exception is raised
     """
     global ARGS
@@ -1330,7 +1330,7 @@ def main():
         if USE_LOGFILE:
             LOGFILE.close()
 
-    except ProjectError as exception:
+    except KatalError as exception:
         print("({0}) ! a critical error occured.\nError message : {1}".format(__projectname__,
                                                                               exception))
         sys.exit(-2)
@@ -1530,7 +1530,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
                     db_connection.executescript(sqlorder)
 
                 else:
-                    raise ProjectError("_mode argument \"{0}\" isn't known".format(_mode))
+                    raise KatalError("_mode argument \"{0}\" isn't known".format(_mode))
 
             db_connection.commit()
 
@@ -2220,7 +2220,7 @@ def thefilehastobeadded__sieves(_filename, _size, _date):
         # eval() IS a dangerous function : see the note about AUTHORIZED_EVALCHARS.
         for char in evalstr:
             if char not in AUTHORIZED_EVALCHARS:
-                raise ProjectError("Error in configuration file : " \
+                raise KatalError("Error in configuration file : " \
                                    "trying to compute the \"{0}\" string; " \
                                    "wrong character '{1}'({2}) " \
                                    "used in the string to be evaluated. " \
@@ -2231,7 +2231,7 @@ def thefilehastobeadded__sieves(_filename, _size, _date):
                                                                "|"+"|".join(AUTHORIZED_EVALCHARS)))
         return eval(evalstr)
     except BaseException as exception:
-        raise ProjectError("The eval formula in the config file " \
+        raise KatalError("The eval formula in the config file " \
                            "contains an error. Python message : "+str(exception))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -2263,7 +2263,7 @@ def thefilehastobeadded__siev_date(_sieve, _date):
     elif _sieve["date"].startswith("<"):
         return _date < datetime.strptime(_sieve["date"][1:], DATETIME_FORMAT)
     else:
-        raise ProjectError("Can't analyse a 'date' field : "+_sieve["date"])
+        raise KatalError("Can't analyse a 'date' field : "+_sieve["date"])
 
 #///////////////////////////////////////////////////////////////////////////////
 def thefilehastobeadded__siev_name(_sieve, _filename):
@@ -2322,7 +2322,7 @@ def thefilehastobeadded__siev_size(_sieve, _size):
         if _size == int(sieve_size[1:]):
             res = True
     else:
-        raise ProjectError("Can't analyse {0} in the sieve.".format(sieve_size))
+        raise KatalError("Can't analyse {0} in the sieve.".format(sieve_size))
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
