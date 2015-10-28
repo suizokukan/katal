@@ -175,7 +175,7 @@ def action__add():
         action__add()
         ________________________________________________________________________
 
-        Add the source files described in SELECT/SELECT_SIZE_IN_BYTES to the 
+        Add the source files described in SELECT/SELECT_SIZE_IN_BYTES to the
         target path.
         ________________________________________________________________________
 
@@ -305,7 +305,7 @@ def action__cleandbrm():
 
     db_connection.close()
     if not ARGS.off:
-        msg("    o ... done : remove {0} " \
+        msg("    o ... done : removed {0} " \
             "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -442,6 +442,8 @@ def action__new(targetname):
                 print("  ! A problem occured : " \
                       "the creation of the target directory has been aborted.")
 
+    msg("  ... done with the creation of \"{0}\" as a new target directory.".format(targetname))
+
 #///////////////////////////////////////////////////////////////////////////////
 def action__rebase(_newtargetpath):
     """
@@ -528,11 +530,11 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         RETURNED VALUE :
                 (files, (int)number of anomalies)
 
-                files : a dict hashid::( (0)source name, 
-                                         (1)new name, 
-                                         (2)source date, 
-                                         (3)source tagsstr, 
-                                         (4)size, 
+                files : a dict hashid::( (0)source name,
+                                         (1)new name,
+                                         (2)source date,
+                                         (3)source tagsstr,
+                                         (4)size,
                                          (5)partialhashid)
     """
     files = dict()      # dict to be returned.
@@ -543,7 +545,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         fullname = normpath(os.path.join(SOURCE_PATH, olddb_record["name"]))
         filename_no_extens, extension = get_filename_and_extension(fullname)
 
-        size = olddb_record["size"])
+        size = olddb_record["size"]
         date = olddb_record["sourcedate"]
         new_name = \
             create_target_name(_parameters=_dest_params,
@@ -1044,16 +1046,20 @@ def fill_select(_debug_datatime=None):
             if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
 
-            res = the_file_has_to_be_added(filename, size, time)
-            if not res:
+            if not the_file_has_to_be_added(filename, size, time):
                 number_of_discarded_files += 1
 
                 msg("    - {0} discarded \"{1}\" " \
                     ": incompatibility with the sieves".format(prefix, fullname),
                     _important_msg=False)
             else:
-                _partialhash = hashfile64(_filename=fullname, _size=size, _timestamp=time, _stop_after=1000000)
-                _hash = hashfile64(_filename=fullname, _size=size, _timestamp=time)
+                _partialhash = hashfile64(_filename=fullname,
+                                          _size=size,
+                                          _timestamp=time,
+                                          _stop_after=1000000)
+                _hash = hashfile64(_filename=fullname,
+                                   _size=size,
+                                   _timestamp=time)
 
                 # is filename already stored in <TARGET_DB> ?
                 if _hash not in TARGET_DB and _hash not in SELECT:
@@ -1083,7 +1089,6 @@ def fill_select(_debug_datatime=None):
 
                     SELECT_SIZE_IN_BYTES += size
                 else:
-                    res = False
                     number_of_discarded_files += 1
 
                     msg("    - {0} (similar hashid) " \
@@ -1252,10 +1257,10 @@ def hashfile64(_filename, _size, _timestamp, _stop_after=None):
     nbr_of_bytes_read = 0
     with open(_filename, "rb") as afile:
         # a buffer of 65536 bytes is an optimized buffer.
-        buf = afile.read(65536)  
+        buf = afile.read(65536)
         while len(buf) > 0:
             nbr_of_bytes_read += 65536
-            if nbr_of_bytes_read is not None and nbr_of_bytes_read >= _stop_after:
+            if _stop_after is not None and nbr_of_bytes_read >= _stop_after:
                 break
 
             hasher.update(buf)
@@ -2123,9 +2128,9 @@ def normpath(_path):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def the_file_has_to_be_added(_filename, _size, _date):
+def the_file_has_to_be_added__sieves(_filename, _size, _date):
     """
-        the_file_has_to_be_added()
+        the_file_has_to_be_added__sieves()
         ________________________________________________________________________
 
         Return True if a file (_filename, _size) can be choosed and added to
