@@ -453,8 +453,7 @@ trash name is defined in the configuration file.
     o  check_args()                         : check the arguments of the command line.
     o  create_subdirs_in_target_path()      : create the expected subdirectories in TARGET_PATH .
     o  create_target_name()                 : create the name of a file (a target file)
-                                              from various informations read from a
-                                              source file
+                                              from various information (filename, ...)
     o  eval_sieve_for_a_file()              : evaluate a file according to a sieve
     o  fill_select()                        : fill SELECT and SELECT_SIZE_IN_BYTES from
                                               the files stored in SOURCE_PATH.

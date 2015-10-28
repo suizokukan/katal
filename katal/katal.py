@@ -124,6 +124,7 @@ LOG_VERBOSITY = "high"  # initialized from the configuration file (see documenta
 # SELECT is made of SELECTELEMENT objects, where data about the original files
 # are stored.
 SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
+                                             "partialhashid",
                                              "path",
                                              "filename_no_extens",
                                              "extension",
@@ -216,6 +217,8 @@ def action__add():
             os.utime(target_name, (sourcedate, sourcedate))
 
         files_to_be_added.append((hashid,
+                                  SELECT[hashid].partialhashid,
+                                  SELECT[hashid].size,
                                   target_name,
                                   complete_source_filename,
                                   sourcedate,
@@ -225,14 +228,14 @@ def action__add():
 
     try:
         if not ARGS.off:
-            db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?)', files_to_be_added)
+            db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?,?,?)', files_to_be_added)
 
     except sqlite3.IntegrityError as exception:
         msg("!!! An error occured while writing the database : "+str(exception))
         msg("!!! files_to_be_added : ")
         for file_to_be_added in files_to_be_added:
-            msg("     ! hashid={0}; name={1}; sourcename={2}; " \
-                "sourcedate={3}; tagsstr={4}".format(*file_to_be_added))
+            msg("     ! hashid={0}; partialhashid={1}; size={2}; name={3}; sourcename={4}; " \
+                "sourcedate={5}; tagsstr={6}".format(*file_to_be_added))
         raise ProjectError("An error occured while writing the database : "+str(exception))
 
     db_connection.commit()
@@ -479,7 +482,7 @@ def action__rebase(_newtargetpath):
     new_db = os.path.join(normpath(_newtargetpath), KATALSYS_SUBDIR, DATABASE_NAME)
     if not ARGS.off:
         if os.path.exists(new_db):
-            # let's delete the new database :
+            # let's delete the previous new database :
             os.remove(new_db)
 
     # let's compute the new names :
@@ -525,7 +528,12 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         RETURNED VALUE :
                 (files, (int)number of anomalies)
 
-                files : a dict hashid::(source name, new name, source date, source tagsstr)
+                files : a dict hashid::( (0)source name, 
+                                         (1)new name, 
+                                         (2)source date, 
+                                         (3)source tagsstr, 
+                                         (4)size, 
+                                         (5)partialhashid)
     """
     files = dict()      # dict to be returned.
     filenames = set()   # to be used to avoid duplicates.
@@ -535,7 +543,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         fullname = normpath(os.path.join(SOURCE_PATH, olddb_record["name"]))
         filename_no_extens, extension = get_filename_and_extension(fullname)
 
-        size = os.stat(fullname).st_size
+        size = olddb_record["size"])
         date = olddb_record["sourcedate"]
         new_name = \
             create_target_name(_parameters=_dest_params,
@@ -597,6 +605,8 @@ def action__rebase__write(_new_db, _files):
         for index, futurefile_hashid in enumerate(_files):
             futurefile = _files[futurefile_hashid]
             file_to_be_added = (futurefile_hashid,      # hashid
+                                futurefile[5],          # partial hashid
+                                futurefile[4],          # size
                                 futurefile[1],          # new name
                                 futurefile[0],          # sourcename
                                 futurefile[2],          # sourcedate
@@ -604,14 +614,15 @@ def action__rebase__write(_new_db, _files):
 
             strdate = datetime.utcfromtimestamp(futurefile[2]).strftime(DATETIME_FORMAT)
             msg("    o ({0}/{1}) adding a file in the new database".format(index+1, len(_files)))
-            msg("      o hashid : {0}".format(futurefile_hashid))
-            msg("      o source name : {0}".format(futurefile[0]))
-            msg("      o desti. name : {0}".format(futurefile[1]))
+            msg("      o hashid      : {0}".format(futurefile_hashid))
+            msg("      o source name : \"{0}\"".format(futurefile[0]))
+            msg("      o desti. name : \"{0}\"".format(futurefile[1]))
             msg("      o source date : {0}".format(strdate))
-            msg("      o tags : \"{0}\"".format(futurefile[3]))
+            msg("      o size        : {0}".format(futurefile[4]))
+            msg("      o tags        : \"{0}\"".format(futurefile[3]))
 
             if not ARGS.off:
-                newdb_cursor.execute('INSERT INTO dbfiles VALUES (?,?,?,?,?)', file_to_be_added)
+                newdb_cursor.execute('INSERT INTO dbfiles VALUES (?,?,?,?,?,?,?)', file_to_be_added)
                 newdb_connection.commit()
 
     except sqlite3.IntegrityError as exception:
@@ -903,7 +914,7 @@ def create_target_name(_parameters,
         ________________________________________________________________________
 
         Create the name of a file (a target file) from various informations
-        stored in SELECT. The function reads the string stored in
+        given by the parameters. The function reads the string stored in
         _parameters["target"]["name of the target files"] and replaces some
         keywords in the string by the parameters given to this function.
 
@@ -1018,7 +1029,7 @@ def fill_select(_debug_datatime=None):
         for filename in filenames:
             file_index += 1
             fullname = os.path.join(normpath(dirpath), filename)
-            size = os.stat(fullname).st_size
+            size = os.stat(normpath(fullname)).st_size
             if _debug_datatime is None:
                 time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
                 time = time.replace(second=0, microsecond=0)
@@ -1027,8 +1038,8 @@ def fill_select(_debug_datatime=None):
 
             filename_no_extens, extension = get_filename_and_extension(normpath(filename))
 
-	    # if we know the total amount of files to be selected (see the --infos option),
-	    # we can add the percentage done :
+	        # if we know the total amount of files to be selected (see the --infos option),
+	        # we can add the percentage done :
             prefix = ""
             if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
@@ -1041,7 +1052,8 @@ def fill_select(_debug_datatime=None):
                     ": incompatibility with the sieves".format(prefix, fullname),
                     _important_msg=False)
             else:
-                _hash = hashfile64(fullname, size, time)
+                _partialhash = hashfile64(_filename=fullname, _size=size, _timestamp=time, _stop_after=1000000)
+                _hash = hashfile64(_filename=fullname, _size=size, _timestamp=time)
 
                 # is filename already stored in <TARGET_DB> ?
                 if _hash not in TARGET_DB and _hash not in SELECT:
@@ -1056,6 +1068,7 @@ def fill_select(_debug_datatime=None):
                                                      _database_index=len(TARGET_DB) + len(SELECT))
 
                     SELECT[_hash] = SELECTELEMENT(fullname=fullname,
+                                                  partialhashid=_partialhash,
                                                   path=dirpath,
                                                   filename_no_extens=filename_no_extens,
                                                   extension=extension,
@@ -1068,7 +1081,7 @@ def fill_select(_debug_datatime=None):
                                                                              len(SELECT)),
                         _important_msg=False)
 
-                    SELECT_SIZE_IN_BYTES += os.stat(normpath(fullname)).st_size
+                    SELECT_SIZE_IN_BYTES += size
                 else:
                     res = False
                     number_of_discarded_files += 1
