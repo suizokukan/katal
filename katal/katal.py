@@ -97,25 +97,21 @@ TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of 
 PARAMETERS = None # see documentation:configuration file
 
 SOURCE_PATH = ""  # initialized from the configuration file.
-SOURCENAME_MAXLENGTH = 0  # initialized from the configuration file : this value
-                          # fixed the way source filenames are displayed.
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
 
 TARGET_PATH = ""  # initialized from the configuration file.
-TARGETNAME_MAXLENGTH = 0  # initialized from the configuration file : this value
-                          # fixed the way source filenames are displayed.
 TARGET_DB = dict()  # see documentation:database; initializd by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
 TASKS_SUBSUBDIR = "tasks"
 LOG_SUBSUBDIR = "logs"
 
-# maximal length of the hashids displayed. Can't be greater than 44.
-HASHID_MAXLENGTH = 20
-
-# maximal length of the tagsstr displayed.
-TAGSSTR_MAXLENGTH = 20
+# The following values are default values and will be set by the config file.
+HASHID_MAXLENGTH = 20  # maximal length of the hashids displayed. Can't be greater than 44.
+TAGSSTR_MAXLENGTH = 20  # maximal length of the tags' string displayed.
+SOURCENAME_MAXLENGTH = 20  # maximal length of the source's filename
+TARGETNAME_MAXLENGTH = 20  # maximal length of the target's filename
 
 # How many bytes have to be read to compute the partial hashid ?
 # See the hashfile64() function.
