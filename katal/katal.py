@@ -219,7 +219,7 @@ def action__add():
         files_to_be_added.append((hashid,
                                   SELECT[hashid].partialhashid,
                                   SELECT[hashid].size,
-                                  target_name,
+                                  SELECT[hashid].targetname,
                                   complete_source_filename,
                                   sourcedate,
                                   ""))
@@ -677,7 +677,7 @@ def action__rmnotags():
             for hashid, name in files_to_be_removed:
                 msg("   o removing {0} from the database and from the target path".format(name))
                 if not ARGS.off:
-                    # removing the file from the target directory :
+                    # let's remove the file from the target directory :
                     shutil.move(os.path.join(normpath(TARGET_PATH), name),
                                 os.path.join(normpath(TARGET_PATH),
                                              KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
