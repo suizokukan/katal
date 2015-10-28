@@ -1508,7 +1508,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
 
         files_to_be_modified = []       # a list of (hashids, name)
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            if fnmatch.fnmatch(db_record["name"], os.path.join(normpath(TARGET_PATH), _to)):
+            if fnmatch.fnmatch(db_record["name"], _to):
                 files_to_be_modified.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_modified) == 0:
