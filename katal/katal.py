@@ -174,7 +174,8 @@ def action__add():
         action__add()
         ________________________________________________________________________
 
-        Add the source files to the target path.
+        Add the source files described in SELECT/SELECT_SIZE_IN_BYTES to the 
+        target path.
         ________________________________________________________________________
 
         no PARAMETER
