@@ -1209,7 +1209,7 @@ def goodbye():
                                                 datetime.now() - TIMESTAMP_BEGIN))
 
 #///////////////////////////////////////////////////////////////////////////////
-def hashfile64(_filename, _size, _timestamp):
+def hashfile64(_filename, _size, _timestamp, _stop_after=None):
     """
         hashfile64()
         ________________________________________________________________________
@@ -1221,20 +1221,26 @@ def hashfile64(_filename, _size, _timestamp):
                 o _filename : (str) file's name
                 o _size     : (int) file's size
                 o _timestamp: (int) file's timestamp
-
+                o _stop_after:(None/int) if None, the file will be entirely read,
+                              otherwise, only the first _stop_after bytes will
+                              be read.
         RETURNED VALUE
                 the expected string. If you use sha256 as a hasher, the
                 resulting string will be 44 bytes long. E.g. :
                         "YLkkC5KqwYvb3F54kU7eEeX1i1Tj8TY1JNvqXy1A91A"
     """
-    # hasher used by the hashfile64() function. The SHA256 is a good choice;
-    # if you change the hasher, please modify the way the hashids are displayed
-    # (see the action__informations() function)
+    # hasher used by the hashfile64() function.
     hasher = hashlib.sha256()
 
+    nbr_of_bytes_read = 0
     with open(_filename, "rb") as afile:
-        buf = afile.read(65536)
+        # a buffer of 65536 bytes is an optimized buffer.
+        buf = afile.read(65536)  
         while len(buf) > 0:
+            nbr_of_bytes_read += 65536
+            if nbr_of_bytes_read is not None and nbr_of_bytes_read >= _stop_after:
+                break
+
             hasher.update(buf)
             buf = afile.read(65536)
 
