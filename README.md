@@ -63,7 +63,6 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
   --findtag FINDTAG     find the files in the target directory with the given
                         tag. The tag is a simple string, not a regex.
                         (default: None)
-  --hashid HASHID       return the hash id of the given file (default: None)
   --infos               display informations about the source directory given
                         in the configuration file. Help the --select/--add
                         options to display more informations about the process
@@ -480,7 +479,6 @@ trash name is defined in the configuration file.
     o  remove_illegal_characters()          : replace some illegal characters by the
                                               underscore character.
     o  shortstr()                           : shorten a string
-    o  show_hashid_of_a_file()              : the function gives the hashid of a file.
     o  show_infos_about_source_path()       : display informations about source path
     o  show_infos_about_target_path()       : display informations about target path
     o  size_as_str()                        : return a size in bytes as a human-readable

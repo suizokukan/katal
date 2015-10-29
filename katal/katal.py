@@ -1355,9 +1355,6 @@ def main_actions():
     if ARGS.cleandbrm:
         action__cleandbrm()
 
-    if ARGS.hashid:
-        show_hashid_of_a_file(ARGS.hashid)
-
     if ARGS.targetkill:
         action__target_kill(ARGS.targetkill)
 
@@ -1619,10 +1616,6 @@ def read_command_line_arguments():
                         type=str,
                         help="find the files in the target directory with the given tag. " \
                               "The tag is a simple string, not a regex.")
-
-    parser.add_argument('--hashid',
-                        type=str,
-                        help="return the hash id of the given file")
 
     parser.add_argument('--infos',
                         action="store_true",
@@ -2051,28 +2044,6 @@ def shortstr(_str, _max_length):
     if len(_str) > _max_length:
         return "[...]"+_str[-(_max_length-5):]
     return _str
-
-#///////////////////////////////////////////////////////////////////////////////
-def show_hashid_of_a_file(_filename):
-    """
-        show_hashid_of_a_file()
-        ________________________________________________________________________
-
-        The function gives the hashid of a file.
-        ________________________________________________________________________
-
-        PARAMETER
-                o _filename : (str) source filename
-
-        no RETURNED VALUE
-    """
-    _size = os.stat(_filename).st_size
-    _timestamp = datetime.utcfromtimestamp(os.path.getmtime(_filename))
-
-    msg("  = hashid of \"{0}\" : \"{1}\"".format(_filename,
-                                                 hashfile64(_filename,
-                                                            _size,
-                                                            _timestamp)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def size_as_str(_size):
