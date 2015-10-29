@@ -4,7 +4,7 @@ cp -r faked/src faked/src2
 ./katal/katal.py --new=faked/target --mute
 cp faked/katal.ini faked/target/.katal
 cd faked/target
-../../katal/katal.py --add
+../../katal/katal.py --add --move
 ../../katal/katal.py --addtag=goose --to=*5.py
 ../../katal/katal.py --addtag=tree --to=*9.py
 ../../katal/katal.py --addtag=pink --to=*1*.py
