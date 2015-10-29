@@ -1430,7 +1430,7 @@ def main_warmup():
 
         no PARAMETER, no RETURNED VALUE
 
-        o  sys.exit(-1) is called if the config file is ill-formed.
+        o  sys.exit(-1) is called if the config file is ill-formed or missing.
     """
     global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
@@ -1457,6 +1457,7 @@ def main_warmup():
                                      normpath(configfile_name)))
         msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
         msg("    move this downloaded file into the target/.katal/ directory .")
+        sys.exit(-1)
 
     elif ARGS.new is None:
         PARAMETERS = read_parameters_from_cfgfile(configfile_name)

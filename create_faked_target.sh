@@ -1,4 +1,6 @@
 rm -rf faked/target
+rm -rf faked/src2
+cp -r faked/src faked/src2
 ./katal/katal.py --new=faked/target --mute
 cp faked/katal.ini faked/target/.katal
 cd faked/target
@@ -14,4 +16,3 @@ rm 14.py
 ../../katal/katal.py --findtag=goose
 ../../katal/katal.py --settagsstr="red;marble" --to=13.py
 ../../katal/katal.py -ti
-../../katal/katal.py --hashid=9.py
