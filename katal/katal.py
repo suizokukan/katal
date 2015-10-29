@@ -101,7 +101,7 @@ INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_sou
                                            # ((int)total_size, (int)files_number, (dict)extensions)
 
 TARGET_PATH = ""  # initialized from the configuration file.
-TARGET_DB = dict()  # see documentation:database; initializd by read_target_db()
+TARGET_DB = dict()  # see documentation:database; initialized by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
 TASKS_SUBSUBDIR = "tasks"
@@ -213,7 +213,10 @@ def action__add():
                                                                     complete_source_filename,
                                                                     target_name))
         if not ARGS.off:
-            shutil.copyfile(complete_source_filename, target_name)
+            if not ARGS.move:
+                shutil.copyfile(complete_source_filename, target_name)
+            else:
+                shutil.move(complete_source_filename, target_name)                
             os.utime(target_name, (sourcedate, sourcedate))
 
         files_to_be_added.append((hashid,
@@ -872,6 +875,10 @@ def check_args():
     if ARGS.rmtags and not ARGS.to:
         raise KatalError("please use --to in combination with --rmtags")
 
+    # --move can only be used with --select or with --add :
+    if ARGS.move and not (ARGS.add or ARGS.select):
+        raise KatalError("--move can only be used in combination with --select or with --add")
+ 
 #///////////////////////////////////////////////////////////////////////////////
 def create_subdirs_in_target_path():
     """
@@ -1628,6 +1635,10 @@ def read_command_line_arguments():
                         action="store_true",
                         help="no output to the console; no question asked on the console")
 
+    parser.add_argument('--move',
+                        action="store_true",
+                        help="to be used with --select and --add : move the files, don't copy them")
+
     parser.add_argument('-n', '--new',
                         type=str,
                         help="create a new target directory")
@@ -2340,9 +2351,17 @@ def welcome():
             "let's search a config file in the current directory...")
 
     if ARGS.off:
-        msg("  = --off option : no file will be modified, no directory will be created =")
+        msg("  = WARNING                                                               =")
+        msg("  = --off option detected :                                               =")
+        msg("  =                no file will be modified, no directory will be created =")
         msg("  =                but the corresponding messages will be written in the  =")
         msg("  =                log file.                                              =")
+
+    if ARGS.move:
+        msg("  = WARNING                                                               =")
+        msg("  = --move option detected :                                              =")
+        msg("  =                 the files will be moved (NOT copied) in the target    =")
+        msg("  =                 directory.                                            =")
 
 #///////////////////////////////////////////////////////////////////////////////
 def welcome_in_logfile():
