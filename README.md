@@ -404,7 +404,7 @@ set to True.
 ##(9.5) database
 In every target directory a database is created and filled. Its name is set by the
 global variable DATABASE_NAME.
-TARGET_DB is initialized by read_target_db(); hashid:(partialhashid, size)
+TARGET_DB is initialized by read_target_db(); hashid:(partialhashid, size, fullname)
     
     o hashid varchar(44) PRIMARY KEY UNIQUE : hashid (of all the file)
     o partialhashid varchar(44)             : hashid (of the beginning of the file)

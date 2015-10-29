@@ -878,6 +878,10 @@ def check_args():
     # --move can only be used with --select or with --add :
     if ARGS.move and not (ARGS.add or ARGS.select):
         raise KatalError("--move can only be used in combination with --select or with --add")
+
+    # --strictcmp can only be used with --select or with --add :
+    if ARGS.strictcmp and not (ARGS.add or ARGS.select):
+        raise KatalError("--strictcmp can only be used in combination with --select or with --add")
  
 #///////////////////////////////////////////////////////////////////////////////
 def create_subdirs_in_target_path():
@@ -1687,6 +1691,11 @@ def read_command_line_arguments():
                              "not an empty string : otherwise the parameter given " \
                              "to the script wouldn't be taken in account by the shell")
 
+    parser.add_argument('--strictcmp',
+                        action="store_true",
+                        help="to be used with --add or --select. Force a bit-to-bit comparision" \
+                             "between files whose hashid-s is equal.")
+
     parser.add_argument('--targetpath',
                         type=str,
                         default=".",
@@ -1823,7 +1832,9 @@ def read_target_db():
     db_cursor = db_connection.cursor()
 
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        TARGET_DB[db_record["hashid"]] = (db_record["partialhashid"], db_record["size"])
+        TARGET_DB[db_record["hashid"]] = (db_record["partialhashid"], 
+                                          db_record["size"], 
+                                          db_record["sourcename"])
 
     db_connection.close()
 
@@ -2130,7 +2141,7 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
 
     # (1) how many file(s) in the database have a size equal to _size ?
     for hashid in TARGET_DB:
-        _, target_size = TARGET_DB[hashid]
+        _, target_size, _ = TARGET_DB[hashid]
         if target_size == _size:
             res.append(hashid)
 
@@ -2149,7 +2160,7 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
                                    _size=_size, _timestamp=_timestamp,
                                    _stop_after=PARTIALHASHID_BYTESNBR)
     for hashid in res:
-        target_partialhashid, _ = TARGET_DB[hashid]
+        target_partialhashid, _, _ = TARGET_DB[hashid]
         if target_partialhashid == src_partialhashid:
             new_res.append(hashid)
 
@@ -2165,7 +2176,7 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
     new_res = []
     src_hashid = hashfile64(_filename=_filename, _size=_size, _timestamp=_timestamp)
     for hashid in res:
-        target_hashid, _ = TARGET_DB[hashid]
+        target_hashid, _, _ = TARGET_DB[hashid]
         if target_hashid == src_hashid:
             new_res.append(hashid)
 
@@ -2174,6 +2185,16 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
         return (True,
                 src_partialhashid,
                 src_hashid)
+
+    if not ARGS.strictcmp:
+        return (False, None, None)
+
+    # (4) bit-to-bit comparision :
+    for hashid in res:
+        if not filecmp.cmp(_filename, TARGET_DB[hashid][2], shallow=False):
+            return (True,
+                    src_partialhashid,
+                    src_hashid)
 
     return (False, None, None)
 
