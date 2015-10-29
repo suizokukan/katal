@@ -515,6 +515,54 @@ def action__rebase(_newtargetpath):
         olddb_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__reset():
+    """
+        action__reset()
+        ________________________________________________________________________
+
+        Delete the files in the target directory and the database.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    msg("    = about to delete (=move in the trash) the target files and the database.")
+
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+        msg("    ! no database found, nothing to do .")
+        return
+
+    if not ARGS.mute:
+        answer = \
+            input("\nDo you really want to delete (=move to the katal trash directory)" \
+                  "the files in the target directory and the database (y/N) ")
+        if answer not in ("y", "yes"):
+            return
+
+    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection.row_factory = sqlite3.Row
+    db_cursor = db_connection.cursor()
+
+    files_to_be_removed = []  # a list of (hashid, fullname)
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        files_to_be_removed.append((db_record["hashid"], db_record["name"]))
+
+    for hashid, name in files_to_be_removed:
+        msg("   o removing {0} from the database and from the target path".format(name))
+        if not ARGS.off:
+            # let's remove the file from the target directory :
+            shutil.move(os.path.join(normpath(TARGET_PATH), name),
+                        os.path.join(normpath(TARGET_PATH),
+                                    KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
+            # let's remove the file from the database :
+            db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+
+            db_connection.commit()
+
+    db_connection.close()
+
+    msg("    = ... done : the database should be empty, the target files should no longer exist.")
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
     """
         action__rebase__files()
@@ -1366,6 +1414,9 @@ def main_actions():
     if ARGS.cleandbrm:
         action__cleandbrm()
 
+    if ARGS.reset:
+        action__reset()
+
     if ARGS.targetkill:
         action__target_kill(ARGS.targetkill)
 
@@ -1663,6 +1714,10 @@ def read_command_line_arguments():
                              "modify the .ini file of the new target directory " \
                              "(modify [target]name of the target files), " \
                              "then use --rebase with the name of the new target directory")
+
+    parser.add_argument('--reset',
+                        action="store_true",
+                        help="Delete the database and the files in the target directory")
 
     parser.add_argument('--rmnotags',
                         action="store_true",
