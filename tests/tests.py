@@ -99,7 +99,7 @@ class Tests(unittest.TestCase):
         katal.read_filters()
         katal.fill_select()
 
-        self.assertEqual(len(katal.SELECT), 5)
+        self.assertEqual(len(katal.SELECT), 6)
 
         # hashid of ddddX.6 :
         hashid = "D8CiKgUN5TgUbdon0KBqaXyjqSuG1G8n2a8iIamT3qQ="
@@ -107,6 +107,10 @@ class Tests(unittest.TestCase):
 
         # hashid of c.5 :
         hashid = "nPuC9f72wvN6FGgAuL6VLEHVD77w3+Bri6IuRLzIzOw="
+        self.assertTrue(hashid in katal.SELECT)
+
+        # hashid of C.5 :
+        hashid = "wvn74+Q0B1us8F7lYNO2gDaGkFfslUTEMF4QZAS+syA="
         self.assertTrue(hashid in katal.SELECT)
 
         # hashid of a.0 :
@@ -139,3 +143,26 @@ class Tests(unittest.TestCase):
         hashid = "PvWbVu8eNHn1U5QWeBneT+90HeNL2ZpqXBd2XGmtZ30="
         self.assertTrue(hashid in katal.SELECT)
         self.assertTrue(katal.SELECT[hashid].fullname, "ddddd.6")
+
+    #//////////////////////////////////////////////////////////////////////////
+    def test__fill_select5(self):
+        """
+		Tests.test__fill_select5()
+
+		Test of the katal.py::fill_select() function.
+        """
+        katal.ARGS.configfile = os.path.join("tests", "cfgfile5.ini")
+        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
+        katal.read_filters()
+        katal.fill_select()
+
+        self.assertEqual(len(katal.SELECT), 2)
+
+        # hashid of c.5 :
+        hashid = "nPuC9f72wvN6FGgAuL6VLEHVD77w3+Bri6IuRLzIzOw="
+        self.assertTrue(hashid in katal.SELECT)
+
+        # hashid of C.5 :
+        hashid = "wvn74+Q0B1us8F7lYNO2gDaGkFfslUTEMF4QZAS+syA="
+        self.assertTrue(hashid in katal.SELECT)

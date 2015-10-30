@@ -345,7 +345,8 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     [source]          : parameters about source directory 
 
     [source.filterN]   : N is an integer greater or equal to  1; [source.filter1], [source.filter2], ...
-    name              : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
+    name/ci_name      : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
+                        (ci_name : case insensitive)
     size              : a symbol plus an integer
                         e.g., either >999, either <999, either =999, either <=999 either >=999
 

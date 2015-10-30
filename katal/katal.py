@@ -1849,8 +1849,15 @@ def read_filters():
             if PARAMETERS.has_option("source.filter"+str(filter_index), "name"):
                 FILTERS[filter_index]["name"] = \
                                     re.compile(PARAMETERS["source.filter"+str(filter_index)]["name"])
+
+            if PARAMETERS.has_option("source.filter"+str(filter_index), "ci_name"):
+                FILTERS[filter_index]["name"] = \
+                                    re.compile(PARAMETERS["source.filter"+str(filter_index)]["ci_name"],
+                                               re.IGNORECASE)
+
             if PARAMETERS.has_option("source.filter"+str(filter_index), "size"):
                 FILTERS[filter_index]["size"] = PARAMETERS["source.filter"+str(filter_index)]["size"]
+
             if PARAMETERS.has_option("source.filter"+str(filter_index), "date"):
                 FILTERS[filter_index]["date"] = PARAMETERS["source.filter"+str(filter_index)]["date"]
 
@@ -2341,12 +2348,14 @@ def thefilehastobeadded__filt_name(_filter, _filename):
         ________________________________________________________________________
 
         PARAMETERS
-                o _filter        : a dict object; see documentation:selection
-                o _filename     : (str) file's name
+                o _filter           : a dict object; see documentation:selection
+                o _filename         : (str) file's name
 
         RETURNED VALUE
                 the expected boolean
     """
+    # nb : _filter["name"] can either be a case sensitive regex, either
+    #      a case insensitive regex. See the read_filters() function.
     return re.match(_filter["name"], _filename) is not None
 
 #///////////////////////////////////////////////////////////////////////////////
