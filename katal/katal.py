@@ -155,6 +155,25 @@ SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
                  'name TEXT UNIQUE, ' \
                  'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
 
+# suffix, multiple :
+MULTIPLES = (("kB", 1000),
+             ("KB", 1000),
+             ("MB", 1000**2),
+             ("GB", 1000**3),
+             ("TB", 1000**4),
+             ("PB", 1000**5),
+             ("EB", 1000**6),
+             ("ZB", 1000**7),
+             ("YB", 1000**8),
+             ("KiB", 1024),
+             ("MiB", 1024**2),
+             ("GiB", 1024**3),
+             ("TiB", 1024**4),
+             ("PiB", 1024**5),
+             ("EiB", 1024**6),
+             ("ZiB", 1024**7),
+             ("YiB", 1024**8))
+
 ################################################################################
 class KatalError(BaseException):
     """
@@ -756,7 +775,7 @@ def action__select():
     msg("  o filters :")
     for filter_index in FILTERS:
         msg("    o filter #{0} : {1}".format(filter_index,
-                                            FILTERS[filter_index]))
+                                             FILTERS[filter_index]))
     msg("  o file list :")
 
     # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
@@ -1848,18 +1867,20 @@ def read_filters():
 
             if PARAMETERS.has_option("source.filter"+str(filter_index), "name"):
                 FILTERS[filter_index]["name"] = \
-                                    re.compile(PARAMETERS["source.filter"+str(filter_index)]["name"])
+                               re.compile(PARAMETERS["source.filter"+str(filter_index)]["name"])
 
             if PARAMETERS.has_option("source.filter"+str(filter_index), "ci_name"):
                 FILTERS[filter_index]["name"] = \
-                                    re.compile(PARAMETERS["source.filter"+str(filter_index)]["ci_name"],
-                                               re.IGNORECASE)
+                               re.compile(PARAMETERS["source.filter"+str(filter_index)]["ci_name"],
+                                          re.IGNORECASE)
 
             if PARAMETERS.has_option("source.filter"+str(filter_index), "size"):
-                FILTERS[filter_index]["size"] = PARAMETERS["source.filter"+str(filter_index)]["size"]
+                FILTERS[filter_index]["size"] = \
+                                PARAMETERS["source.filter"+str(filter_index)]["size"]
 
             if PARAMETERS.has_option("source.filter"+str(filter_index), "date"):
-                FILTERS[filter_index]["date"] = PARAMETERS["source.filter"+str(filter_index)]["date"]
+                FILTERS[filter_index]["date"] = \
+                                PARAMETERS["source.filter"+str(filter_index)]["date"]
 
         filter_index += 1
 
@@ -2282,10 +2303,10 @@ def thefilehastobeadded__filters(_filename, _size, _date):
     evalstr = PARAMETERS["source"]["eval"]
 
     for filter_index in FILTERS:
-        filter = FILTERS[filter_index]
+        _filter = FILTERS[filter_index]
 
         evalstr = evalstr.replace("filter"+str(filter_index),
-                                  str(eval_filter_for_a_file(filter, _filename, _size, _date)))
+                                  str(eval_filter_for_a_file(_filter, _filename, _size, _date)))
 
     try:
         # eval() IS a dangerous function : see the note about AUTHORIZED_EVALCHARS.
@@ -2366,11 +2387,13 @@ def thefilehastobeadded__filt_size(_filter, _size):
 
         Function used by thefilehastobeadded__filters() : check if the size of a
         file matches the filter given as a parameter.
+
+        about the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte
         ________________________________________________________________________
 
         PARAMETERS
                 o _filter        : a dict object; see documentation:selection
-                o _size         : (str) file's size
+                o _size         : (int) file's size
 
         RETURNED VALUE
                 the expected boolean
@@ -2379,24 +2402,37 @@ def thefilehastobeadded__filt_size(_filter, _size):
 
     filter_size = _filter["size"] # a string like ">999" : see documentation:selection
 
+    multiple = 1
+    for suffix, _multiple in MULTIPLES:
+        if filter_size.endswith(suffix):
+            multiple = _multiple
+            filter_size = filter_size[:-len(suffix)]
+            break
+
+    if multiple == 1 and not filter_size[-1].isdigit():
+        raise KatalError("Can't analyse {0} in the filter. " \
+                         "Available multiples are : {1}".format(filter_size,
+                                                                MULTIPLES))
+
     # beware !  the order matters (<= before <, >= before >)
     if filter_size.startswith(">="):
-        if _size >= int(filter_size[2:]):
+        if _size >= float(filter_size[2:])*multiple:
             res = True
     elif filter_size.startswith(">"):
-        if _size > int(filter_size[1:]):
+        if _size > float(filter_size[1:])*multiple:
             res = True
     elif filter_size.startswith("<="):
-        if _size <= int(filter_size[2:]):
+        if _size <= float(filter_size[2:])*multiple:
             res = True
     elif filter_size.startswith("<"):
-        if _size < int(filter_size[1:]):
+        if _size < float(filter_size[1:])*multiple:
             res = True
     elif filter_size.startswith("="):
-        if _size == int(filter_size[1:]):
+        if _size == float(filter_size[1:])*multiple:
             res = True
     else:
         raise KatalError("Can't analyse {0} in the filter.".format(filter_size))
+
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
