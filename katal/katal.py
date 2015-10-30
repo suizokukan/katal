@@ -36,18 +36,6 @@
 
         see README.md for more documentation.
 """
-# Pylint : disabling the "Using the global statement (global-statement)" warning
-# pylint: disable=W0603
-
-# Pylint : disabling the "Too many lines in module" error
-# pylint: disable=C0302
-
-# Pylint : disabling the "Use of eval" warning
-# -> eval() is used in the thefilehastobeadded__filters() function
-# -> see below how this function is protected against malicious code execution.
-# -> see AUTHORIZED_EVALCHARS
-# pylint: disable=W0123
-
 import argparse
 from base64 import b64encode
 from collections import namedtuple
@@ -1141,23 +1129,24 @@ def fill_select(_debug_datatime=None):
 
                 if tobeadded:
                     # ok, let's add <filename> to SELECT...
-                    targetname = create_target_name(_parameters=PARAMETERS,
-                                                    _hashid=hashid,
-                                                    _filename_no_extens=filename_no_extens,
-                                                    _path=dirpath,
-                                                    _extension=extension,
-                                                    _size=size,
-                                                    _date=time.strftime(DATETIME_FORMAT),
-                                                    _database_index=len(TARGET_DB) + len(SELECT))
-
-                    SELECT[hashid] = SELECTELEMENT(fullname=fullname,
-                                                   partialhashid=partialhashid,
-                                                   path=dirpath,
-                                                   filename_no_extens=filename_no_extens,
-                                                   extension=extension,
-                                                   size=size,
-                                                   date=time.strftime(DATETIME_FORMAT),
-                                                   targetname=targetname)
+                    SELECT[hashid] = \
+                     SELECTELEMENT(fullname=fullname,
+                                   partialhashid=partialhashid,
+                                   path=dirpath,
+                                   filename_no_extens=filename_no_extens,
+                                   extension=extension,
+                                   size=size,
+                                   date=time.strftime(DATETIME_FORMAT),
+                                   targetname=\
+                                     create_target_name(_parameters=PARAMETERS,
+                                                        _hashid=hashid,
+                                                        _filename_no_extens=filename_no_extens,
+                                                        _path=dirpath,
+                                                        _extension=extension,
+                                                        _size=size,
+                                                        _date=time.strftime(DATETIME_FORMAT),
+                                                        _database_index=len(TARGET_DB) + \
+                                                                        len(SELECT)))
 
                     msg("    + {0} selected {1} (file selected #{2})".format(prefix,
                                                                              fullname,
