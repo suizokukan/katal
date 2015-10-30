@@ -487,8 +487,8 @@ trash name is defined in the configuration file.
     o  thefilehastobeaddes__db()            : return True if the file isn't already known in the database
     o  thefilehastobeadded__filters()        : return True if a file can be choosed and added to
                                             : the target directory
-    o  thefilehastobeadded__siev_date()     : a part of thefilehastobeadded__filters()
-    o  thefilehastobeadded__siev_name()     : a part of thefilehastobeadded__filters()
-    o  thefilehastobeadded__siev_size()     : a part of thefilehastobeadded__filters()
+    o  thefilehastobeadded__filt_date()     : a part of thefilehastobeadded__filters()
+    o  thefilehastobeadded__filt_name()     : a part of thefilehastobeadded__filters()
+    o  thefilehastobeadded__filt_size()     : a part of thefilehastobeadded__filters()
     o  welcome()                            : display a welcome message on screen
     o  welcome_in_logfile()                 : display a welcome message in the log file

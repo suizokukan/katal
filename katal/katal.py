@@ -145,7 +145,7 @@ DATETIME_FORMAT_LENGTH = 16
 # eval() function. Other characters are forbidden to avoid malicious code execution.
 # keywords an symbols : filter, parentheses, and, or, not, xor, True, False
 #                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-AUTHORIZED_EVALCHARS = " TFadlsievruxnot0123456789&|^()"
+AUTHORIZED_EVALCHARS = " TFasdlfiteruxnot0123456789&|^()"
 
 # string used to create the database :
 SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
@@ -1051,11 +1051,11 @@ def eval_filter_for_a_file(_filter, _filename, _size, _date):
     res = True
 
     if res and "name" in _filter:
-        res = thefilehastobeadded__siev_name(_filter, _filename)
+        res = thefilehastobeadded__filt_name(_filter, _filename)
     if res and "size" in _filter:
-        res = thefilehastobeadded__siev_size(_filter, _size)
+        res = thefilehastobeadded__filt_size(_filter, _size)
     if res and "date" in _filter:
-        res = thefilehastobeadded__siev_date(_filter, _date)
+        res = thefilehastobeadded__filt_date(_filter, _date)
 
     return res
 
@@ -2295,13 +2295,14 @@ def thefilehastobeadded__filters(_filename, _size, _date):
                                                                "|"+"|".join(AUTHORIZED_EVALCHARS)))
         return eval(evalstr)
     except BaseException as exception:
-        raise KatalError("The eval formula in the config file " \
-                           "contains an error. Python message : "+str(exception))
+        raise KatalError("The eval formula in the config file (\"{0}\")" \
+                           "contains an error. Python message : \"{1}\"".format(evalstr,
+                                                                                exception))
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__siev_date(_filter, _date):
+def thefilehastobeadded__filt_date(_filter, _date):
     """
-        thefilehastobeadded__siev_date()
+        thefilehastobeadded__filt_date()
         ________________________________________________________________________
 
         Function used by thefilehastobeadded__filters() : check if the date of a
@@ -2330,9 +2331,9 @@ def thefilehastobeadded__siev_date(_filter, _date):
         raise KatalError("Can't analyse a 'date' field : "+_filter["date"])
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__siev_name(_filter, _filename):
+def thefilehastobeadded__filt_name(_filter, _filename):
     """
-        thefilehastobeadded__siev_name()
+        thefilehastobeadded__filt_name()
         ________________________________________________________________________
 
         Function used by thefilehastobeadded__filters() : check if the name of a
@@ -2349,9 +2350,9 @@ def thefilehastobeadded__siev_name(_filter, _filename):
     return re.match(_filter["name"], _filename) is not None
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__siev_size(_filter, _size):
+def thefilehastobeadded__filt_size(_filter, _size):
     """
-        thefilehastobeadded__siev_size()
+        thefilehastobeadded__filt_size()
         ________________________________________________________________________
 
         Function used by thefilehastobeadded__filters() : check if the size of a
