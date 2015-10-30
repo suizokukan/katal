@@ -127,6 +127,17 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v.0.1.5 (2015_10_30)
+
+        o fixed a bug in create_target_name() : the order of the if's mattered.
+
+        o set __statuspypi__ to 'Development Status :: 5 - Production/Stable'
+        o functions are now all described in README.md, in alphabetical order
+        o improved messages and documentation
+
+        o 6 tests, pylint=10.0
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.4 (2015_10_30)
 
         o ancient keywords like SOURCENAME_WITHOUT_EXTENSION have been renamed :
