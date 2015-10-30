@@ -120,6 +120,45 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v.0.1.4 (2015_10_30)
+
+        o ancient keywords like SOURCENAME_WITHOUT_EXTENSION have been renamed :
+            HASHID -> %%h
+            SOURCENAME_WITHOUT_EXTENSION -> %%f
+            SOURCENAME_WITHOUT_EXTENSION2 -> %%ff
+            SOURCE_PATH -> %%p
+            SOURCE_PATH2 -> %%pp
+            SOURCE_EXTENSION -> %%e
+            SOURCE_EXTENSION2 -> %%ee
+            SIZE -> %%s
+            DATE2 -> %%dd
+            DATABASE_INDEX -> %%i
+            INTTIMESTAMP -> %%t
+            HEXTIMESTAMP -> %%ht
+        o in filter, 'size' may have a suffix like 'kB', 'MB', ..., 'KiB', 'MiB' .
+        o added 'ci_name' to filters (=case insensitive regex)
+        o in configuration file, 'sieve' is now called 'filter'
+        o new option : --reset (delete database and target files, not the configuration file)
+        o new option : --strictcmp option (bit to bit comparision if two hashes are identical)
+        o new option : --move (move the files if --select or --add instead of copy them)
+        o new option : --findtag
+
+        o added a pylintrc file
+        o fixed main_warmup() : sys.exit(-1) is raised if no configuration file
+        o removed the --hashid option
+        o added constant PARTIALHASHID_BYTESNBR = 1000000
+        o 'ProjectError' > 'KatalError'
+        o added the thefilehastobeadded__db() function
+        o added 'partialhashid' and 'size' to the database
+        o hashfile64() now accepts a _stop_after argument, allowing to read only
+          the _stop_after first bytes of the file
+        o the function hashfile64() uses from now the file content, its name,
+          its size and its timestamp
+        o improved messages and documentation
+
+        o 6 tests, pylint=10.0
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.3 (2015_10_25)
 
         o remove HEXDATE from the target file's formats.
