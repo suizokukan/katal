@@ -55,6 +55,7 @@ import configparser
 import ctypes
 import hashlib
 from datetime import datetime
+import filecmp
 import fnmatch
 import itertools
 import os
@@ -216,7 +217,7 @@ def action__add():
             if not ARGS.move:
                 shutil.copyfile(complete_source_filename, target_name)
             else:
-                shutil.move(complete_source_filename, target_name)                
+                shutil.move(complete_source_filename, target_name)
             os.utime(target_name, (sourcedate, sourcedate))
 
         files_to_be_added.append((hashid,
@@ -552,7 +553,7 @@ def action__reset():
             # let's remove the file from the target directory :
             shutil.move(os.path.join(normpath(TARGET_PATH), name),
                         os.path.join(normpath(TARGET_PATH),
-                                    KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
+                                     KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
             # let's remove the file from the database :
             db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
@@ -930,7 +931,7 @@ def check_args():
     # --strictcmp can only be used with --select or with --add :
     if ARGS.strictcmp and not (ARGS.add or ARGS.select):
         raise KatalError("--strictcmp can only be used in combination with --select or with --add")
- 
+
 #///////////////////////////////////////////////////////////////////////////////
 def create_subdirs_in_target_path():
     """
@@ -1887,8 +1888,8 @@ def read_target_db():
     db_cursor = db_connection.cursor()
 
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        TARGET_DB[db_record["hashid"]] = (db_record["partialhashid"], 
-                                          db_record["size"], 
+        TARGET_DB[db_record["hashid"]] = (db_record["partialhashid"],
+                                          db_record["size"],
                                           db_record["sourcename"])
 
     db_connection.close()
