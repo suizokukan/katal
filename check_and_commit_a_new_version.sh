@@ -99,7 +99,7 @@ python3 setup.py sdist bdist_wheel upload -r pypi
 
 #-------------------------------------------------------------------------------
 echo
-echo    "  = next step : $ sudo pip uninstall katal"
+echo    "  = next step : $ sudo pip3 uninstall katal"
 read -p "  = go on ? ('y' to continue) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]
@@ -111,7 +111,7 @@ sudo pip3 uninstall katal
 
 #-------------------------------------------------------------------------------
 echo
-echo    "  = next step : $ sudo pip install katal"
+echo    "  = next step : $ sudo pip3 install katal"
 read -p "  = go on ? ('y' to continue) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]
