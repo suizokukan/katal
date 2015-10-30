@@ -62,7 +62,7 @@ __license__ = "GPL-3.0"
 # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
 __licensepipy__ = 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
 # see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
-__version__ = "0.1.4"
+__version__ = "0.1.4.post1"
 __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"
 __status__ = "Beta"
