@@ -53,12 +53,14 @@ class Tests(unittest.TestCase):
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile1.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
         katal.fill_select()
 
         self.assertEqual(len(katal.SELECT), 1)
 
-        hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
+        # hashid of b.2 :
+        hashid = 'fFsjifi6rXXQ7BEqBzrwKovKZGESFJAP+THGBqmCtyA='
         self.assertTrue(hashid in katal.SELECT)
 
    #//////////////////////////////////////////////////////////////////////////
@@ -70,12 +72,18 @@ class Tests(unittest.TestCase):
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile2.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
         katal.fill_select()
 
-        self.assertEqual(len(katal.SELECT), 1)
+        self.assertEqual(len(katal.SELECT), 2)
 
-        hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
+        # hashid of b.2 :
+        hashid = "fFsjifi6rXXQ7BEqBzrwKovKZGESFJAP+THGBqmCtyA="
+        self.assertTrue(hashid in katal.SELECT)
+
+        # hashid of b.3 :
+        hashid = "3yCV06Q93bvCGYVjiadtyRSdffL2Bz62S2YwcY9TfMI="
         self.assertTrue(hashid in katal.SELECT)
 
     #//////////////////////////////////////////////////////////////////////////
@@ -87,15 +95,30 @@ class Tests(unittest.TestCase):
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile3.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
         katal.fill_select()
 
-        self.assertEqual(len(katal.SELECT), 2)
+        self.assertEqual(len(katal.SELECT), 5)
 
-        hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+        # hashid of ddddX.6 :
+        hashid = "D8CiKgUN5TgUbdon0KBqaXyjqSuG1G8n2a8iIamT3qQ="
         self.assertTrue(hashid in katal.SELECT)
 
-        hashid = "rc2y98HRxM0xEpm9nouE60nVk4TUq3ec9sr10UEwpnY="
+        # hashid of c.5 :
+        hashid = "nPuC9f72wvN6FGgAuL6VLEHVD77w3+Bri6IuRLzIzOw="
+        self.assertTrue(hashid in katal.SELECT)
+
+        # hashid of a.0 :
+        hashid = "Bl9mkkkXB5xinUl/a0lAP5zHucJeTwAtd07OoEmvSOU="
+        self.assertTrue(hashid in katal.SELECT)
+
+        # hashid of ddddd.6 :
+        hashid = "PvWbVu8eNHn1U5QWeBneT+90HeNL2ZpqXBd2XGmtZ30="
+        self.assertTrue(hashid in katal.SELECT)
+
+        # hashid of a.1 :
+        hashid = "MXK7fPzl9feGlmmG0uzmKOOrjC3lFCa4imyFbDSpfqg="
         self.assertTrue(hashid in katal.SELECT)
 
     #//////////////////////////////////////////////////////////////////////////
@@ -107,77 +130,12 @@ class Tests(unittest.TestCase):
         """
         katal.ARGS.configfile = os.path.join("tests", "cfgfile4.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_sieves()
         katal.fill_select()
 
         self.assertEqual(len(katal.SELECT), 1)
-
-        hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+        
+        hashid = "PvWbVu8eNHn1U5QWeBneT+90HeNL2ZpqXBd2XGmtZ30="
         self.assertTrue(hashid in katal.SELECT)
         self.assertTrue(katal.SELECT[hashid].fullname, "ddddd.6")
-
-    #//////////////////////////////////////////////////////////////////////////
-    def test__fill_select5(self):
-        """
-		Tests.test__fill_select5()
-
-		Test of the katal.py::fill_select() function.
-        """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile5.ini")
-        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
-        katal.SOURCE_PATH = os.path.join("tests", "data1")
-        katal.read_sieves()
-        katal.fill_select({katal.normpath("tests/data1/a.0"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/a.1"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/b.2"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/b.3"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/c.4"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/c.5"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/ddddX.6"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/ddddd.6"):"2015-09-17 20:01",})
-
-        self.assertEqual(len(katal.SELECT), 0)
-
-    #//////////////////////////////////////////////////////////////////////////
-    def test__fill_select6(self):
-        """
-		Tests.test__fill_select6()
-
-		Test of the katal.py::fill_select() function.
-        """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile6.ini")
-        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
-        katal.SOURCE_PATH = os.path.join("tests", "data1")
-        katal.read_sieves()
-        katal.fill_select({katal.normpath("tests/data1/a.0"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/a.1"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/b.2"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/b.3"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/c.4"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/c.5"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/ddddX.6"):"2015-09-17 20:01",
-                           katal.normpath("tests/data1/ddddd.6"):"2015-09-17 20:01",})
-
-        self.assertEqual(len(katal.SELECT), 3)
-
-    #//////////////////////////////////////////////////////////////////////////
-    def test__fill_select7(self):
-        """
-		Tests.test__fill_select7()
-
-		Test of the katal.py::fill_select() function.
-        """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile7.ini")
-        katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
-        katal.SOURCE_PATH = os.path.join("tests", "data1")
-        katal.read_sieves()
-        katal.fill_select({katal.normpath("tests/data1/a.0"):"2013-01-01 00:00",
-                           katal.normpath("tests/data1/a.1"):"2013-01-01 00:00",
-                           katal.normpath("tests/data1/b.2"):"2014-01-01 00:00",
-                           katal.normpath("tests/data1/b.3"):"2014-01-01 00:00",
-                           katal.normpath("tests/data1/c.4"):"2015-01-01 00:00",
-                           katal.normpath("tests/data1/c.5"):"2015-01-01 00:00",
-                           katal.normpath("tests/data1/ddddX.6"):"2015-09-01 00:00",
-                           katal.normpath("tests/data1/ddddd.6"):"2015-09-01 00:00",})
-
-        self.assertEqual(len(katal.SELECT), 3)
