@@ -760,8 +760,16 @@ def action__select():
         no PARAMETER, no RETURNED VALUE.
     """
     msg("  = selecting files according to the instructions " \
-                "in the config file. Please wait... =")
+                "in the config file... =")
+
+    msg("  o the files will be copied in \"{0}\" " \
+        "(path: \"{1}\")".format(TARGET_PATH,
+                                 normpath(TARGET_PATH)))
+    msg("  o the files will be renamed according " \
+        "to the \"{0}\" pattern.".format(PARAMETERS["target"]["name of the target files"]))
+
     msg("  o filters :")
+
     for filter_index in FILTERS:
         msg("    o filter #{0} : {1}".format(filter_index,
                                              FILTERS[filter_index]))
