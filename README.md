@@ -519,9 +519,12 @@ trash name is defined in the configuration file.
                                               which is a simple string, not a regex.
     o  action__infos()                      : display informations about the source
                                               and the target directory
+    o  action__new()                        : create a new target directory
     o  action__rebase()                     : copy a target directory into a new one
     o  action__rebase__files()              : --rebase : select the files to be copied.
     o  action__rebase__write()              : --rebase : write the files into the new target direc.
+    o  action__reset()                      : --reset : remove the database and the files in the
+                                              target directory
     o  action__rmnotags()                   : Remove all files if they have no tags.
     o  action__rmtags()                     : remove the entire tags' string of some files
     o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
@@ -541,9 +544,9 @@ trash name is defined in the configuration file.
     o  get_disk_free_space()                : return the available space on disk
     o  get_filename_and_extension()         : return (filename_no_extension, extension)
     o  goodbye()                            : display the goodbye message
-    o  logfile_opening()                    : open the log file
     o  hashfile64()                         : return the footprint of a file, encoded
                                               with the base 64.
+    o  logfile_opening()                    : open the log file
     o  main()                               : main entry point
     o  main__actions()                      : call the different actions required by the arguments
     o  main__actions_tags()                 : call the different actions required by the arguments

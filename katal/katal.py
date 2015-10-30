@@ -524,54 +524,6 @@ def action__rebase(_newtargetpath):
         olddb_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__reset():
-    """
-        action__reset()
-        ________________________________________________________________________
-
-        Delete the files in the target directory and the database.
-        ________________________________________________________________________
-
-        no PARAMETER, no RETURNED VALUE
-    """
-    msg("    = about to delete (=move in the trash) the target files and the database.")
-
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
-        msg("    ! no database found, nothing to do .")
-        return
-
-    if not ARGS.mute:
-        answer = \
-            input("\nDo you really want to delete (=move to the katal trash directory)" \
-                  "the files in the target directory and the database (y/N) ")
-        if answer not in ("y", "yes"):
-            return
-
-    db_connection = sqlite3.connect(DATABASE_FULLNAME)
-    db_connection.row_factory = sqlite3.Row
-    db_cursor = db_connection.cursor()
-
-    files_to_be_removed = []  # a list of (hashid, fullname)
-    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        files_to_be_removed.append((db_record["hashid"], db_record["name"]))
-
-    for hashid, name in files_to_be_removed:
-        msg("   o removing {0} from the database and from the target path".format(name))
-        if not ARGS.off:
-            # let's remove the file from the target directory :
-            shutil.move(os.path.join(normpath(TARGET_PATH), name),
-                        os.path.join(normpath(TARGET_PATH),
-                                     KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
-            # let's remove the file from the database :
-            db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
-
-            db_connection.commit()
-
-    db_connection.close()
-
-    msg("    = ... done : the database should be empty, the target files should no longer exist.")
-
-#///////////////////////////////////////////////////////////////////////////////
 def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
     """
         action__rebase__files()
@@ -706,6 +658,54 @@ def action__rebase__write(_new_db, _files):
     msg("    ... done")
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__reset():
+    """
+        action__reset()
+        ________________________________________________________________________
+
+        Delete the files in the target directory and the database.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    msg("    = about to delete (=move in the trash) the target files and the database.")
+
+    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+        msg("    ! no database found, nothing to do .")
+        return
+
+    if not ARGS.mute:
+        answer = \
+            input("\nDo you really want to delete (=move to the katal trash directory)" \
+                  "the files in the target directory and the database (y/N) ")
+        if answer not in ("y", "yes"):
+            return
+
+    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection.row_factory = sqlite3.Row
+    db_cursor = db_connection.cursor()
+
+    files_to_be_removed = []  # a list of (hashid, fullname)
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        files_to_be_removed.append((db_record["hashid"], db_record["name"]))
+
+    for hashid, name in files_to_be_removed:
+        msg("   o removing {0} from the database and from the target path".format(name))
+        if not ARGS.off:
+            # let's remove the file from the target directory :
+            shutil.move(os.path.join(normpath(TARGET_PATH), name),
+                        os.path.join(normpath(TARGET_PATH),
+                                     KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
+            # let's remove the file from the database :
+            db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
+
+            db_connection.commit()
+
+    db_connection.close()
+
+    msg("    = ... done : the database should be empty, the target files should no longer exist.")
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__rmnotags():
     """
         action__rmnotags
@@ -746,6 +746,22 @@ def action__rmnotags():
 
         db_connection.commit()
         db_connection.close()
+
+#///////////////////////////////////////////////////////////////////////////////
+def action__rmtags(_to):
+    """
+        action__rmtags()
+        ________________________________________________________________________
+
+        Remove the tags' string(s) in the target directory, overwriting ancient tags.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _to           : (str) a regex string describing what files are
+                                  concerned
+    """
+    msg("  = let's remove the tags' string(s) in {0}".format(_to))
+    action__settagsstr(_tagsstr="", _to=_to)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__select():
@@ -819,22 +835,6 @@ def action__select():
 
             if example_index > 5:
                 break
-
-#///////////////////////////////////////////////////////////////////////////////
-def action__rmtags(_to):
-    """
-        action__rmtags()
-        ________________________________________________________________________
-
-        Remove the tags' string(s) in the target directory, overwriting ancient tags.
-        ________________________________________________________________________
-
-        PARAMETERS
-                o _to           : (str) a regex string describing what files are
-                                  concerned
-    """
-    msg("  = let's remove the tags' string(s) in {0}".format(_to))
-    action__settagsstr(_tagsstr="", _to=_to)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__settagsstr(_tagsstr, _to):
@@ -1660,6 +1660,30 @@ def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
         LOGFILE.write(_msg+"\n")
 
 #///////////////////////////////////////////////////////////////////////////////
+def normpath(_path):
+    """
+        normpath()
+        ________________________________________________________________________
+
+        Return a human-readable (e.g. "~" -> "/home/myhome/" on Linux systems),
+        normalized version of a path.
+
+        The returned string may be used as a parameter given to by
+        os.path.exists() .
+        ________________________________________________________________________
+
+        PARAMETER : (str)_path
+
+        RETURNED VALUE : the expected string
+    """
+    res = os.path.normpath(os.path.abspath(os.path.expanduser(_path)))
+
+    if res == ".":
+        res = os.getcwd()
+
+    return res
+
+#///////////////////////////////////////////////////////////////////////////////
 def read_command_line_arguments():
     """
         read_command_line_arguments()
@@ -1954,6 +1978,26 @@ def remove_illegal_characters(_src):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
+def shortstr(_str, _max_length):
+    """
+        shortstr()
+        ________________________________________________________________________
+
+        The function returns a shortened version of a string.
+        ________________________________________________________________________
+
+        PARAMETER
+                o _str          : (src) the source string
+                o _max_length   : (int) the maximal length of the string
+
+        RETURNED VALUE
+                the expected string
+    """
+    if len(_str) > _max_length:
+        return "[...]"+_str[-(_max_length-5):]
+    return _str
+
+#///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_source_path():
     """
         show_infos_about_source_path()
@@ -2005,28 +2049,6 @@ def show_infos_about_source_path():
                                                      size_as_str(extensions[extension][1])))
 
     INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
-
-#//////////////////////////////////////////////////////////////////////////////
-def tagsstr_repr(_tagsstr):
-    """
-        tagsstr_repr()
-        ________________________________________________________________________
-
-        Improve the way a tags' string can be displayed.
-        ________________________________________________________________________
-
-        PARAMETER
-            _tagsstr : the raw tags' string
-
-        RETURNED VALUE
-            the expected (str)string
-    """
-    # let's remove the first tag separator :
-    tagsstr = _tagsstr
-    if tagsstr.startswith(TAG_SEPARATOR):
-        tagsstr = tagsstr[1:]
-
-    return tagsstr
 
 #///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_target_path():
@@ -2143,26 +2165,6 @@ def show_infos_about_target_path():
     return 0
 
 #///////////////////////////////////////////////////////////////////////////////
-def shortstr(_str, _max_length):
-    """
-        shortstr()
-        ________________________________________________________________________
-
-        The function returns a shortened version of a string.
-        ________________________________________________________________________
-
-        PARAMETER
-                o _str          : (src) the source string
-                o _max_length   : (int) the maximal length of the string
-
-        RETURNED VALUE
-                the expected string
-    """
-    if len(_str) > _max_length:
-        return "[...]"+_str[-(_max_length-5):]
-    return _str
-
-#///////////////////////////////////////////////////////////////////////////////
 def size_as_str(_size):
     """
         size_as_str()
@@ -2188,29 +2190,27 @@ def size_as_str(_size):
         return "~{0:.2f} Go ({1} bytes)".format(_size/1000000000.0,
                                                 _size)
 
-#///////////////////////////////////////////////////////////////////////////////
-def normpath(_path):
+#//////////////////////////////////////////////////////////////////////////////
+def tagsstr_repr(_tagsstr):
     """
-        normpath()
+        tagsstr_repr()
         ________________________________________________________________________
 
-        Return a human-readable (e.g. "~" -> "/home/myhome/" on Linux systems),
-        normalized version of a path.
-
-        The returned string may be used as a parameter given to by
-        os.path.exists() .
+        Improve the way a tags' string can be displayed.
         ________________________________________________________________________
 
-        PARAMETER : (str)_path
+        PARAMETER
+            _tagsstr : the raw tags' string
 
-        RETURNED VALUE : the expected string
+        RETURNED VALUE
+            the expected (str)string
     """
-    res = os.path.normpath(os.path.abspath(os.path.expanduser(_path)))
+    # let's remove the first tag separator :
+    tagsstr = _tagsstr
+    if tagsstr.startswith(TAG_SEPARATOR):
+        tagsstr = tagsstr[1:]
 
-    if res == ".":
-        res = os.getcwd()
-
-    return res
+    return tagsstr
 
 #///////////////////////////////////////////////////////////////////////////////
 def thefilehastobeadded__db(_filename, _size, _timestamp):
