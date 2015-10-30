@@ -156,6 +156,7 @@ SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
                  'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
 
 # suffix, multiple :
+# about the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte
 MULTIPLES = (("kB", 1000),
              ("KB", 1000),
              ("MB", 1000**2),
@@ -1001,6 +1002,10 @@ def create_target_name(_parameters,
 
         see the available keywords in the documentation.
             (see documentation:configuration file)
+
+        caveat : in the .ini files, '%' have to be written twice (as in
+                 '%%p', e.g.) but Python reads it as if only one % was
+                 written.
         ________________________________________________________________________
 
         PARAMETERS
@@ -1020,30 +1025,30 @@ def create_target_name(_parameters,
     """
     target_name = _parameters["target"]["name of the target files"]
 
-    target_name = target_name.replace("HASHID", _hashid)
+    target_name = target_name.replace("%h", _hashid)
 
-    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION2", _filename_no_extens)
-    target_name = target_name.replace("SOURCENAME_WITHOUT_EXTENSION", _filename_no_extens)
+    target_name = target_name.replace("%ff", remove_illegal_characters(_filename_no_extens))
+    target_name = target_name.replace("%f", _filename_no_extens)
 
-    target_name = target_name.replace("SOURCE_PATH2", _path)
-    target_name = target_name.replace("SOURCE_PATH", _path)
+    target_name = target_name.replace("%pp", remove_illegal_characters(_path))
+    target_name = target_name.replace("%p", _path)
 
-    target_name = target_name.replace("SOURCE_EXTENSION2", remove_illegal_characters(_extension))
-    target_name = target_name.replace("SOURCE_EXTENSION", _extension)
+    target_name = target_name.replace("%ee", remove_illegal_characters(_extension))
+    target_name = target_name.replace("%e", _extension)
 
-    target_name = target_name.replace("SIZE", str(_size))
+    target_name = target_name.replace("%s", str(_size))
 
-    target_name = target_name.replace("DATE2", remove_illegal_characters(_date))
+    target_name = target_name.replace("%dd", remove_illegal_characters(_date))
 
-    target_name = target_name.replace("INTTIMESTAMP",
+    target_name = target_name.replace("%t",
                                       str(int(datetime.strptime(_date,
                                                                 DATETIME_FORMAT).timestamp())))
 
-    target_name = target_name.replace("HEXTIMESTAMP",
+    target_name = target_name.replace("%ht",
                                       hex(int(datetime.strptime(_date,
                                                                 DATETIME_FORMAT).timestamp()))[2:])
 
-    target_name = target_name.replace("DATABASE_INDEX",
+    target_name = target_name.replace("%i",
                                       remove_illegal_characters(str(_database_index)))
 
     return target_name
@@ -2322,6 +2327,7 @@ def thefilehastobeadded__filters(_filename, _size, _date):
                                                                unicodedata.name(char),
                                                                "|"+"|".join(AUTHORIZED_EVALCHARS)))
         return eval(evalstr)
+
     except BaseException as exception:
         raise KatalError("The eval formula in the config file (\"{0}\")" \
                            "contains an error. Python message : \"{1}\"".format(evalstr,
@@ -2387,8 +2393,6 @@ def thefilehastobeadded__filt_size(_filter, _size):
 
         Function used by thefilehastobeadded__filters() : check if the size of a
         file matches the filter given as a parameter.
-
-        about the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte
         ________________________________________________________________________
 
         PARAMETERS

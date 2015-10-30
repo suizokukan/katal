@@ -376,24 +376,38 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     name of the target files  : a string using keywords which will be replaced by their value
                                 see the create_target_name() function.
 
-                                      known keywords :
+                known keywords :
 
-                                       HASHID
-                                       SOURCENAME_WITHOUT_EXTENSION
-                                       SOURCENAME_WITHOUT_EXTENSION2
-                                       SOURCE_PATH
-                                       SOURCE_PATH2
-                                       SOURCE_EXTENSION     (no . character)
-                                       SOURCE_EXTENSION2    (no . character)
-                                       SIZE
-                                       DATE2
-                                       DATABASE_INDEX
-                                       INTTIMESTAMP         (e.g. 1445584562)
-                                       HEXTIMESTAMP         (e.g. 5629DED0)
+                %%h  : hashid (e.g. GwM5NKzoZ76oPAbWwX7od0pI66xZrOHI7TWIggx+xFk=)
 
-                                       n.b. : keywords ending by "2" are builded 
-                                              against a set of illegal characters
-                                              replaced by "_".
+                %%f  : source name (with the path), without the extension
+
+                %%ff : source name (with the path), without the extension
+                       [see below, no forbidden characters]
+
+                %%p  : source path
+
+                %%pp : source path
+                       [see below, no forbidden characters]
+
+                %%e  : source extension, without the dot character (e.g. jpg / no dot character !)
+
+                %%ee : source extension, without the dot character (e.g. jpg / no dot character !)
+                       [see below, no forbidden characters]
+
+                %%s  : size (e.g. 123)
+
+                %%dd : date (e.g. 2015_09_25_06_50)
+                       [see below, no forbidden characters]
+
+                %%i  : database index (e.g. 123)
+
+                %%t  : timestamp of the file (integer, e.g. 1445584562)
+
+                %%ht : timestamp of the file (hexadecimal, e.g. 5629DED0)
+
+                n.b. : keywords with a reduplicated letter (%%pp, %%ff, ...) are builded against
+                       a set of illegal characters, replaced by "_". 
 
 ##(9.3) logfile
 Can be filled with many informations (verbosity="high") or less informations (verbosity="low"). See in documentation:configuration file the explanations about the log verbosity.
