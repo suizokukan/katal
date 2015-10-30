@@ -1447,7 +1447,7 @@ def main_actions():
         if not ARGS.mute and len(SELECT) > 0:
             answer = \
                 input("\nDo you want to add the selected " \
-                      "files to the target dictionary (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+                      "files to the target directory (\"{0}\") ? (y/N) ".format(TARGET_PATH))
 
             if answer in ("y", "yes"):
                 action__add()
