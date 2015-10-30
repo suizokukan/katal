@@ -1013,6 +1013,11 @@ def create_target_name(_parameters,
     """
     target_name = _parameters["target"]["name of the target files"]
 
+    # beware : order matters !
+    target_name = target_name.replace("%ht",
+                                      hex(int(datetime.strptime(_date,
+                                                                DATETIME_FORMAT).timestamp()))[2:])
+
     target_name = target_name.replace("%h", _hashid)
 
     target_name = target_name.replace("%ff", remove_illegal_characters(_filename_no_extens))
@@ -1031,10 +1036,6 @@ def create_target_name(_parameters,
     target_name = target_name.replace("%t",
                                       str(int(datetime.strptime(_date,
                                                                 DATETIME_FORMAT).timestamp())))
-
-    target_name = target_name.replace("%ht",
-                                      hex(int(datetime.strptime(_date,
-                                                                DATETIME_FORMAT).timestamp()))[2:])
 
     target_name = target_name.replace("%i",
                                       remove_illegal_characters(str(_database_index)))
