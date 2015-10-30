@@ -1553,6 +1553,8 @@ def main_warmup():
             msg("  ! warning : " \
                 "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
+        # we write the following informations on screen/on disk :
+        msg("  = so, let's use \"{0}\" as config file".format(configfile_name))
         msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
                                                                      normpath(SOURCE_PATH)))
 
@@ -2507,10 +2509,6 @@ def welcome_in_logfile():
         "(launched at {2}) ===".format(__projectname__,
                                        __version__,
                                        TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")),
-        _for_logfile=True,
-        _for_console=False)
-
-    msg("  = using \"{0}\" as config file".format(ARGS.configfile),
         _for_logfile=True,
         _for_console=False)
 
