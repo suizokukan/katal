@@ -67,7 +67,7 @@ __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"
 __status__ = "Beta"
 # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
-__statuspypi__ = 'Development Status :: 4 - Beta'
+__statuspypi__ = 'Development Status :: 5 - Production/Stable'
 
 ARGS = None # initialized by main()
 
