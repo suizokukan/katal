@@ -344,7 +344,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
     [source]          : parameters about source directory 
 
-    [source.sieveN]   : N is an integer greater or equal to  1; [source.sieve1], [source.sieve2], ...
+    [source.filterN]   : N is an integer greater or equal to  1; [source.filter1], [source.filter2], ...
     name              : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
     size              : a symbol plus an integer
                         e.g., either >999, either <999, either =999, either <=999 either >=999
@@ -394,12 +394,12 @@ set to True.
 
       !!! an "extension" stored in SELECTELEMENT does not start with a dot (".") !!!
 
-    SIEVES is a dictionary with a (int)sieve_index as a key and a dict as values.
+    FILTERS is a dictionary with a (int)filter_index as a key and a dict as values.
     This dict may be empty or contain the following keys/values : 
-      SIEVES["name"] = re.compile(...)
-      SIEVES["size"] = a string like ">999", initial symbol in ('=', '<', '>', '<=', '>=')
-      SIEVES["date"] = a string like '>2015-09-17 20:01', initial symbol in ('=', '<', '>', '<=', '>=')
-    SIEVES is filled by read_sieves().
+      FILTERS["name"] = re.compile(...)
+      FILTERS["size"] = a string like ">999", initial symbol in ('=', '<', '>', '<=', '>=')
+      FILTERS["date"] = a string like '>2015-09-17 20:01', initial symbol in ('=', '<', '>', '<=', '>=')
+    FILTERS is filled by read_filters().
 
 ##(9.5) database
 In every target directory a database is created and filled. Its name is set by the
@@ -453,7 +453,7 @@ trash name is defined in the configuration file.
     o  create_subdirs_in_target_path()      : create the expected subdirectories in TARGET_PATH .
     o  create_target_name()                 : create the name of a file (a target file)
                                               from various information (filename, ...)
-    o  eval_sieve_for_a_file()              : evaluate a file according to a sieve
+    o  eval_filter_for_a_file()              : evaluate a file according to a filter
     o  fill_select()                        : fill SELECT and SELECT_SIZE_IN_BYTES from
                                               the files stored in SOURCE_PATH.
     o  fill_select__checks()                : final checks at the end of fill_select()
@@ -473,7 +473,7 @@ trash name is defined in the configuration file.
     o  normpath()                           : return a human-readable, normalized version of a path
     o  read_command_line_arguments()        : read the command line arguments
     o  read_parameters_from_cfgfile()       : read the configuration file
-    o  read_sieves()                        : initialize SIEVES from the configuration file
+    o  read_filters()                        : initialize FILTERS from the configuration file
     o  read_target_db()                     : read the database stored in the target
                                               directory and initialize TARGET_DB.
     o  remove_illegal_characters()          : replace some illegal characters by the
@@ -485,10 +485,10 @@ trash name is defined in the configuration file.
                                               string
     o  tagsstr_repr()                       : return an improved representation of a tags string
     o  thefilehastobeaddes__db()            : return True if the file isn't already known in the database
-    o  thefilehastobeadded__sieves()        : return True if a file can be choosed and added to
+    o  thefilehastobeadded__filters()        : return True if a file can be choosed and added to
                                             : the target directory
-    o  thefilehastobeadded__siev_date()     : a part of thefilehastobeadded__sieves()
-    o  thefilehastobeadded__siev_name()     : a part of thefilehastobeadded__sieves()
-    o  thefilehastobeadded__siev_size()     : a part of thefilehastobeadded__sieves()
+    o  thefilehastobeadded__siev_date()     : a part of thefilehastobeadded__filters()
+    o  thefilehastobeadded__siev_name()     : a part of thefilehastobeadded__filters()
+    o  thefilehastobeadded__siev_size()     : a part of thefilehastobeadded__filters()
     o  welcome()                            : display a welcome message on screen
     o  welcome_in_logfile()                 : display a welcome message in the log file

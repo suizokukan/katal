@@ -54,7 +54,7 @@ class Tests(unittest.TestCase):
         katal.ARGS.configfile = os.path.join("tests", "cfgfile1.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.SOURCE_PATH = os.path.join("tests", "data1")
-        katal.read_sieves()
+        katal.read_filters()
         katal.fill_select()
 
         self.assertEqual(len(katal.SELECT), 1)
@@ -73,7 +73,7 @@ class Tests(unittest.TestCase):
         katal.ARGS.configfile = os.path.join("tests", "cfgfile2.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.SOURCE_PATH = os.path.join("tests", "data1")
-        katal.read_sieves()
+        katal.read_filters()
         katal.fill_select()
 
         self.assertEqual(len(katal.SELECT), 2)
@@ -96,7 +96,7 @@ class Tests(unittest.TestCase):
         katal.ARGS.configfile = os.path.join("tests", "cfgfile3.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.SOURCE_PATH = os.path.join("tests", "data1")
-        katal.read_sieves()
+        katal.read_filters()
         katal.fill_select()
 
         self.assertEqual(len(katal.SELECT), 5)
@@ -131,7 +131,7 @@ class Tests(unittest.TestCase):
         katal.ARGS.configfile = os.path.join("tests", "cfgfile4.ini")
         katal.PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
         katal.SOURCE_PATH = os.path.join("tests", "data1")
-        katal.read_sieves()
+        katal.read_filters()
         katal.fill_select()
 
         self.assertEqual(len(katal.SELECT), 1)

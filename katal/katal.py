@@ -43,7 +43,7 @@
 # pylint: disable=C0302
 
 # Pylint : disabling the "Use of eval" warning
-# -> eval() is used in the thefilehastobeadded__sieves() function
+# -> eval() is used in the thefilehastobeadded__filters() function
 # -> see below how this function is protected against malicious code execution.
 # -> see AUTHORIZED_EVALCHARS
 # pylint: disable=W0123
@@ -135,7 +135,7 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
 
 SELECT = {} # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
-SIEVES = {}  # see documentation:selection; initialized by read_sieves()
+FILTERS = {}  # see documentation:selection; initialized by read_filters()
 
 # date's string format, e.g. "2015-09-17 20:01"
 DATETIME_FORMAT = "%Y-%m-%d %H:%M"
@@ -143,7 +143,7 @@ DATETIME_FORMAT_LENGTH = 16
 
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
-# keywords an symbols : sieve, parentheses, and, or, not, xor, True, False
+# keywords an symbols : filter, parentheses, and, or, not, xor, True, False
 #                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 AUTHORIZED_EVALCHARS = " TFadlsievruxnot0123456789&|^()"
 
@@ -753,10 +753,10 @@ def action__select():
     """
     msg("  = selecting files according to the instructions " \
                 "in the config file. Please wait... =")
-    msg("  o sieves :")
-    for sieve_index in SIEVES:
-        msg("    o sieve #{0} : {1}".format(sieve_index,
-                                            SIEVES[sieve_index]))
+    msg("  o filters :")
+    for filter_index in FILTERS:
+        msg("    o filter #{0} : {1}".format(filter_index,
+                                            FILTERS[filter_index]))
     msg("  o file list :")
 
     # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
@@ -1030,17 +1030,17 @@ def create_target_name(_parameters,
     return target_name
 
 #///////////////////////////////////////////////////////////////////////////////
-def eval_sieve_for_a_file(_sieve, _filename, _size, _date):
+def eval_filter_for_a_file(_filter, _filename, _size, _date):
     """
-        eval_sieve_for_a_file()
+        eval_filter_for_a_file()
         ________________________________________________________________________
 
-        Eval a file according to a sieve and answers the following question :
-        does the file matches what is described in the sieve ?
+        Eval a file according to a filter and answers the following question :
+        does the file matches what is described in the filter ?
         ________________________________________________________________________
 
         PARAMETERS
-                o _sieve        : a dict, see documentation:select
+                o _filter        : a dict, see documentation:select
                 o _filename     : (str) file's name
                 o _size         : (int) file's size, in bytes.
                 o _date         : (str)file's date
@@ -1050,12 +1050,12 @@ def eval_sieve_for_a_file(_sieve, _filename, _size, _date):
     """
     res = True
 
-    if res and "name" in _sieve:
-        res = thefilehastobeadded__siev_name(_sieve, _filename)
-    if res and "size" in _sieve:
-        res = thefilehastobeadded__siev_size(_sieve, _size)
-    if res and "date" in _sieve:
-        res = thefilehastobeadded__siev_date(_sieve, _date)
+    if res and "name" in _filter:
+        res = thefilehastobeadded__siev_name(_filter, _filename)
+    if res and "size" in _filter:
+        res = thefilehastobeadded__siev_size(_filter, _size)
+    if res and "date" in _filter:
+        res = thefilehastobeadded__siev_date(_filter, _date)
 
     return res
 
@@ -1106,11 +1106,11 @@ def fill_select(_debug_datatime=None):
             if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
 
-            if not thefilehastobeadded__sieves(filename, size, time):
+            if not thefilehastobeadded__filters(filename, size, time):
                 number_of_discarded_files += 1
 
                 msg("    - {0} discarded \"{1}\" " \
-                    ": incompatibility with the sieves".format(prefix, fullname),
+                    ": incompatibility with the filters".format(prefix, fullname),
                     _important_msg=False)
             else:
                 tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size, time)
@@ -1423,7 +1423,7 @@ def main_actions():
 
     if ARGS.select:
         read_target_db()
-        read_sieves()
+        read_filters()
         action__select()
 
         if not ARGS.mute and len(SELECT) > 0:
@@ -1437,7 +1437,7 @@ def main_actions():
 
     if ARGS.add:
         read_target_db()
-        read_sieves()
+        read_filters()
         action__select()
         action__add()
         show_infos_about_target_path()
@@ -1825,36 +1825,36 @@ def read_parameters_from_cfgfile(_configfile_name):
     return parser
 
 #///////////////////////////////////////////////////////////////////////////////
-def read_sieves():
+def read_filters():
     """
-        read_sieves()
+        read_filters()
         ________________________________________________________________________
 
-        Initialize SIEVES from the configuration file.
+        Initialize FILTERS from the configuration file.
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
     """
-    SIEVES.clear()
+    FILTERS.clear()
 
     stop = False
-    sieve_index = 1
+    filter_index = 1
 
     while not stop:
-        if not PARAMETERS.has_section("source.sieve"+str(sieve_index)):
+        if not PARAMETERS.has_section("source.filter"+str(filter_index)):
             stop = True
         else:
-            SIEVES[sieve_index] = dict()
+            FILTERS[filter_index] = dict()
 
-            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "name"):
-                SIEVES[sieve_index]["name"] = \
-                                    re.compile(PARAMETERS["source.sieve"+str(sieve_index)]["name"])
-            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "size"):
-                SIEVES[sieve_index]["size"] = PARAMETERS["source.sieve"+str(sieve_index)]["size"]
-            if PARAMETERS.has_option("source.sieve"+str(sieve_index), "date"):
-                SIEVES[sieve_index]["date"] = PARAMETERS["source.sieve"+str(sieve_index)]["date"]
+            if PARAMETERS.has_option("source.filter"+str(filter_index), "name"):
+                FILTERS[filter_index]["name"] = \
+                                    re.compile(PARAMETERS["source.filter"+str(filter_index)]["name"])
+            if PARAMETERS.has_option("source.filter"+str(filter_index), "size"):
+                FILTERS[filter_index]["size"] = PARAMETERS["source.filter"+str(filter_index)]["size"]
+            if PARAMETERS.has_option("source.filter"+str(filter_index), "date"):
+                FILTERS[filter_index]["date"] = PARAMETERS["source.filter"+str(filter_index)]["date"]
 
-        sieve_index += 1
+        filter_index += 1
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_target_db():
@@ -2255,13 +2255,13 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
     return (False, None, None)
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__sieves(_filename, _size, _date):
+def thefilehastobeadded__filters(_filename, _size, _date):
     """
-        thefilehastobeadded__sieves()
+        thefilehastobeadded__filters()
         ________________________________________________________________________
 
         Return True if a file (_filename, _size) can be choosed and added to
-        the target directory, according to the sieves (stored in SIEVES).
+        the target directory, according to the filters (stored in FILTERS).
         ________________________________________________________________________
 
         PARAMETERS
@@ -2274,11 +2274,11 @@ def thefilehastobeadded__sieves(_filename, _size, _date):
     """
     evalstr = PARAMETERS["source"]["eval"]
 
-    for sieve_index in SIEVES:
-        sieve = SIEVES[sieve_index]
+    for filter_index in FILTERS:
+        filter = FILTERS[filter_index]
 
-        evalstr = evalstr.replace("sieve"+str(sieve_index),
-                                  str(eval_sieve_for_a_file(sieve, _filename, _size, _date)))
+        evalstr = evalstr.replace("filter"+str(filter_index),
+                                  str(eval_filter_for_a_file(filter, _filename, _size, _date)))
 
     try:
         # eval() IS a dangerous function : see the note about AUTHORIZED_EVALCHARS.
@@ -2299,67 +2299,67 @@ def thefilehastobeadded__sieves(_filename, _size, _date):
                            "contains an error. Python message : "+str(exception))
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__siev_date(_sieve, _date):
+def thefilehastobeadded__siev_date(_filter, _date):
     """
         thefilehastobeadded__siev_date()
         ________________________________________________________________________
 
-        Function used by thefilehastobeadded__sieves() : check if the date of a
-        file matches the sieve given as a parameter.
+        Function used by thefilehastobeadded__filters() : check if the date of a
+        file matches the filter given as a parameter.
         ________________________________________________________________________
 
         PARAMETERS
-                o _sieve        : a dict object; see documentation:selection
+                o _filter        : a dict object; see documentation:selection
                 o _date         : (str) file's datestamp (object datetime.datetime)
 
         RETURNED VALUE
                 the expected boolean
     """
     # beware ! the order matters (<= before <, >= before >)
-    if _sieve["date"].startswith("="):
-        return _date == datetime.strptime(_sieve["date"][1:], DATETIME_FORMAT)
-    elif _sieve["date"].startswith(">="):
-        return _date >= datetime.strptime(_sieve["date"][2:], DATETIME_FORMAT)
-    elif _sieve["date"].startswith(">"):
-        return _date > datetime.strptime(_sieve["date"][1:], DATETIME_FORMAT)
-    elif _sieve["date"].startswith("<="):
-        return _date < datetime.strptime(_sieve["date"][2:], DATETIME_FORMAT)
-    elif _sieve["date"].startswith("<"):
-        return _date < datetime.strptime(_sieve["date"][1:], DATETIME_FORMAT)
+    if _filter["date"].startswith("="):
+        return _date == datetime.strptime(_filter["date"][1:], DATETIME_FORMAT)
+    elif _filter["date"].startswith(">="):
+        return _date >= datetime.strptime(_filter["date"][2:], DATETIME_FORMAT)
+    elif _filter["date"].startswith(">"):
+        return _date > datetime.strptime(_filter["date"][1:], DATETIME_FORMAT)
+    elif _filter["date"].startswith("<="):
+        return _date < datetime.strptime(_filter["date"][2:], DATETIME_FORMAT)
+    elif _filter["date"].startswith("<"):
+        return _date < datetime.strptime(_filter["date"][1:], DATETIME_FORMAT)
     else:
-        raise KatalError("Can't analyse a 'date' field : "+_sieve["date"])
+        raise KatalError("Can't analyse a 'date' field : "+_filter["date"])
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__siev_name(_sieve, _filename):
+def thefilehastobeadded__siev_name(_filter, _filename):
     """
         thefilehastobeadded__siev_name()
         ________________________________________________________________________
 
-        Function used by thefilehastobeadded__sieves() : check if the name of a
-        file matches the sieve given as a parameter.
+        Function used by thefilehastobeadded__filters() : check if the name of a
+        file matches the filter given as a parameter.
         ________________________________________________________________________
 
         PARAMETERS
-                o _sieve        : a dict object; see documentation:selection
+                o _filter        : a dict object; see documentation:selection
                 o _filename     : (str) file's name
 
         RETURNED VALUE
                 the expected boolean
     """
-    return re.match(_sieve["name"], _filename) is not None
+    return re.match(_filter["name"], _filename) is not None
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__siev_size(_sieve, _size):
+def thefilehastobeadded__siev_size(_filter, _size):
     """
         thefilehastobeadded__siev_size()
         ________________________________________________________________________
 
-        Function used by thefilehastobeadded__sieves() : check if the size of a
-        file matches the sieve given as a parameter.
+        Function used by thefilehastobeadded__filters() : check if the size of a
+        file matches the filter given as a parameter.
         ________________________________________________________________________
 
         PARAMETERS
-                o _sieve        : a dict object; see documentation:selection
+                o _filter        : a dict object; see documentation:selection
                 o _size         : (str) file's size
 
         RETURNED VALUE
@@ -2367,26 +2367,26 @@ def thefilehastobeadded__siev_size(_sieve, _size):
     """
     res = False
 
-    sieve_size = _sieve["size"] # a string like ">999" : see documentation:selection
+    filter_size = _filter["size"] # a string like ">999" : see documentation:selection
 
     # beware !  the order matters (<= before <, >= before >)
-    if sieve_size.startswith(">="):
-        if _size >= int(sieve_size[2:]):
+    if filter_size.startswith(">="):
+        if _size >= int(filter_size[2:]):
             res = True
-    elif sieve_size.startswith(">"):
-        if _size > int(sieve_size[1:]):
+    elif filter_size.startswith(">"):
+        if _size > int(filter_size[1:]):
             res = True
-    elif sieve_size.startswith("<="):
-        if _size <= int(sieve_size[2:]):
+    elif filter_size.startswith("<="):
+        if _size <= int(filter_size[2:]):
             res = True
-    elif sieve_size.startswith("<"):
-        if _size < int(sieve_size[1:]):
+    elif filter_size.startswith("<"):
+        if _size < int(filter_size[1:]):
             res = True
-    elif sieve_size.startswith("="):
-        if _size == int(sieve_size[1:]):
+    elif filter_size.startswith("="):
+        if _size == int(filter_size[1:]):
             res = True
     else:
-        raise KatalError("Can't analyse {0} in the sieve.".format(sieve_size))
+        raise KatalError("Can't analyse {0} in the filter.".format(filter_size))
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
