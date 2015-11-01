@@ -1131,7 +1131,7 @@ def fill_select(_debug_datatime=None):
                 number_of_discarded_files += 1
 
                 msg("    - {0} discarded \"{1}\" " \
-                    ": incompatibility with the filter".format(prefix, fullname),
+                    ": incompatibility with the filter(s)".format(prefix, fullname),
                     _important_msg=False)
             else:
                 tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size, time)
