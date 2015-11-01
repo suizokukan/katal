@@ -2170,15 +2170,25 @@ def size_as_str(_size):
                 a str(ing)
     """
     if _size == 0:
-        return "0 byte"
-    elif _size < 100000:
-        return "{0} bytes".format(_size)
-    elif _size < 1000000:
-        return "~{0:.2f} Mo ({1} bytes)".format(_size/1000000.0,
-                                                _size)
+        res = "0 byte"
+    elif _size < 1000:
+        res = "{0} bytes".format(_size)
+    elif _size < 9000:
+        res = "{0} kB ({1} bytes)".format(_size/1000.0, _size)
+    elif _size < 9000000:
+        res = "~{0:.2f} MB ({1} bytes)".format(_size/1000000.0, _size)
+    elif _size < 9000000000:
+        res = "~{0:.2f} GB ({1} bytes)".format(_size/1000000000.0, _size)
+    elif _size < 9000000000000:
+        res = "~{0:.2f} TB ({1} bytes)".format(_size/1000000000000.0, _size)
+    elif _size < 9000000000000000:
+        res = "~{0:.2f} PB ({1} bytes)".format(_size/1000000000000000.0, _size)
+    elif _size < 9000000000000000000:
+        res = "~{0:.2f} EB ({1} bytes)".format(_size/1000000000000000000.0, _size)
     else:
-        return "~{0:.2f} Go ({1} bytes)".format(_size/1000000000.0,
-                                                _size)
+        res = "~{0:.2f} ZB ({1} bytes)".format(_size/1000000000000000000000.0, _size)
+
+    return res
 
 #//////////////////////////////////////////////////////////////////////////////
 def tagsstr_repr(_tagsstr):
