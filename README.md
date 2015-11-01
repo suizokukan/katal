@@ -136,6 +136,16 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v.0.1.7 (2015_11_01)
+
+        o added --copyto parameter
+
+        o filled the faked/src directory
+        o updated create_faked_target.sh in order to test the --copyto parameter
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.6 (2015_11_01)
 
         o improved the string returned by size_as_str() : no more 'Go' (>'GB'), ...
