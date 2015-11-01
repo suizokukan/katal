@@ -377,24 +377,42 @@ def action__findtag(_tag):
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
-    number_of_res = 0
-
+    res = []
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
         if _tag in db_record["tagsstr"]:
-            number_of_res += 1
 
+            res.append(db_record["name"])
             msg("    o \"{0}\" : \"{1}\"".format(db_record["name"],
                                                  tagsstr_repr(db_record["tagsstr"])))
 
-    if number_of_res == 0:
+    len_res = len(res)
+    if len_res == 0:
         msg("    o no file matches the tag \"{0}\" .".format(_tag))
-    elif number_of_res == 1:
+    elif len_res == 1:
         msg("    o one file matches the tag \"{0}\" .".format(_tag))
     else:
-        msg("    o {0} files match the tag \"{1}\" .".format(number_of_res, _tag))
+        msg("    o {0} files match the tag \"{1}\" .".format(len_res, _tag))
 
     db_connection.commit()
     db_connection.close()
+
+    # --copyto argument :
+    if ARGS.copyto:
+        msg("    o copying the files into \"{0}\" (path: \"{1}\")".format(ARGS.copyto,
+                                                                          normpath(ARGS.copyto)))
+
+        if not os.path.exists(normpath(ARGS.copyto)):
+            msg("    * let's create \"{0}\" (path: \"{1}\"".format(ARGS.copyto,
+                                                                   normpath(ARGS.copyto)))
+            if not ARGS.off:
+                os.mkdir(normpath(ARGS.copyto))
+
+        for i, filename in enumerate(res):
+            src = os.path.join(normpath(TARGET_PATH), filename)
+            dest = os.path.join(normpath(ARGS.copyto), filename)
+            msg("    o ({0}/{1}) copying \"{2}\" as \"{3}\"...".format(i+1, len_res, src, dest))
+            if not ARGS.off:
+                shutil.copy(src, dest)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__infos():
@@ -946,6 +964,10 @@ def check_args():
     # --strictcmp can only be used with --select or with --add :
     if ARGS.strictcmp and not (ARGS.add or ARGS.select):
         raise KatalError("--strictcmp can only be used in combination with --select or with --add")
+
+    # --copyto can only be used with --findtag :
+    if ARGS.copyto and not ARGS.findtag:
+        raise KatalError("--copyto can only be used in combination with --findtag .")
 
 #///////////////////////////////////////////////////////////////////////////////
 def create_subdirs_in_target_path():
@@ -1713,6 +1735,11 @@ def read_command_line_arguments():
     parser.add_argument('--cleandbrm',
                         action="store_true",
                         help="Remove from the database the missing files in the target path.")
+
+    parser.add_argument('--copyto',
+                        type=str,
+                        help="To be used with the --findtag parameter. Copy the found files " \
+                              "into an export directory.")
 
     parser.add_argument('-ddcfg', '--downloaddefaultcfg',
                         action="store_true",
