@@ -1130,8 +1130,7 @@ def fill_select(_debug_datatime=None):
                 number_of_discarded_files += 1
 
                 msg("    - {0} discarded \"{1}\" " \
-                    ": incompatibility with the filter(s)".format(prefix, fullname),
-                    _important_msg=False)
+                    ": incompatibility with the filter(s)".format(prefix, fullname))
             else:
                 tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size, time)
 
@@ -1158,8 +1157,7 @@ def fill_select(_debug_datatime=None):
 
                     msg("    + {0} selected {1} (file selected #{2})".format(prefix,
                                                                              fullname,
-                                                                             len(SELECT)),
-                        _important_msg=False)
+                                                                             len(SELECT)))
 
                     SELECT_SIZE_IN_BYTES += size
                 else:
@@ -1167,8 +1165,7 @@ def fill_select(_debug_datatime=None):
                     number_of_discarded_files += 1
 
                     msg("    - {0} (similar hashid) " \
-                        " discarded \"{1}\"".format(prefix, fullname),
-                        _important_msg=False)
+                        " discarded \"{1}\"".format(prefix, fullname))
 
     return fill_select__checks(_number_of_discarded_files=number_of_discarded_files,
                                _prefix=prefix,
