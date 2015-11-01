@@ -108,7 +108,6 @@ PARTIALHASHID_BYTESNBR = 1000000
 
 LOGFILE = None  # the file descriptor, initialized by logfile_opening()
 USE_LOGFILE = False  # (bool) initialized from the configuration file
-LOG_VERBOSITY = "high"  # initialized from the configuration file (see documentation:logfile)
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
 # are stored.
@@ -1629,7 +1628,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
         db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
+def msg(_msg, _for_console=True, _for_logfile=True):
     """
         msg()
         ________________________________________________________________________
@@ -1643,14 +1642,9 @@ def msg(_msg, _for_console=True, _for_logfile=True, _important_msg=True):
                 o _msg          : (str) the message to be written
                 o _for_console  : (bool) authorization to write on console
                 o _for_logfile  : (bool) authorization to write in the log file
-                o _important_msg: (bool) if False, will be printed only if
-                                  LOG_VERBOSITY is set to "high" .
 
         no RETURNED VALUE
     """
-    if _important_msg is True and LOG_VERBOSITY == "low":
-        return
-
     # first to the console : otherwise, if an error occurs by writing to the log
     # file, it would'nt possible to read the message.
     if not ARGS.mute and _for_console:
@@ -1852,7 +1846,7 @@ def read_parameters_from_cfgfile(_configfile_name):
                 None if an error occured while reading the configuration file
                 or the expected configparser.ConfigParser object=.
     """
-    global USE_LOGFILE, LOG_VERBOSITY
+    global USE_LOGFILE
     global TARGET_PATH, TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
     global HASHID_MAXLENGTH, TAGSSTR_MAXLENGTH
@@ -1862,7 +1856,6 @@ def read_parameters_from_cfgfile(_configfile_name):
     try:
         parser.read(_configfile_name)
         USE_LOGFILE = parser["log file"]["use log file"] == "True"
-        LOG_VERBOSITY = parser["log file"]["verbosity"]
         TARGET_PATH = ARGS.targetpath
         TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
         SOURCE_PATH = parser["source"]["path"]
