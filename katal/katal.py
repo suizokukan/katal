@@ -118,15 +118,16 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
                                              "extension",
                                              "size",
                                              "date",
-                                             "targetname",])
+                                             "targetname",
+                                             "targettags",])
 
 SELECT = {} # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
 FILTERS = {}  # see documentation:selection; initialized by read_filters()
 
 # date's string format, e.g. "2015-09-17 20:01"
-DATETIME_FORMAT = "%Y-%m-%d %H:%M"
-DATETIME_FORMAT_LENGTH = 16
+DTIME_FORMAT = "%Y-%m-%d %H:%M"
+DTIME_FORMAT_LENGTH = 16
 
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
@@ -233,7 +234,7 @@ def action__add():
                                   SELECT[hashid].targetname,
                                   complete_source_filename,
                                   sourcedate,
-                                  ""))
+                                  SELECT[hashid].targettags))
 
     msg("    = all files have been copied, let's update the database... =")
 
@@ -509,6 +510,8 @@ def action__rebase(_newtargetpath):
     msg("    o config file found and read (ok)")
     msg("    o new filenames' format : " \
         "{0}".format(dest_params["target"]["name of the target files"]))
+    msg("    o tags to be added : " \
+        "{0}".format(dest_params["target"]["tags"]))
 
     new_db = os.path.join(normpath(_newtargetpath), KATALSYS_SUBDIR, DATABASE_NAME)
     if not ARGS.off:
@@ -583,7 +586,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                                _path=olddb_record["sourcename"],
                                _extension=extension,
                                _size=size,
-                               _date=datetime.utcfromtimestamp(date).strftime(DATETIME_FORMAT),
+                               _date=datetime.utcfromtimestamp(date).strftime(DTIME_FORMAT),
                                _database_index=index)
         new_name = normpath(os.path.join(_newtargetpath, new_name))
         tagsstr = olddb_record["tagsstr"]
@@ -643,7 +646,7 @@ def action__rebase__write(_new_db, _files):
                                 futurefile[2],          # sourcedate
                                 futurefile[3])          # tags
 
-            strdate = datetime.utcfromtimestamp(futurefile[2]).strftime(DATETIME_FORMAT)
+            strdate = datetime.utcfromtimestamp(futurefile[2]).strftime(DTIME_FORMAT)
             msg("    o ({0}/{1}) adding a file in the new database".format(index+1, len(_files)))
             msg("      o hashid      : {0}".format(futurefile_hashid))
             msg("      o source name : \"{0}\"".format(futurefile[0]))
@@ -930,6 +933,77 @@ def action__target_kill(_filename):
         return res
 
 #///////////////////////////////////////////////////////////////////////////////
+def add_keywords_in_targetstr(_srcstring,
+                              _hashid,
+                              _filename_no_extens,
+                              _path,
+                              _extension,
+                              _size,
+                              _date,
+                              _database_index):
+    """
+        create_target_name()
+        ________________________________________________________________________
+
+        The function replaces some keywords in the string by the parameters given
+        to this function.
+        The function returned a string which may be used to create target files.
+
+        see the available keywords in the documentation.
+            (see documentation:configuration file)
+
+        caveat : in the .ini files, '%' have to be written twice (as in
+                 '%%p', e.g.) but Python reads it as if only one % was
+                 written.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _parameters                   : an object returned by
+                                                  read_parameters_from_cfgfile(),
+                                                  like PARAMETERS
+                o _hashid                       : (str)
+                o _filename_no_extens           : (str)
+                o _path                         : (str
+                o _extension                    : (str)
+                o _size                         : (int)
+                o _date                         : (str) see DTIME_FORMAT
+                o _database_index               : (int)
+
+        RETURNED VALUE
+                (str)the expected string
+    """
+    res = _srcstring
+
+    # beware : order matters !
+    res = res.replace("%ht",
+                      hex(int(datetime.strptime(_date,
+                                                DTIME_FORMAT).timestamp()))[2:])
+
+    res = res.replace("%h", _hashid)
+
+    res = res.replace("%ff", remove_illegal_characters(_filename_no_extens))
+    res = res.replace("%f", _filename_no_extens)
+
+    res = res.replace("%pp", remove_illegal_characters(_path))
+    res = res.replace("%p", _path)
+
+    res = res.replace("%ee", remove_illegal_characters(_extension))
+    res = res.replace("%e", _extension)
+
+    res = res.replace("%s", str(_size))
+
+    res = res.replace("%dd", remove_illegal_characters(_date))
+
+    res = res.replace("%t",
+                      str(int(datetime.strptime(_date,
+                                                DTIME_FORMAT).timestamp())))
+
+    res = res.replace("%i",
+                      remove_illegal_characters(str(_database_index)))
+
+    return res
+
+#///////////////////////////////////////////////////////////////////////////////
 def check_args():
     """
         check_args()
@@ -1034,42 +1108,131 @@ def create_target_name(_parameters,
                 o _path                         : (str
                 o _extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see DATETIME_FORMAT
+                o _date                         : (str) see DTIME_FORMAT
                 o _database_index               : (int)
 
         RETURNED VALUE
-                the expected string
+                (str)name
     """
-    target_name = _parameters["target"]["name of the target files"]
+    return(add_keywords_in_targetstr(_srcstring=_parameters["target"]["name of the target files"],
+                                     _hashid=_hashid,
+                                     _filename_no_extens=_filename_no_extens,
+                                     _path=_path,
+                                     _extension=_extension,
+                                     _size=_size,
+                                     _date=_date,
+                                     _database_index=_database_index))
 
-    # beware : order matters !
-    target_name = target_name.replace("%ht",
-                                      hex(int(datetime.strptime(_date,
-                                                                DATETIME_FORMAT).timestamp()))[2:])
+#/////////////////////////////////////////////////////////////////////////////////////////
+def create_target_name_and_tags(_parameters,
+                                _hashid,
+                                _filename_no_extens,
+                                _path,
+                                _extension,
+                                _size,
+                                _date,
+                                _database_index):
+    """
+        create_target_name_and_tags()
+        ________________________________________________________________________
 
-    target_name = target_name.replace("%h", _hashid)
+        Create the name of a file (a target file) from various informations
+        given by the parameters. The function reads the string stored in
+        _parameters["target"]["name of the target files"] and in
+        _parameters["target"]["tags"] and replaces some
+        keywords in the string by the parameters given to this function.
 
-    target_name = target_name.replace("%ff", remove_illegal_characters(_filename_no_extens))
-    target_name = target_name.replace("%f", _filename_no_extens)
+        see the available keywords in the documentation.
+            (see documentation:configuration file)
 
-    target_name = target_name.replace("%pp", remove_illegal_characters(_path))
-    target_name = target_name.replace("%p", _path)
+        caveat : in the .ini files, '%' have to be written twice (as in
+                 '%%p', e.g.) but Python reads it as if only one % was
+                 written.
+        ________________________________________________________________________
 
-    target_name = target_name.replace("%ee", remove_illegal_characters(_extension))
-    target_name = target_name.replace("%e", _extension)
+        PARAMETERS
+                o _parameters                   : an object returned by
+                                                  read_parameters_from_cfgfile(),
+                                                  like PARAMETERS
+                o _hashid                       : (str)
+                o _filename_no_extens           : (str)
+                o _path                         : (str
+                o _extension                    : (str)
+                o _size                         : (int)
+                o _date                         : (str) see DTIME_FORMAT
+                o _database_index               : (int)
 
-    target_name = target_name.replace("%s", str(_size))
+        RETURNED VALUE
+                ( (str)name, (str)tags )
+    """
+    name = create_target_name(_parameters,
+                              _hashid,
+                              _filename_no_extens,
+                              _path,
+                              _extension,
+                              _size,
+                              _date,
+                              _database_index)
 
-    target_name = target_name.replace("%dd", remove_illegal_characters(_date))
+    tags = create_target_name(_parameters,
+                              _hashid,
+                              _filename_no_extens,
+                              _path,
+                              _extension,
+                              _size,
+                              _date,
+                              _database_index)
+    return (name, tags)
 
-    target_name = target_name.replace("%t",
-                                      str(int(datetime.strptime(_date,
-                                                                DATETIME_FORMAT).timestamp())))
+#/////////////////////////////////////////////////////////////////////////////////////////
+def create_target_tags(_parameters,
+                       _hashid,
+                       _filename_no_extens,
+                       _path,
+                       _extension,
+                       _size,
+                       _date,
+                       _database_index):
+    """
+        create_target_tags()
+        ________________________________________________________________________
 
-    target_name = target_name.replace("%i",
-                                      remove_illegal_characters(str(_database_index)))
+        Create the tags of a file (a target file) from various informations
+        given by the parameters. The function reads the string stored in
+        _parameters["target"]["tags"] and replaces some
+        keywords in the string by the parameters given to this function.
 
-    return target_name
+        see the available keywords in the documentation.
+            (see documentation:configuration file)
+
+        caveat : in the .ini files, '%' have to be written twice (as in
+                 '%%p', e.g.) but Python reads it as if only one % was
+                 written.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o _parameters                   : an object returned by
+                                                  read_parameters_from_cfgfile(),
+                                                  like PARAMETERS
+                o _hashid                       : (str)
+                o _filename_no_extens           : (str)
+                o _path                         : (str
+                o _extension                    : (str)
+                o _size                         : (int)
+                o _date                         : (str) see DTIME_FORMAT
+                o _database_index               : (int)
+
+        RETURNED VALUE
+                (str)name
+    """
+    return(add_keywords_in_targetstr(_srcstring=_parameters["target"]["tags"],
+                                     _hashid=_hashid,
+                                     _filename_no_extens=_filename_no_extens,
+                                     _path=_path,
+                                     _extension=_extension,
+                                     _size=_size,
+                                     _date=_date,
+                                     _database_index=_database_index))
 
 #///////////////////////////////////////////////////////////////////////////////
 def eval_filter_for_a_file(_filter, _filename, _size, _date):
@@ -1112,7 +1275,7 @@ def fill_select(_debug_datatime=None):
         ________________________________________________________________________
 
         PARAMETERS
-                o  _debug_datatime : None (normal value) or a dict of DATETIME_FORMAT
+                o  _debug_datatime : None (normal value) or a dict of DTIME_FORMAT
                                      strings if in debug/test mode.
 
         RETURNED VALUE
@@ -1138,9 +1301,9 @@ def fill_select(_debug_datatime=None):
                 time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
                 time = time.replace(second=0, microsecond=0)
             else:
-                time = datetime.strptime(_debug_datatime[fullname], DATETIME_FORMAT)
+                time = datetime.strptime(_debug_datatime[fullname], DTIME_FORMAT)
 
-            filename_no_extens, extension = get_filename_and_extension(normpath(filename))
+            fname_no_extens, extension = get_filename_and_extension(normpath(filename))
 
 	        # if we know the total amount of files to be selected (see the --infos option),
 	        # we can add the percentage done :
@@ -1162,20 +1325,30 @@ def fill_select(_debug_datatime=None):
                      SELECTELEMENT(fullname=fullname,
                                    partialhashid=partialhashid,
                                    path=dirpath,
-                                   filename_no_extens=filename_no_extens,
+                                   filename_no_extens=fname_no_extens,
                                    extension=extension,
                                    size=size,
-                                   date=time.strftime(DATETIME_FORMAT),
-                                   targetname=\
-                                     create_target_name(_parameters=PARAMETERS,
-                                                        _hashid=hashid,
-                                                        _filename_no_extens=filename_no_extens,
-                                                        _path=dirpath,
-                                                        _extension=extension,
-                                                        _size=size,
-                                                        _date=time.strftime(DATETIME_FORMAT),
-                                                        _database_index=len(TARGET_DB) + \
-                                                                        len(SELECT)))
+                                   date=time.strftime(DTIME_FORMAT),
+                                   targetname= \
+                                        create_target_name(_parameters=PARAMETERS,
+                                                           _hashid=hashid,
+                                                           _filename_no_extens=fname_no_extens,
+                                                           _path=dirpath,
+                                                           _extension=extension,
+                                                           _size=size,
+                                                           _date=time.strftime(DTIME_FORMAT),
+                                                           _database_index=len(TARGET_DB) + \
+                                                                           len(SELECT)),
+                                   targettags= \
+                                        create_target_tags(_parameters=PARAMETERS,
+                                                           _hashid=hashid,
+                                                           _filename_no_extens=fname_no_extens,
+                                                           _path=dirpath,
+                                                           _extension=extension,
+                                                           _size=size,
+                                                           _date=time.strftime(DTIME_FORMAT),
+                                                           _database_index=len(TARGET_DB) + \
+                                                                           len(SELECT)))
 
                     msg("    + {0} selected {1} (file selected #{2})".format(prefix,
                                                                              fullname,
@@ -1306,13 +1479,13 @@ def get_filename_and_extension(_path):
                 (str)filename without extension, (str)the extension without the
                 initial dot.
     """
-    filename_no_extens, extension = os.path.splitext(_path)
+    fname_no_extens, extension = os.path.splitext(_path)
 
     # the extension can't begin with a dot.
     if extension.startswith("."):
         extension = extension[1:]
 
-    return filename_no_extens, extension
+    return fname_no_extens, extension
 
 #///////////////////////////////////////////////////////////////////////////////
 def goodbye():
@@ -1326,7 +1499,7 @@ def goodbye():
         no PARAMETER, no RETURNED VALUE
     """
     msg("=== exit (stopped at {0}; " \
-        "total duration time : {1}) ===".format(datetime.now().strftime(DATETIME_FORMAT),
+        "total duration time : {1}) ===".format(datetime.now().strftime(DTIME_FORMAT),
                                                 datetime.now() - TIMESTAMP_BEGIN))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -2154,7 +2327,7 @@ def show_infos_about_target_path():
         row_index = 0
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
             sourcedate = \
-                datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DATETIME_FORMAT)
+                datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DTIME_FORMAT)
 
             rows_data.append((db_record["hashid"],
                               db_record["name"],
@@ -2174,7 +2347,7 @@ def show_infos_about_target_path():
                               ("name", TARGETNAME_MAXLENGTH, "|"),
                               ("tags", TAGSSTR_MAXLENGTH, "|"),
                               ("source name", SOURCENAME_MAXLENGTH, "|"),
-                              ("source date", DATETIME_FORMAT_LENGTH, "|")),
+                              ("source date", DTIME_FORMAT_LENGTH, "|")),
                        _data=rows_data)
 
         db_connection.close()
@@ -2384,15 +2557,15 @@ def thefilehastobeadded__filt_date(_filter, _date):
     """
     # beware ! the order matters (<= before <, >= before >)
     if _filter["date"].startswith("="):
-        return _date == datetime.strptime(_filter["date"][1:], DATETIME_FORMAT)
+        return _date == datetime.strptime(_filter["date"][1:], DTIME_FORMAT)
     elif _filter["date"].startswith(">="):
-        return _date >= datetime.strptime(_filter["date"][2:], DATETIME_FORMAT)
+        return _date >= datetime.strptime(_filter["date"][2:], DTIME_FORMAT)
     elif _filter["date"].startswith(">"):
-        return _date > datetime.strptime(_filter["date"][1:], DATETIME_FORMAT)
+        return _date > datetime.strptime(_filter["date"][1:], DTIME_FORMAT)
     elif _filter["date"].startswith("<="):
-        return _date < datetime.strptime(_filter["date"][2:], DATETIME_FORMAT)
+        return _date < datetime.strptime(_filter["date"][2:], DTIME_FORMAT)
     elif _filter["date"].startswith("<"):
-        return _date < datetime.strptime(_filter["date"][1:], DATETIME_FORMAT)
+        return _date < datetime.strptime(_filter["date"][1:], DTIME_FORMAT)
     else:
         raise KatalError("Can't analyse a 'date' field : "+_filter["date"])
 
