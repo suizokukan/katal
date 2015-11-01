@@ -127,6 +127,17 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v.0.1.6 (2015_11_01)
+
+        o improved the string returned by size_as_str() : no more 'Go' (>'GB'), ...
+
+        o removed the _import_msg argument from msg()
+        o removed the 'verbosity' keyword from the cfg files and from the script
+        o improved a message in fill_select()
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.5 (2015_10_30)
 
         o fixed a bug in create_target_name() : the order of the if's mattered.
