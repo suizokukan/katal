@@ -25,7 +25,7 @@ Once the target directory is filled with some files, a database is added to the 
     $ katal --version
     ... wil display the version of the current script.
     
-    note : using the --off option allow the user to use Katal without modifying the target directory : with --off, no file will be written and the database will not change.
+    note : using the --off option allows the user to use Katal without modifying the target directory : with --off, no file will be written and the database will not change.
     note : Katal NEVER simply deletes a file : the script move ALWAYS the file to be deleted in its trash directory.
 
     Create the target directory :
