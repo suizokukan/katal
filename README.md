@@ -9,6 +9,8 @@ Once the target directory is filled with some files, a database is added to the 
 
 #(3) installation
 
+    Don't forget : Katal is Python3 project, not a Python2 project !
+
     $ pip3 install katal
 
     or
@@ -16,23 +18,90 @@ Once the target directory is filled with some files, a database is added to the 
     $ wget https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.py
     Since katal.py is a stand-alone file, you may place this file in the target directory.
     
-#(4) how to use (in brief)
-
-    Don't forget : Katal is Python3 project, not a Python2 project !
+#(4) how to use
+    
+    $ katal -h
+    ... will display all known parameters.
+    $ katal --version
+    ... wil display the version of the current script.
+    
+    note : using the --off option allow the user to use Katal without modifying the target directory : with --off, no file will be written and the database will not change.
+    note : Katal NEVER simply deletes a file : the script move ALWAYS the file to be deleted in its trash directory.
 
     Create the target directory :
-    
     $ katal --new myworkingdirectory
-
-    Check if everything's is alright :
-
+    
+    It would be convenient to go inside the target directory, e.g. :
+    $ cd myworkingdirectory
+    
+    If katal wasn't installed on the computer (pip3 install katal), it may be convenient to copy the script katal.py inside the target directory, e.g. :
+    $ cp katal.py myworkingdirectory
+    
+    Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
+    [source]
+    path : ~/src/
+    
+    Take a look at the files stored in the source directory :
     $ katal --infos
-
-    Modify the .ini file (myworkingdirectory/.katal/katal.ini), choose a source.
+    Some informations are displayed : how many files lie in the source directory, what are the extensions, and so on.
+    
+    Choose which files have to be selected; modify the .ini file :
+    eval : filter1 or filter2
+    [source.filter1]
+    ci_name : .*\.jpg$
+    size : >= 1MB
+    
+    [source.filter2]
+    ci_name : .*\.bmp$
+    size : >= 5MB
+    
+    Choose a name for the files in the target directory, e.g. :
+    name of the target files : birthday__%%dd__%%i.%%e
+    (%%dd : date (e.g. 2015_09_25_06_50)
+    (%%i : database index, like "0", "1", "2"...)
+    (%%e : extension, like "jpg")
 
     Check if everything's is alright :
-
+    $ katal --infos
+    
+    Let's see what would happen if the script select the files :
     $ katal --select  ... and answer 'yes' to the final question if all the details are ok to you.    
+    The files will be copied in the target directory.
+    
+    If you want to move the files from source directory to target directory, use the --move option.
+    If you want a bit-to-bit check if two files have the same hashes, use the --strictcmp option.
+    
+    See the result (ti : target informations)
+    $ katal -ti
+    
+    If want to start from scratch just keeping the configuration file, you may delete all target files and flush the database with :
+    $ katal --reset
+    ...and modify the configuration file and use again --select
+    
+    Let's tag some files :
+    $ katal --addtag=tree --to=*.jpg
+    $ katal --addtag=birthday --to=myfile.bmp
+    
+    Let's search some tags :
+    $ katal --findtag=tree
+    
+    Let's search some files and copy the selected files in new directory :
+    $ katal --findtag=birthday --copyto=backup_birthday
+    
+    Let's remove all the files without any tag :
+    $ katal --rmnotags
+    ... the files will be copied in the trash directory (myworkingdirectory/.katal/trash)
+    
+    Let's remove a file :
+    $ katal --targetkill=myfile.jpg
+    Let's remove some files :
+    $ katal --targetkill=file*.jpg
+    
+    Let's copy a target directory into another one, which didn't exist :
+    $ katal --new=../target2
+    modify the configuration file in target2 : e.g. you may change the name of the files. Then :
+    $ katal --rebase=../target2
+    
 
 #(5) author
 suizokukan (suizokukan AT orange DOT fr)
