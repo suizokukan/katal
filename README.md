@@ -18,7 +18,7 @@ Once the target directory is filled with some files, a database is added to the 
     $ wget https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.py
     Since katal.py is a stand-alone file, you may place this file in the target directory.
     
-#(4) how to use
+#(4) workflow
     
     $ katal -h
     ... will display all known parameters.
