@@ -25,8 +25,10 @@ Once the target directory is filled with some files, a database is added to the 
     $ katal --version
     ... wil display the version of the current script.
     
-    note : using the --off option allows the user to use Katal without modifying the target directory : with --off, no file will be written and the database will not change.
-    note : Katal NEVER simply deletes a file : the script move ALWAYS the file to be deleted in its trash directory.
+    note : using the --off option allows the user to use Katal without modifying the target 
+    directory : with --off, no file will be written and the database will not change.
+    note : Katal NEVER simply deletes a file : the script move ALWAYS the file to be deleted in its
+    trash directory.
 
     Create the target directory :
     $ katal --new myworkingdirectory
@@ -34,7 +36,8 @@ Once the target directory is filled with some files, a database is added to the 
     It would be convenient to go inside the target directory, e.g. :
     $ cd myworkingdirectory
     
-    If katal wasn't installed on the computer (pip3 install katal), it may be convenient to copy the script katal.py inside the target directory, e.g. :
+    If katal wasn't installed on the computer (pip3 install katal), it may be convenient to copy the 
+    script katal.py inside the target directory, e.g. :
     $ cp katal.py myworkingdirectory
     
     Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
@@ -43,7 +46,8 @@ Once the target directory is filled with some files, a database is added to the 
     
     Take a look at the files stored in the source directory :
     $ katal --infos
-    Some informations are displayed : how many files lie in the source directory, what are the extensions, and so on.
+    Some informations are displayed : how many files lie in the source directory, what are
+    the extensions, and so on.
     
     Choose which files have to be selected; modify the .ini file :
     eval : filter1 or filter2
@@ -74,7 +78,8 @@ Once the target directory is filled with some files, a database is added to the 
     See the result (ti : target informations)
     $ katal -ti
     
-    If want to start from scratch just keeping the configuration file, you may delete all target files and flush the database with :
+    If want to start from scratch just keeping the configuration file, you may delete all target 
+    files and flush the database with :
     $ katal --reset
     ...and modify the configuration file and use again --select
     
@@ -99,12 +104,14 @@ Once the target directory is filled with some files, a database is added to the 
     
     Let's copy a target directory into another one, which didn't exist :
     $ katal --new=../target2
-    modify the configuration file in target2 : e.g. you may change the name of the files. Then :
+    modify the configuration file in target2 : e.g. you may change the name of the files. 
+    Then :
     $ katal --rebase=../target2
     
 
 #(5) author
 suizokukan (suizokukan AT orange DOT fr)
+94.23.197.37
 
 #(6) name
 The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, register, catalogue").
