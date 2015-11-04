@@ -213,6 +213,16 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v.0.2.0 (2015_11_04)
+
+        o fixed an important bug : hashfile64() can't compute the hash with
+          the filename, the size or the date !
+
+        o improved the messages in fill_select()
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.9 (2015_11_04)
 
         o fixed an important bug : filenames whose length is greater than 260
