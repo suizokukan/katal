@@ -1350,9 +1350,10 @@ def fill_select(_debug_datatime=None):
                                                            _database_index=len(TARGET_DB) + \
                                                                            len(SELECT)))
 
-                    msg("    + {0} selected {1} (file selected #{2})".format(prefix,
+                    msg("    + {0} selected \"{1}\" (file selected #{2})".format(prefix,
                                                                              fullname,
                                                                              len(SELECT)))
+                    msg("       size={0}; date={1}".format(size, time.strftime(DTIME_FORMAT)))
 
                     SELECT_SIZE_IN_BYTES += size
                 else:
