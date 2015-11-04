@@ -1317,9 +1317,17 @@ def fill_select(_debug_datatime=None):
                 msg("    - {0} discarded \"{1}\" " \
                     ": incompatibility with the filter(s)".format(prefix, fullname))
             else:
-                tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size, time)
+                tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size)
 
-                if tobeadded:
+                if tobeadded and hashid in SELECT:
+                    # tobeadded is True but hashid is already in SELECT; let's discard <filename> :
+                    number_of_discarded_files += 1
+
+                    msg("    - {0} (similar hashid among the files to be copied, " \
+                        "in the source directory) " \
+                        " discarded \"{1}\"".format(prefix, fullname))
+
+                elif tobeadded:
                     # ok, let's add <filename> to SELECT...
                     SELECT[hashid] = \
                      SELECTELEMENT(fullname=fullname,
@@ -1351,16 +1359,17 @@ def fill_select(_debug_datatime=None):
                                                                            len(SELECT)))
 
                     msg("    + {0} selected \"{1}\" (file selected #{2})".format(prefix,
-                                                                             fullname,
-                                                                             len(SELECT)))
+                                                                                 fullname,
+                                                                                 len(SELECT)))
                     msg("       size={0}; date={1}".format(size, time.strftime(DTIME_FORMAT)))
 
                     SELECT_SIZE_IN_BYTES += size
+
                 else:
-                    # no, let's discard <filename> :
+                    # tobeadded is False : let's discard <filename> :
                     number_of_discarded_files += 1
 
-                    msg("    - {0} (similar hashid) " \
+                    msg("    - {0} (similar hashid in the database) " \
                         " discarded \"{1}\"".format(prefix, fullname))
 
     return fill_select__checks(_number_of_discarded_files=number_of_discarded_files,
@@ -1504,7 +1513,7 @@ def goodbye():
                                                 datetime.now() - TIMESTAMP_BEGIN))
 
 #///////////////////////////////////////////////////////////////////////////////
-def hashfile64(_filename, _size, _timestamp, _stop_after=None):
+def hashfile64(_filename, _stop_after=None):
     """
         hashfile64()
         ________________________________________________________________________
@@ -1516,8 +1525,6 @@ def hashfile64(_filename, _size, _timestamp, _stop_after=None):
 
         PARAMETER
                 o _filename : (str) file's name
-                o _size     : (int) file's size
-                o _timestamp: (int) file's timestamp
                 o _stop_after:(None/int) if None, the file will be entirely read,
                               otherwise, only the first _stop_after bytes will
                               be read.
@@ -1540,10 +1547,6 @@ def hashfile64(_filename, _size, _timestamp, _stop_after=None):
 
             hasher.update(buf)
             buf = afile.read(65536)
-
-    hasher.update(str(_filename).encode())
-    hasher.update(str(_size).encode())
-    hasher.update(str(_timestamp).encode())
 
     return b64encode(hasher.digest()).decode()
 
@@ -2425,7 +2428,7 @@ def tagsstr_repr(_tagsstr):
     return tagsstr
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__db(_filename, _size, _timestamp):
+def thefilehastobeadded__db(_filename, _size):
     """
         thefilehastobeadded__db()
         ________________________________________________________________________
@@ -2436,7 +2439,6 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
         PARAMETERS
                 o _filename     : (str) file's name
                 o _size         : (int) file's size, in bytes.
-                o _timestamp    : (int) file's timestamp
 
         RETURNED VALUE
                 either (False, None, None)
@@ -2454,16 +2456,13 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
     if len(res) == 0:
         return (True,
                 hashfile64(_filename=_filename,
-                           _size=_size, _timestamp=_timestamp,
                            _stop_after=PARTIALHASHID_BYTESNBR),
-                hashfile64(_filename=_filename,
-                           _size=_size, _timestamp=_timestamp))
+                hashfile64(_filename=_filename))
 
     # (2) how many file(s) among those in <res> have a partial hashid equal
     # to the partial hashid of _filename ?
     new_res = []
     src_partialhashid = hashfile64(_filename=_filename,
-                                   _size=_size, _timestamp=_timestamp,
                                    _stop_after=PARTIALHASHID_BYTESNBR)
     for hashid in res:
         target_partialhashid, _, _ = TARGET_DB[hashid]
@@ -2474,13 +2473,12 @@ def thefilehastobeadded__db(_filename, _size, _timestamp):
     if len(res) == 0:
         return (True,
                 src_partialhashid,
-                hashfile64(_filename=_filename,
-                           _size=_size, _timestamp=_timestamp))
+                hashfile64(_filename=_filename))
 
     # (3) how many file(s) among those in <res> have an hashid equal to the
     # hashid of _filename ?
     new_res = []
-    src_hashid = hashfile64(_filename=_filename, _size=_size, _timestamp=_timestamp)
+    src_hashid = hashfile64(_filename=_filename)
     for hashid in res:
         target_hashid, _, _ = TARGET_DB[hashid]
         if target_hashid == src_hashid:

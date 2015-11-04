@@ -60,8 +60,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(len(katal.SELECT), 1)
 
         # hashid of b.2 :
-        hashid = 'fFsjifi6rXXQ7BEqBzrwKovKZGESFJAP+THGBqmCtyA='
-        self.assertTrue(hashid in katal.SELECT)
+        hashid = list(katal.SELECT.keys())[0]
+        self.assertTrue(katal.SELECT[hashid].fullname, "b.2")
 
    #//////////////////////////////////////////////////////////////////////////
     def test__fill_select2(self):
@@ -76,14 +76,10 @@ class Tests(unittest.TestCase):
         katal.read_filters()
         katal.fill_select()
 
-        self.assertEqual(len(katal.SELECT), 2)
+        self.assertEqual(len(katal.SELECT), 1)
 
-        # hashid of b.2 :
-        hashid = "fFsjifi6rXXQ7BEqBzrwKovKZGESFJAP+THGBqmCtyA="
-        self.assertTrue(hashid in katal.SELECT)
-
-        # hashid of b.3 :
-        hashid = "3yCV06Q93bvCGYVjiadtyRSdffL2Bz62S2YwcY9TfMI="
+        # hashid of b.2 = b.3
+        hashid = "O2TblctVx2M5HHBxCEia4YtBEteDMA3jjgM7TJjD3q8="
         self.assertTrue(hashid in katal.SELECT)
 
     #//////////////////////////////////////////////////////////////////////////
@@ -99,30 +95,16 @@ class Tests(unittest.TestCase):
         katal.read_filters()
         katal.fill_select()
 
-        self.assertEqual(len(katal.SELECT), 6)
-
-        # hashid of ddddX.6 :
-        hashid = "D8CiKgUN5TgUbdon0KBqaXyjqSuG1G8n2a8iIamT3qQ="
-        self.assertTrue(hashid in katal.SELECT)
-
-        # hashid of c.5 :
-        hashid = "nPuC9f72wvN6FGgAuL6VLEHVD77w3+Bri6IuRLzIzOw="
-        self.assertTrue(hashid in katal.SELECT)
-
         # hashid of C.5 :
-        hashid = "wvn74+Q0B1us8F7lYNO2gDaGkFfslUTEMF4QZAS+syA="
+        hashid = "11TnbVxzyXGjz0LwAjC804And9dqVLWcFUJxApkS12I="
         self.assertTrue(hashid in katal.SELECT)
 
-        # hashid of a.0 :
-        hashid = "Bl9mkkkXB5xinUl/a0lAP5zHucJeTwAtd07OoEmvSOU="
+        # hashid of c.5 == c.4
+        hashid = "rc2y98HRxM0xEpm9nouE60nVk4TUq3ec9sr10UEwpnY="
         self.assertTrue(hashid in katal.SELECT)
 
-        # hashid of ddddd.6 :
-        hashid = "PvWbVu8eNHn1U5QWeBneT+90HeNL2ZpqXBd2XGmtZ30="
-        self.assertTrue(hashid in katal.SELECT)
-
-        # hashid of a.1 :
-        hashid = "MXK7fPzl9feGlmmG0uzmKOOrjC3lFCa4imyFbDSpfqg="
+        # hashid of a.1 == a.0
+        hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
         self.assertTrue(hashid in katal.SELECT)
 
     #//////////////////////////////////////////////////////////////////////////
@@ -140,9 +122,9 @@ class Tests(unittest.TestCase):
 
         self.assertEqual(len(katal.SELECT), 1)
 
-        hashid = "PvWbVu8eNHn1U5QWeBneT+90HeNL2ZpqXBd2XGmtZ30="
+        # hashid of ddddd.6 = ddddX.6
+        hashid = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
         self.assertTrue(hashid in katal.SELECT)
-        self.assertTrue(katal.SELECT[hashid].fullname, "ddddd.6")
 
     #//////////////////////////////////////////////////////////////////////////
     def test__fill_select5(self):
@@ -159,12 +141,15 @@ class Tests(unittest.TestCase):
 
         self.assertEqual(len(katal.SELECT), 2)
 
-        # hashid of c.5 :
-        hashid = "nPuC9f72wvN6FGgAuL6VLEHVD77w3+Bri6IuRLzIzOw="
+        for k in katal.SELECT:
+            print(k, katal.SELECT[k].fullname)
+
+        # hashid of c.5 == c.4 :
+        hashid = "rc2y98HRxM0xEpm9nouE60nVk4TUq3ec9sr10UEwpnY="
         self.assertTrue(hashid in katal.SELECT)
 
         # hashid of C.5 :
-        hashid = "wvn74+Q0B1us8F7lYNO2gDaGkFfslUTEMF4QZAS+syA="
+        hashid = "11TnbVxzyXGjz0LwAjC804And9dqVLWcFUJxApkS12I="
         self.assertTrue(hashid in katal.SELECT)
 
     #//////////////////////////////////////////////////////////////////////////
