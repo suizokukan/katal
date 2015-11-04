@@ -213,6 +213,16 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v.0.1.9 (2015_11_04)
+
+        o fixed an important bug : filenames whose length is greater than 260
+          characters are correctly taken in account.
+
+        o improved the documentation
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.1.8 (2015_11_01)
 
         o added the possibility to create tags automatically during a --select/--add .

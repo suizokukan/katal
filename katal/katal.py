@@ -1856,6 +1856,11 @@ def normpath(_path):
 
         The returned string may be used as a parameter given to by
         os.path.exists() .
+
+        about the "\\\\?\\" prefix, see e.g. this thread on StackOverflow :
+        http://stackjava-script.com/questions/1365797/
+        the prefix allows Windows to deal with path whose length is greater than
+        260 characters.
         ________________________________________________________________________
 
         PARAMETER : (str)_path
@@ -1864,8 +1869,14 @@ def normpath(_path):
     """
     res = os.path.normpath(os.path.abspath(os.path.expanduser(_path)))
 
+    if platform.system() == 'Windows':
+        res = res.replace("\\\\?\\", "")
+
     if res == ".":
         res = os.getcwd()
+
+    if platform.system() == 'Windows':
+        res = "\\\\?\\"+res
 
     return res
 
