@@ -50,14 +50,28 @@ Once the target directory is filled with some files, a database is added to the 
     the extensions, and so on.
     
     Choose which files have to be selected; modify the .ini file :
+    
+    (example 1 : all .jpg (any size) and all .bmp greater then 5MB.)
     eval : filter1 or filter2
     [source.filter1]
     ci_name : .*\.jpg$
-    size : >= 1MB
     
     [source.filter2]
     ci_name : .*\.bmp$
     size : >= 5MB
+    
+    (example 2 : all jpg,tif,bmp,png greater then 1MB.)
+    eval : filter1 and (filter2 or filter3 or filter4 or filter5)
+    [source.filter1]
+    size : >1MB
+    [source.filter2]
+    ci_name : .*\.jpg$
+    [source.filter3]
+    ci_name : .*\.tif$
+    [source.filter4]
+    ci_name : .*\.bmp$
+    [source.filter5]
+    ci_name : .*\.png$
     
     Choose a name for the files in the target directory, e.g. :
     name of the target files : birthday__%%dd__%%i.%%e
