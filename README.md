@@ -52,7 +52,9 @@ Once the target directory is filled with some files, a database is added to the 
     Choose which files have to be selected; modify the .ini file :
     
     (example 1 : all .jpg (any size) and all .bmp greater then 5MB.)
+
     eval : filter1 or filter2
+
     [source.filter1]
     ci_name : .*\.jpg$
     
