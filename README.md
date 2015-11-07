@@ -225,6 +225,9 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             .py files, use '*.py' . Please DON'T ADD the path to
                             the target directory, only the filenames (default:
                             None)
+      --usentfsprefix       Force the script to prefix filenames by a special
+                            string required by the NTFS for long filenames, namely
+                            \\?\ (default: False)
       --version             show the version and exit
 
 #(8) history
