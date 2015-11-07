@@ -1873,13 +1873,13 @@ def normpath(_path):
     """
     res = os.path.normpath(os.path.abspath(os.path.expanduser(_path)))
 
-    if platform.system() == 'Windows':
+    if ARGS.usentfsprefix:
         res = res.replace("\\\\?\\", "")
 
     if res == ".":
         res = os.getcwd()
 
-    if platform.system() == 'Windows':
+    if ARGS.usentfsprefix:
         res = "\\\\?\\"+res
 
     return res
@@ -2034,6 +2034,11 @@ def read_command_line_arguments():
                         help="give the name of the file(s) concerned by --settagsstr. " \
                         "wildcards accepted; e.g. to select all .py files, use '*.py' . " \
                         "Please DON'T ADD the path to the target directory, only the filenames")
+
+    parser.add_argument('--usentfsprefix',
+                        action="store_true",
+                        help="Force the script to prefix filenames by a special string " \
+                             "required by the NTFS for long filenames, namely \\\\?\\")
 
     parser.add_argument('--version',
                         action='version',
