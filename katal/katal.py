@@ -2232,6 +2232,12 @@ def show_infos_about_source_path():
         msg("    ! source path \"{0}\" isn't a directory .".format(SOURCE_PATH))
         return
 
+    if test_is_ntfs_prefix_mandatory(SOURCE_PATH):
+        msg("    ! the source path should be used with the NTFS prefix for long filenames.")
+
+        if not ARGS.usentfsprefix:
+            msg("    ! ... but the --usentfsprefix isn't defined !")
+
     total_size = 0
     files_number = 0
     extensions = dict()  # (str)extension : [number of files, total size]
@@ -2277,6 +2283,12 @@ def show_infos_about_target_path():
     msg("  = informations about the \"{0}\" " \
         "(path: \"{1}\") target directory =".format(TARGET_PATH,
                                                     normpath(TARGET_PATH)))
+
+    if test_is_ntfs_prefix_mandatory(TARGET_PATH):
+        msg("    ! the target path should be used with the NTFS prefix for long filenames.")
+
+        if not ARGS.usentfsprefix:
+            msg("    ! ... but the --usentfsprefix isn't defined !")
 
     def draw_table(_rows, _data):
         """
@@ -2431,6 +2443,38 @@ def tagsstr_repr(_tagsstr):
         tagsstr = tagsstr[1:]
 
     return tagsstr
+
+#///////////////////////////////////////////////////////////////////////////////
+def test_is_ntfs_prefix_mandatory(_path):
+    """
+        test_is_ntfs_prefix_mandatory
+        ________________________________________________________________________
+
+        Return True if the _path is a path in a systemfile requiring the NTFS
+        prefix for long filenames.
+        ________________________________________________________________________
+
+        PARAMETER
+            _path : (str)the path to be tested
+
+        RETURNED VALUE
+            a boolean
+    """
+    longpath1 = os.path.join(_path, "a"*250)
+    longpath2 = os.path.join(_path, "a"*250, "b"*250)
+    res = False
+
+    try:
+        os.mkdir(normpath(longpath1))
+        os.mkdir(normpath(longpath2))
+        os.path.exists(longpath2)
+    except IOError:
+        res = True
+
+    os.rmdir(longpath2)
+    os.rmdir(longpath1)
+
+    return res
 
 #///////////////////////////////////////////////////////////////////////////////
 def thefilehastobeadded__db(_filename, _size):
