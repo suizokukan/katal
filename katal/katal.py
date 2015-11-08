@@ -2236,7 +2236,10 @@ def show_infos_about_source_path():
         msg("    ! the source path should be used with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
-            msg("    ! ... but the --usentfsprefix isn't defined !")
+            msg("    ! ... but the --usentfsprefix argument wasn't given !")
+            msg("    ! You may encounter an IOError, or a FileNotFound error.")
+            msg("    ! If so, please use the --usentfsprefix argument.")
+            msg("")
 
     total_size = 0
     files_number = 0
@@ -2288,7 +2291,10 @@ def show_infos_about_target_path():
         msg("    ! the target path should be used with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
-            msg("    ! ... but the --usentfsprefix isn't defined !")
+            msg("    ! ... but the --usentfsprefix argument wasn't given !")
+            msg("    ! You may encounter an IOError, or a FileNotFound error.")
+            msg("    ! If so, please use the --usentfsprefix argument.")
+            msg("")
 
     def draw_table(_rows, _data):
         """
@@ -2460,19 +2466,16 @@ def test_is_ntfs_prefix_mandatory(_path):
         RETURNED VALUE
             a boolean
     """
-    longpath1 = os.path.join(_path, "a"*250)
-    longpath2 = os.path.join(_path, "a"*250, "b"*250)
+    longpath = os.path.join(_path, "a"*250, "b"*250)
+    longpath = os.path.normpath(os.path.abspath(os.path.expanduser(longpath)))
     res = False
-
     try:
-        os.mkdir(normpath(longpath1))
-        os.mkdir(normpath(longpath2))
-        os.path.exists(longpath2)
+        os.mkdir(longpath)
     except IOError:
         res = True
 
-    os.rmdir(longpath2)
-    os.rmdir(longpath1)
+    if res is False:
+        os.rmdir(longpath)
 
     return res
 
