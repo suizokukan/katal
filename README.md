@@ -232,6 +232,19 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v 0.2.1 (2015_11_08)
+
+        o added option --usentfsprefix
+          A special prefix is required by the NTFS for long filenames. The --usentfsprefix
+          argument allow/disallow to use such a prefix.
+
+        o improved warning messages in show_infos_about_source_path() and in
+          show_infos_about_target_path().
+        o improved the documentation in README.md
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v.0.2.0 (2015_11_04)
 
         o fixed an important bug : hashfile64() can't compute the hash with
