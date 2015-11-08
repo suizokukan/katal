@@ -2453,7 +2453,7 @@ def tagsstr_repr(_tagsstr):
 #///////////////////////////////////////////////////////////////////////////////
 def test_is_ntfs_prefix_mandatory(_path):
     """
-        test_is_ntfs_prefix_mandatory
+        test_is_ntfs_prefix_mandatory()
         ________________________________________________________________________
 
         Return True if the _path is a path in a systemfile requiring the NTFS
@@ -2470,7 +2470,7 @@ def test_is_ntfs_prefix_mandatory(_path):
     longpath = os.path.normpath(os.path.abspath(os.path.expanduser(longpath)))
     res = False
     try:
-        os.mkdir(longpath)
+        os.makedirs(longpath)
     except IOError:
         res = True
 
