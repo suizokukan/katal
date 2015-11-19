@@ -28,5 +28,5 @@ The name Katal is derived from the Ancient Greek word κατάλογος ("enrol
 
 more
 ====
-see README.md file ("how to use" section)
+see README.md file ("workflow" section)
 see https://github.com/suizokukan/katal
