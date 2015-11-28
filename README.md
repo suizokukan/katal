@@ -42,6 +42,9 @@ Once the target directory is filled with some files, a database is added to the 
     $ cp katal.py myworkingdirectory
     
 ####Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
+
+    Inside the .ini file, modify the following line :
+    
     [source]
     path : ~/src/
     
