@@ -31,7 +31,7 @@ Once the target directory is filled with some files, a database is added to the 
     note : Katal NEVER simply deletes a file : the script move ALWAYS the file to be deleted in its
     trash directory.
 
-##Create the target directory :
+###Create the target directory :
     $ katal --new myworkingdirectory
     
     It may be convenient to go inside the target directory, e.g. :
@@ -41,16 +41,16 @@ Once the target directory is filled with some files, a database is added to the 
     script katal.py inside the target directory, e.g. :
     $ cp katal.py myworkingdirectory
     
-##Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
+###Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
     [source]
     path : ~/src/
     
-##Take a look at the files stored in the source directory :
+###Take a look at the files stored in the source directory :
     $ katal --infos
     Some informations are displayed : how many files lie in the source directory, what are
     the extensions, and so on.
     
-##Choose which files have to be selected; modify the .ini file :
+###Choose which files have to be selected; modify the .ini file :
     
     (example 1 : all .jpg (any size) and all .bmp greater then 5MB.)
 
@@ -82,17 +82,17 @@ Once the target directory is filled with some files, a database is added to the 
     (%%i : database index, like "0", "1", "2"...)
     (%%e : extension, like "jpg")
 
-##Check if everything's is alright :
+###Check if everything's is alright :
     $ katal --infos
     
-##Let's see what would happen if the script select the files :
+###Let's see what would happen if the script select the files :
     $ katal --select  ... and answer 'yes' to the final question if all the details are ok to you.    
     The files will be copied in the target directory.
     
     If you want to move the files from source directory to target directory, use the --move option.
     If you want a bit-to-bit check if two files have the same hashes, use the --strictcmp option.
     
-##See the result (ti : target informations)
+###See the result (ti : target informations)
     $ katal -ti
     
     If want to start from scratch just keeping the configuration file, you may delete all target 
@@ -100,27 +100,27 @@ Once the target directory is filled with some files, a database is added to the 
     $ katal --reset
     ...and modify the configuration file and use again --select
     
-##Let's tag some files :
+###Let's tag some files :
     $ katal --addtag=tree --to=*.jpg
     $ katal --addtag=birthday --to=myfile.bmp
     
-##Let's search some tags :
+###Let's search some tags :
     $ katal --findtag=tree
     
-##Let's search some files and copy the selected files in new directory :
+###Let's search some files and copy the selected files in new directory :
     $ katal --findtag=birthday --copyto=backup_birthday
     
-##Let's remove all the files without any tag :
+###Let's remove all the files without any tag :
     $ katal --rmnotags
     ... the files will be copied in the trash directory (myworkingdirectory/.katal/trash)
     
-##Let's remove a file :
+###Let's remove a file :
     $ katal --targetkill=myfile.jpg
 
-##Let's remove some files :
+###Let's remove some files :
     $ katal --targetkill=file*.jpg
     
-##Let's copy a target directory into another one, which didn't exist :
+###Let's copy a target directory into another one, which didn't exist :
     $ katal --new=../target2
     
     modify the configuration file in target2 : e.g. you may change the name of the files.
