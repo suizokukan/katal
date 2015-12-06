@@ -1551,6 +1551,35 @@ def hashfile64(_filename, _stop_after=None):
     return b64encode(hasher.digest()).decode()
 
 #///////////////////////////////////////////////////////////////////////////////
+def is_ntfs_prefix_mandatory(_path):
+    """
+        is_ntfs_prefix_mandatory()
+        ________________________________________________________________________
+
+        Return True if the _path is a path in a systemfile requiring the NTFS
+        prefix for long filenames.
+        ________________________________________________________________________
+
+        PARAMETER
+            _path : (str)the path to be tested
+
+        RETURNED VALUE
+            a boolean
+    """
+    longpath = os.path.join(_path, "a"*250, "b"*250)
+    longpath = os.path.normpath(os.path.abspath(os.path.expanduser(longpath)))
+    res = False
+    try:
+        os.makedirs(longpath)
+    except IOError:
+        res = True
+
+    if res is False:
+        os.rmdir(longpath)
+
+    return res
+
+#///////////////////////////////////////////////////////////////////////////////
 def logfile_opening():
     """
         logfile_opening()
@@ -2235,7 +2264,7 @@ def show_infos_about_source_path():
         msg("    ! source path \"{0}\" isn't a directory .".format(SOURCE_PATH))
         return
 
-    if test_is_ntfs_prefix_mandatory(SOURCE_PATH):
+    if is_ntfs_prefix_mandatory(SOURCE_PATH):
         msg("    ! the source path should be used with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
@@ -2290,7 +2319,7 @@ def show_infos_about_target_path():
         "(path: \"{1}\") target directory =".format(TARGET_PATH,
                                                     normpath(TARGET_PATH)))
 
-    if test_is_ntfs_prefix_mandatory(TARGET_PATH):
+    if is_ntfs_prefix_mandatory(TARGET_PATH):
         msg("    ! the target path should be used with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
@@ -2452,35 +2481,6 @@ def tagsstr_repr(_tagsstr):
         tagsstr = tagsstr[1:]
 
     return tagsstr
-
-#///////////////////////////////////////////////////////////////////////////////
-def test_is_ntfs_prefix_mandatory(_path):
-    """
-        test_is_ntfs_prefix_mandatory()
-        ________________________________________________________________________
-
-        Return True if the _path is a path in a systemfile requiring the NTFS
-        prefix for long filenames.
-        ________________________________________________________________________
-
-        PARAMETER
-            _path : (str)the path to be tested
-
-        RETURNED VALUE
-            a boolean
-    """
-    longpath = os.path.join(_path, "a"*250, "b"*250)
-    longpath = os.path.normpath(os.path.abspath(os.path.expanduser(longpath)))
-    res = False
-    try:
-        os.makedirs(longpath)
-    except IOError:
-        res = True
-
-    if res is False:
-        os.rmdir(longpath)
-
-    return res
 
 #///////////////////////////////////////////////////////////////////////////////
 def thefilehastobeadded__db(_filename, _size):

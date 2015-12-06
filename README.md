@@ -779,7 +779,7 @@ trash name is defined in the configuration file.
     o  size_as_str()                        : return a size in bytes as a human-readable
                                               string
     o  tagsstr_repr()                       : return an improved representation of a tags string
-    o  test_is_ntfs_prefix_mandatory()      : return True if the _path is a path in a systemfile
+    o  is_ntfs_prefix_mandatory()           : return True if the _path is a path in a systemfile
                                               requiring the NTFS prefix for long filenames.
     o  thefilehastobeaddes__db()            : return True if the file isn't already known in the
                                               database
