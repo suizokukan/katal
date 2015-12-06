@@ -7,7 +7,7 @@ Create a catalogue from various source directories, without any duplicate. Add s
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
-#(3) installation
+#(3) installation and tests
 
     Don't forget : Katal is Python3 project, not a Python2 project !
 
@@ -17,6 +17,11 @@ Once the target directory is filled with some files, a database is added to the 
 
     $ wget https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.py
     Since katal.py is a stand-alone file, you may place this file in the target directory.
+
+    tests :
+    
+    $ python -m unittest tests/tests.py
+    $ nosetests
     
 #(4) workflow
     
