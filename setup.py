@@ -30,9 +30,10 @@
 # Pylint : disabling the "Using the global statement (global-statement)" warning
 # pylint: disable=W0622
 
-from setuptools import setup, find_packages
 from codecs import open
 from os import path
+from setuptools import setup, find_packages
+
 from katal.katal import __projectname__, __version__, __author__, __email__, \
                         __license__, __licensepipy__, \
                         __statuspypi__

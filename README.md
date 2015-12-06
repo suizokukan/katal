@@ -238,6 +238,20 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(8) history
 
+    v 0.2.2 (2015_12_07) : improved documentation and messages
+
+        o improved message in main_warmup()
+          If the options -ddcfg/--downloaddefaultcfg are used, don't display
+          the advice to use them.
+        o improved message in action__downloadefaultcfg()
+        o improved the documentation in README.md
+
+        o updated pylintrc, along with pylint 1.5.0 modifications
+        o pylinted and fixed setup.py
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v 0.2.1 (2015_11_08)
 
         o added option --usentfsprefix
