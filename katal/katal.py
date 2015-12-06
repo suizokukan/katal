@@ -1733,8 +1733,11 @@ def main_warmup():
         msg("  ! The config file \"{0}\" (path : \"{1}\") " \
             "doesn't exist. ".format(configfile_name,
                                      normpath(configfile_name)))
-        msg("    Use the -ddcfg/--downloaddefaultcfg option to download a default config file and ")
-        msg("    move this downloaded file into the target/.katal/ directory .")
+
+        if not ARGS.downloaddefaultcfg and not ARGS.ddcfg:
+            msg("    Use the -ddcfg/--downloaddefaultcfg " \
+                "option to download a default config file and ")
+            msg("    move this downloaded file into the target/.katal/ directory .")
         sys.exit(-1)
 
     elif ARGS.new is None:
