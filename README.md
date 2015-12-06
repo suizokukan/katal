@@ -21,6 +21,9 @@ Once the target directory is filled with some files, a database is added to the 
     tests :
     
     $ python -m unittest tests/tests.py
+
+    or
+    
     $ nosetests
     
 #(4) workflow
