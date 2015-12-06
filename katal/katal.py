@@ -336,7 +336,7 @@ def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
             (bool) success
     """
     msg("  = downloading the default configuration file =")
-    msg("  ... downloading {0} from {1}".format(newname, DEFAULTCFGFILE_URL))
+    msg("  ... trying to download {0} from {1}".format(newname, DEFAULTCFGFILE_URL))
 
     try:
         if not ARGS.off:
