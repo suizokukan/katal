@@ -1950,7 +1950,7 @@ def read_command_line_arguments():
 
     parser.add_argument('-cfg', '--configfile',
                         type=str,
-                        help="config file, e.g. config.ini")
+                        help="set the name of the config file, e.g. config.ini")
 
     parser.add_argument('--cleandbrm',
                         action="store_true",

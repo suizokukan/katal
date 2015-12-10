@@ -150,12 +150,13 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 #(7) arguments
 
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
-                    [--copyto] [-ddcfg] [--findtag FINDTAG] [--infos] [-m]
+                    [--copyto COPYTO] [-ddcfg] [--findtag FINDTAG] [--infos] [-m]
                     [--move] [-n NEW] [--off] [--rebase REBASE] [--reset]
                     [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR]
                     [--strictcmp] [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL]
-                    [--to TO] [--version]
+                    [--to TO] [--usentfsprefix] [--version]
 
+    optional arguments:
       -h, --help            show this help message and exit
       --add                 select files according to what is described in the
                             configuration file then add them to the target
@@ -166,11 +167,12 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
       --addtag ADDTAG       Add a tag to some file(s) in combination with the --to
                             option. (default: None)
       -cfg CONFIGFILE, --configfile CONFIGFILE
-                            config file, e.g. config.ini (default: None)
+                            set the name of the config file, e.g. config.ini
+                            (default: None)
       --cleandbrm           Remove from the database the missing files in the
                             target path. (default: False)
-      --copyto              To be used with the --findtag parameter. Copy the
-                            found files into an export directory. (default: False)
+      --copyto COPYTO       To be used with the --findtag parameter. Copy the
+                            found files into an export directory. (default: None)
       -ddcfg, --downloaddefaultcfg
                             Download the default config file and overwrite the
                             file having the same name. This is done before the
