@@ -933,6 +933,62 @@ def action__target_kill(_filename):
         return res
 
 #///////////////////////////////////////////////////////////////////////////////
+def action__whatabout(_src):
+    """
+        whatabout()
+        ________________________________________________________________________
+
+        Take a look at the _src file and answer the following question :
+        is this file already in the target directory ?
+        ________________________________________________________________________
+
+        PARAMETER
+            o _src : (str) the source file's name
+
+        RETURNED VALUE
+            o -1 if an error occured
+            o 0 if _src is already in the target directory and in the database
+            o 1 if _src isn't in the database
+    """
+    normsrc = normpath(_src)
+
+    msg("  = what about the \"{0}\" file ? (normpath : \"{1}\")".format(_src, normsrc))
+
+    if not os.path.exists(normsrc):
+        msg("  ! error : can't find source file \"{0}\" .".format(normsrc))
+        return -1
+
+    if os.path.isdir(normsrc):
+        msg("  ! error : source \"{0}\" is a directory.".format(normsrc))
+        return -1
+
+    # informations about the source file :
+    size = os.stat(normsrc).st_size
+    msg("    = size : {0}".format(size_as_str(size)))
+
+    sourcedate = datetime.utcfromtimestamp(os.path.getmtime(normsrc))
+    sourcedate = sourcedate.replace(second=0, microsecond=0)
+    sourcedate2 = sourcedate
+    sourcedate2 -= datetime(1970, 1, 1)
+    sourcedate2 = sourcedate2.total_seconds()
+    msg("    = mtime : {0} (epoch value : {1})".format(sourcedate, sourcedate2))
+
+    srchash = hashfile64(normsrc)
+    msg("    = hash : {0}".format(srchash))
+
+    # is the hash in the database ?
+    already_present = False
+    for hashid in TARGET_DB:
+        if hashid == srchash:
+            already_present = True
+            break
+
+    if already_present:
+        msg("    = the file is ALREADY present in the database")
+    else:
+        msg("    = the file isn't present in the database")
+
+#///////////////////////////////////////////////////////////////////////////////
 def add_keywords_in_targetstr(_srcstring,
                               _hashid,
                               _filename_no_extens,
@@ -1672,6 +1728,10 @@ def main_actions():
     if ARGS.targetkill:
         action__target_kill(ARGS.targetkill)
 
+    if ARGS.whatabout:
+        read_target_db()
+        action__whatabout(ARGS.whatabout)
+
     if ARGS.select:
         read_target_db()
         read_filters()
@@ -2076,6 +2136,11 @@ def read_command_line_arguments():
                         action='version',
                         version="{0} v. {1}".format(__projectname__, __version__),
                         help="show the version and exit")
+
+    parser.add_argument('--whatabout',
+                        type=str,
+                        help="Say if the file given as a parameter is in the target directory " \
+                             "notwithstanding its name.")
 
     return parser.parse_args()
 

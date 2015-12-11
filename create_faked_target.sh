@@ -17,3 +17,4 @@ rm 14.py
 ../../katal/katal.py --settagsstr="red;marble" --to=13.py
 ../../katal/katal.py --findtag=pink --copyto=xyz
 ../../katal/katal.py -ti
+../../katal/katal.py --whatabout 0.py

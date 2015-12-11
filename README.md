@@ -155,8 +155,10 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                     [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR]
                     [--strictcmp] [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL]
                     [--to TO] [--usentfsprefix] [--version]
+                    [--whatabout WHATABOUT]
 
     optional arguments:
+
       -h, --help            show this help message and exit
       --add                 select files according to what is described in the
                             configuration file then add them to the target
@@ -245,6 +247,9 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             string required by the NTFS for long filenames, namely
                             \\?\ (default: False)
       --version             show the version and exit
+      --whatabout WHATABOUT
+                            Say if the file given as a parameter is in the target
+                            directory notwithstanding its name. (default: None)
 
 #(8) history
 
@@ -740,6 +745,7 @@ trash name is defined in the configuration file.
                                               overwriting ancient tags.
     o  action__target_kill()                : delete a filename from the target directory
                                               and from the database
+    o  action__whatabout()                  : is a file already in the target directory ?
     o  add_keywords_in_targetstr()          : replace some keywords by the value given as parameters
                                               in order to make strings used to create the target files
     o  check_args()                         : check the arguments of the command line.
@@ -783,7 +789,7 @@ trash name is defined in the configuration file.
     o  tagsstr_repr()                       : return an improved representation of a tags string
     o  is_ntfs_prefix_mandatory()           : return True if the _path is a path in a systemfile
                                               requiring the NTFS prefix for long filenames.
-    o  thefilehastobeaddes__db()            : return True if the file isn't already known in the
+    o  thefilehastobeadded__db()            : return True if the file isn't already known in the
                                               database
     o  thefilehastobeadded__filters()       : return True if a file can be choosed and added to
                                             : the target directory
