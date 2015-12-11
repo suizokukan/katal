@@ -343,6 +343,7 @@ def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
             with urllib.request.urlopen(DEFAULTCFGFILE_URL) as response, \
                  open(newname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
+        msg("  * download completed.")
         return True
 
     except urllib.error.URLError as exception:
@@ -1761,6 +1762,9 @@ def main_actions():
     if ARGS.findtag:
         action__findtag(ARGS.findtag)
 
+    if ARGS.downloaddefaultcfg:
+        action__downloadefaultcfg()
+
 #///////////////////////////////////////////////////////////////////////////////
 def main_actions_tags():
     """
@@ -1800,8 +1804,8 @@ def main_warmup():
     """
     global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
-    # a special case : if the option --new has been used, let's quit :
-    if ARGS.new is not None:
+    # a special case : if thes options --new//--downloaddefaultcfg has been used, let's quit :
+    if ARGS.new is not None or ARGS.downloaddefaultcfg is not None:
         return
 
     # let's find a config file to be read :
@@ -1841,7 +1845,7 @@ def main_warmup():
                 "doesn't exist. ".format(configfile_name,
                                          normpath(configfile_name)))
 
-            if not ARGS.downloaddefaultcfg and not ARGS.ddcfg:
+            if not ARGS.downloaddefaultcfg:
                 msg(msg_useddcfg)
             sys.exit(-1)
 
@@ -2851,16 +2855,17 @@ def welcome():
     msg("="*len(strmsg))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
-    msg("  = target directory given as parameter : \"{0}\" " \
-        "(path : \"{1}\")".format(ARGS.targetpath,
-                                  normpath(ARGS.targetpath)))
+    if ARGS.new is None and ARGS.downloaddefaultcfg is None:
+        msg("  = target directory given as parameter : \"{0}\" " \
+            "(path : \"{1}\")".format(ARGS.targetpath,
+                                      normpath(ARGS.targetpath)))
 
-    if ARGS.configfile is not None:
-        msg("  = expected config file : \"{0}\" (path : \"{1}\")".format(ARGS.configfile,
-                                                                         normpath(ARGS.configfile)))
-    else:
-        msg("  = no config file specified on the command line : " \
-            "let's search a config file...")
+        if ARGS.configfile is not None:
+            msg("  = expected config file : \"{0}\" (path : \"{1}\")".format(ARGS.configfile,
+                                                                             normpath(ARGS.configfile)))
+        else:
+            msg("  = no config file specified on the command line : " \
+                "let's search a config file...")
 
     if ARGS.off:
         msg("  = WARNING                                                               =")
