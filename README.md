@@ -139,6 +139,9 @@ Once the target directory is filled with some files, a database is added to the 
     Then :
     $ katal --rebase=../target2
 
+####Check if a file external to the target directory is already stored in it ?
+    $ katal --whatabout=myfile
+
 #(5) author
 suizokukan (suizokukan AT orange DOT fr)
 
