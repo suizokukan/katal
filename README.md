@@ -776,7 +776,9 @@ trash name is defined in the configuration file.
     o  modify_the_tag_of_some_files()       : modify the tag(s) of some files
     o  msg()                                : display a message on console, write the
                                               same message in the log file.
+
     o  normpath()                           : return a human-readable, normalized version of a path
+    o  possible_paths_to_cfg()              : return a list of the (str)paths to the config file
     o  read_command_line_arguments()        : read the command line arguments
     o  read_parameters_from_cfgfile()       : read the configuration file
     o  read_filters()                       : initialize FILTERS from the configuration file

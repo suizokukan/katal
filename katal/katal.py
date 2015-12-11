@@ -1800,64 +1800,80 @@ def main_warmup():
     """
     global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
-    if ARGS.downloaddefaultcfg:
-        if not action__downloadefaultcfg():
-            msg("  ! The default configuration file couldn't be downloaded !")
+    # a special case : if the option --new has been used, let's quit :
+    if ARGS.new is not None:
+        return
+
+    # let's find a config file to be read :
+    msg_useddcfg = \
+        "  ! error : can't find any config file !\n" \
+        "    Use the -ddcfg/--downloaddefaultcfg option to download a default config file \n" \
+        "    and move this downloaded file either into the main Katal's config directory (in {0}) \n" \
+        "    either into the target/.katal/ directory .".format(possible_paths_to_cfg())
 
     configfile_name = ARGS.configfile
     if ARGS.configfile is None:
-        configfile_name = os.path.join(normpath("."),
-                                       normpath(ARGS.targetpath),
-                                       KATALSYS_SUBDIR,
-                                       DEFAULT_CONFIGFILE_NAME)
-        msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
-                                                                     normpath(configfile_name)))
+
+        for path in possible_paths_to_cfg():
+
+            msg("  * trying to read \"{0}\" as a config file...".format(path))
+
+            if os.path.exists(path):
+                msg("   ... ok, this config file can be read.")
+                configfile_name = path
+                break
+
+        if configfile_name is not None:
+            msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
+                                                                         normpath(configfile_name)))
+        else:
+            msg(msg_useddcfg)
+            sys.exit(-1)
+
     else:
         msg("  * config file given as a parameter : \"{0}\" " \
             "(path : \"{1}\"".format(configfile_name,
                                      normpath(configfile_name)))
 
-    if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
-        msg("  ! The config file \"{0}\" (path : \"{1}\") " \
-            "doesn't exist. ".format(configfile_name,
-                                     normpath(configfile_name)))
+        if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
+            msg("  ! The config file \"{0}\" (path : \"{1}\") " \
+                "doesn't exist. ".format(configfile_name,
+                                         normpath(configfile_name)))
 
-        if not ARGS.downloaddefaultcfg and not ARGS.ddcfg:
-            msg("    Use the -ddcfg/--downloaddefaultcfg " \
-                "option to download a default config file and ")
-            msg("    move this downloaded file into the target/.katal/ directory .")
-        sys.exit(-1)
-
-    elif ARGS.new is None:
-        PARAMETERS = read_parameters_from_cfgfile(configfile_name)
-        if PARAMETERS is None:
+            if not ARGS.downloaddefaultcfg and not ARGS.ddcfg:
+                msg(msg_useddcfg)
             sys.exit(-1)
-        else:
-            msg("    ... config file found and read (ok)")
 
-        DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
+    # let's read the config file :
+    PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+    if PARAMETERS is None:
+        sys.exit(-1)
+    else:
+        msg("    ... config file found and read (ok)")
 
-        # list of the expected directories : if one directory is missing, let's create it.
-        create_subdirs_in_target_path()
+    DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
 
-        if USE_LOGFILE:
-            LOGFILE = logfile_opening()
-            welcome_in_logfile()
+    # list of the expected directories : if one directory is missing, let's create it.
+    create_subdirs_in_target_path()
 
-        if TARGET_PATH == SOURCE_PATH:
-            msg("  ! warning : " \
-                "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
+    if USE_LOGFILE:
+        LOGFILE = logfile_opening()
+        welcome_in_logfile()
 
-        # we write the following informations on screen/on disk :
-        msg("  = so, let's use \"{0}\" as config file".format(configfile_name))
-        msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
-                                                                     normpath(SOURCE_PATH)))
+    if TARGET_PATH == SOURCE_PATH:
+        msg("  ! warning : " \
+            "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
-        if ARGS.infos:
-            action__infos()
+    # we write the following informations on screen/on disk :
+    msg("  = so, let's use \"{0}\" as config file".format(configfile_name))
+    msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
+                                                                 normpath(SOURCE_PATH)))
 
-        if ARGS.targetinfos:
-            show_infos_about_target_path()
+    if ARGS.infos:
+        action__infos()
+
+    if ARGS.targetinfos:
+        show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -2142,6 +2158,39 @@ def read_command_line_arguments():
                              "notwithstanding its name.")
 
     return parser.parse_args()
+
+#///////////////////////////////////////////////////////////////////////////////
+def possible_paths_to_cfg():
+    """
+        possible_paths_to_cfg()
+        ________________________________________________________________________
+
+        return a list of the (str)paths to the config file.
+        ________________________________________________________________________
+
+        NO PARAMETER.
+
+        RETURNED VALUE : the expected list of strings.
+    """
+    res = []
+
+    res.append(os.path.join(os.path.expanduser("~"),
+                            ".katal",
+                            DEFAULT_CONFIGFILE_NAME))
+
+    if platform.system() == 'Windows':
+        res.append(os.path.join(os.path.expanduser("~"),
+                                "Local Settings",
+                                "Application Data",
+                                "katal",
+                                DEFAULT_CONFIGFILE_NAME))
+
+    res.append(os.path.os.path.join(normpath("."),
+                                    normpath(ARGS.targetpath),
+                                    KATALSYS_SUBDIR,
+                                    DEFAULT_CONFIGFILE_NAME))
+
+    return res
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_parameters_from_cfgfile(_configfile_name):
@@ -2810,7 +2859,7 @@ def welcome():
                                                                          normpath(ARGS.configfile)))
     else:
         msg("  = no config file specified on the command line : " \
-            "let's search a config file in the current directory...")
+            "let's search a config file...")
 
     if ARGS.off:
         msg("  = WARNING                                                               =")
