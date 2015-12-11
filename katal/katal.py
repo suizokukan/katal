@@ -1808,8 +1808,9 @@ def main_warmup():
     msg_useddcfg = \
      "    ! error : can't find any config file !\n" \
      "    Use the -ddcfg/--downloaddefaultcfg option to download a default config file \n" \
-     "    and move this downloaded file either into the main Katal's config directory (in {0}) \n" \
-     "    either into the target/.katal/ directory .".format(possible_paths_to_cfg())
+     "    and move this downloaded file (a) either into the main Katal's config directory \n" \
+     "    (choose between {0}) \n" \
+     "    (b) either into the target/.katal/ directory .".format(possible_paths_to_cfg())
 
     configfile_name = ARGS.configfile
     if ARGS.configfile is None:
