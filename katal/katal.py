@@ -977,13 +977,12 @@ def action__whatabout(_src):
     msg("    = hash : {0}".format(srchash))
 
     # is the hash in the database ?
-    already_present = False
+    already_present_in_db = False
     for hashid in TARGET_DB:
         if hashid == srchash:
-            already_present = True
+            already_present_in_db = True
             break
-
-    if already_present:
+    if already_present_in_db:
         msg("    = the file is ALREADY present in the database")
     else:
         msg("    = the file isn't present in the database")
