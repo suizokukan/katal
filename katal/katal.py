@@ -1806,10 +1806,10 @@ def main_warmup():
 
     # let's find a config file to be read :
     msg_useddcfg = \
-        "  ! error : can't find any config file !\n" \
-        "    Use the -ddcfg/--downloaddefaultcfg option to download a default config file \n" \
-        "    and move this downloaded file either into the main Katal's config directory (in {0}) \n" \
-        "    either into the target/.katal/ directory .".format(possible_paths_to_cfg())
+     "    ! error : can't find any config file !\n" \
+     "    Use the -ddcfg/--downloaddefaultcfg option to download a default config file \n" \
+     "    and move this downloaded file either into the main Katal's config directory (in {0}) \n" \
+     "    either into the target/.katal/ directory .".format(possible_paths_to_cfg())
 
     configfile_name = ARGS.configfile
     if ARGS.configfile is None:
