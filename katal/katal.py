@@ -458,7 +458,7 @@ def action__new(targetname):
         os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
         os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
         os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, LOG_SUBSUBDIR))
-
+****$$$$$
     if not ARGS.mute:
         answer = \
             input("\nDo you want to download the default config file " \
@@ -2291,7 +2291,7 @@ def read_target_db():
         no PARAMETER, no RETURNED VALUE
     """
     if not os.path.exists(normpath(DATABASE_FULLNAME)):
-        msg("  = creating the database in the target path...")
+        msg("  = creating an empty database in the target path...")
 
         # let's create a new database in the target directory :
         db_connection = sqlite3.connect(DATABASE_FULLNAME)
