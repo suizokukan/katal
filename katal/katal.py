@@ -2263,9 +2263,9 @@ def read_filters():
                 FILTERS[filter_index]["name"] = \
                                re.compile(PARAMETERS["source.filter"+str(filter_index)]["name"])
 
-            if PARAMETERS.has_option("source.filter"+str(filter_index), "ci_name"):
+            if PARAMETERS.has_option("source.filter"+str(filter_index), "iname"):
                 FILTERS[filter_index]["name"] = \
-                               re.compile(PARAMETERS["source.filter"+str(filter_index)]["ci_name"],
+                               re.compile(PARAMETERS["source.filter"+str(filter_index)]["iname"],
                                           re.IGNORECASE)
 
             if PARAMETERS.has_option("source.filter"+str(filter_index), "size"):

@@ -68,10 +68,10 @@ Once the target directory is filled with some files, a database is added to the 
     eval : filter1 or filter2
 
     [source.filter1]
-    ci_name : .*\.jpg$
+    iname : .*\.jpg$
     
     [source.filter2]
-    ci_name : .*\.bmp$
+    iname : .*\.bmp$
     size : >= 5MB
     
     (example 2 : all jpg,tif,bmp,png greater then 1MB.)
@@ -79,13 +79,13 @@ Once the target directory is filled with some files, a database is added to the 
     [source.filter1]
     size : >1MB
     [source.filter2]
-    ci_name : .*\.jpg$
+    iname : .*\.jpg$
     [source.filter3]
-    ci_name : .*\.tif$
+    iname : .*\.tif$
     [source.filter4]
-    ci_name : .*\.bmp$
+    iname : .*\.bmp$
     [source.filter5]
-    ci_name : .*\.png$
+    iname : .*\.png$
     
     Choose a name for the files in the target directory, e.g. :
     name of the target files : birthday__%%dd__%%i.%%e
@@ -606,8 +606,8 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     [source]          : parameters about source directory 
 
     [source.filterN]   : N is an integer greater or equal to  1; [source.filter1], [source.filter2], ...
-    name/ci_name      : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
-                        (ci_name : case insensitive)
+    name/iname         : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
+                         (iname : case insensitive)
     size              : a symbol plus an integer
                         e.g., either >999, either <999, either =999, either <=999 either >=999
 
