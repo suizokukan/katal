@@ -155,13 +155,12 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-ddcfg] [--findtag FINDTAG] [--infos] [-m]
                     [--move] [-n NEW] [--off] [--rebase REBASE] [--reset]
-                    [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR]
+                    [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR] [-si]
                     [--strictcmp] [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL]
                     [--to TO] [--usentfsprefix] [--version]
                     [--whatabout WHATABOUT]
 
     optional arguments:
-
       -h, --help            show this help message and exit
       --add                 select files according to what is described in the
                             configuration file then add them to the target
@@ -226,6 +225,8 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             not an empty string : otherwise the parameter given to
                             the script wouldn't be taken in account by the shell
                             (default: None)
+      -si, --sourceinfos    display informations about the source directory
+                            (default: False)
       --strictcmp           to be used with --add or --select. Force a bit-to-bit
                             comparisionbetween files whose hashid-s is equal.
                             (default: False)
@@ -253,7 +254,6 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
       --whatabout WHATABOUT
                             Say if the file given as a parameter is in the target
                             directory notwithstanding its name. (default: None)
-
 #(8) history
 
     v 0.2.2 (2015_12_07) : improved documentation and messages
