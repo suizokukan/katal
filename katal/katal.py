@@ -1833,6 +1833,7 @@ def main_warmup():
         Initializations :
 
             o initialize DATABASE_FULLNAME
+            o -si / --sourceinfos
             o -ti / --targetinfos
             o reading of the configuration file
             o --infos
@@ -1923,6 +1924,10 @@ def main_warmup():
     #...........................................................................
     if ARGS.infos:
         action__infos()
+
+    #...........................................................................
+    if ARGS.sourceinfos:
+        show_infos_about_source_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -2161,6 +2166,10 @@ def read_command_line_arguments():
                              "If you want to empty the tags' string, please use a space, " \
                              "not an empty string : otherwise the parameter given " \
                              "to the script wouldn't be taken in account by the shell")
+
+    parser.add_argument('-si', '--sourceinfos',
+                        action="store_true",
+                        help="display informations about the source directory")
 
     parser.add_argument('--strictcmp',
                         action="store_true",
