@@ -752,6 +752,7 @@ trash name is defined in the configuration file.
     o  add_keywords_in_targetstr()          : replace some keywords by the value given as parameters
                                               in order to make strings used to create the target files
     o  check_args()                         : check the arguments of the command line.
+    o  create_empty_db()                    : create an empty database.
     o  create_subdirs_in_target_path()      : create the expected subdirectories in TARGET_PATH .
     o  create_target_name()                 : create the name of a file (a target file)
                                               from various information (filename, ...)

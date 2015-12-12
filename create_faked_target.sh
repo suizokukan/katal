@@ -13,11 +13,11 @@ echo "(04) ./katal/katal.py --new=faked/target --mute"
 echo "(05) cp faked/katal.ini faked/target/.katal"
 cp faked/katal.ini faked/target/.katal
 
-# echo "(06) cd faked/target"
-# cd faked/target
+echo "(06) cd faked/target"
+cd faked/target
 
-# echo "(07) ../../katal/katal.py --add --move --strictcmp"
-# ../../katal/katal.py --add --move --strictcmp
+echo "(07) ../../katal/katal.py --add --move --strictcmp"
+../../katal/katal.py --add --move --strictcmp
 
 # echo "(08) ../../katal/katal.py --addtag=goose --to=*5.py"
 # ../../katal/katal.py --addtag=goose --to=*5.py

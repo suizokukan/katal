@@ -89,7 +89,7 @@ SOURCE_PATH = ""  # initialized from the configuration file.
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
 
-TARGET_PATH = ""  # initialized from the configuration file.
+TARGET_PATH = "."  # initialized from the configuration file.
 TARGET_DB = dict()  # see documentation:database; initialized by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
@@ -453,12 +453,17 @@ def action__new(targetname):
         return
 
     if not ARGS.off:
+        msg("  ... creating the target directory with its sub-directories...")
         os.mkdir(normpath(targetname))
         os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR))
         os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
         os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
         os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, LOG_SUBSUBDIR))
-****$$$$$
+
+        create_empty_db(os.path.join(normpath(targetname),
+                                     KATALSYS_SUBDIR,
+                                     DATABASE_NAME))
+
     if not ARGS.mute:
         answer = \
             input("\nDo you want to download the default config file " \
@@ -1098,6 +1103,36 @@ def check_args():
     # --copyto can only be used with --findtag :
     if ARGS.copyto and not ARGS.findtag:
         raise KatalError("--copyto can only be used in combination with --findtag .")
+
+#///////////////////////////////////////////////////////////////////////////////
+def create_empty_db(_db_name):
+    """
+        create_empty_db()
+        ________________________________________________________________________
+
+        Create an empty database named _db_name .
+        ________________________________________________________________________
+
+        PARAMETER :
+            o _db_name : name of the file to be created .
+                         Please use a normpath'd parameter : the normpath function
+                         will not be called by create_empty_db() !
+
+        no RETURNED VALUE
+    """
+    msg("  ... creating an empty database named \"{0}\"...".format(_db_name))
+
+    if not ARGS.off:
+
+        db_connection = sqlite3.connect(_db_name)
+        db_cursor = db_connection.cursor()
+
+        db_cursor.execute(SQL__CREATE_DB)
+
+        db_connection.commit()
+        db_connection.close()
+
+    msg("   ... database created")
 
 #///////////////////////////////////////////////////////////////////////////////
 def create_subdirs_in_target_path():
@@ -1762,7 +1797,7 @@ def main_actions():
     if ARGS.findtag:
         action__findtag(ARGS.findtag)
 
-    if ARGS.downloaddefaultcfg:
+    if ARGS.downloaddefaultcfg is True:
         action__downloadefaultcfg()
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1795,7 +1830,12 @@ def main_warmup():
         main_warmup()
         ________________________________________________________________________
 
-        Initialization
+        Initializations :
+
+            o initialize DATABASE_FULLNAME
+            o -ti / --targetinfos
+            o reading of the configuration file
+            o --infos
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
@@ -1804,8 +1844,16 @@ def main_warmup():
     """
     global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
-    # a special case : if thes options --new//--downloaddefaultcfg has been used, let's quit :
-    if ARGS.new is not None or ARGS.downloaddefaultcfg is not None:
+    #...........................................................................
+    DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
+
+    #...........................................................................
+    if ARGS.targetinfos:
+        show_infos_about_target_path()
+
+    #...........................................................................
+    # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
+    if ARGS.new is not None or ARGS.downloaddefaultcfg is True:
         return
 
     # let's find a config file to be read :
@@ -1845,7 +1893,7 @@ def main_warmup():
                 "doesn't exist. ".format(configfile_name,
                                          normpath(configfile_name)))
 
-            if not ARGS.downloaddefaultcfg:
+            if ARGS.downloaddefaultcfg is False:
                 msg(msg_useddcfg)
             sys.exit(-1)
 
@@ -1855,8 +1903,6 @@ def main_warmup():
         sys.exit(-1)
     else:
         msg("    ... config file found and read (ok)")
-
-    DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
 
     # list of the expected directories : if one directory is missing, let's create it.
     create_subdirs_in_target_path()
@@ -1869,16 +1915,14 @@ def main_warmup():
         msg("  ! warning : " \
             "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
-    # we write the following informations on screen/on disk :
+    # we show the following informations :
     msg("  = so, let's use \"{0}\" as config file".format(configfile_name))
     msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
                                                                  normpath(SOURCE_PATH)))
 
+    #...........................................................................
     if ARGS.infos:
         action__infos()
-
-    if ARGS.targetinfos:
-        show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -2291,19 +2335,7 @@ def read_target_db():
         no PARAMETER, no RETURNED VALUE
     """
     if not os.path.exists(normpath(DATABASE_FULLNAME)):
-        msg("  = creating an empty database in the target path...")
-
-        # let's create a new database in the target directory :
-        db_connection = sqlite3.connect(DATABASE_FULLNAME)
-        db_cursor = db_connection.cursor()
-
-        if not ARGS.off:
-            db_cursor.execute(SQL__CREATE_DB)
-
-        db_connection.commit()
-        db_connection.close()
-
-        msg("  = ... database created.")
+        create_empty_db(normpath(DATABASE_FULLNAME))
 
     db_connection = sqlite3.connect(DATABASE_FULLNAME)
     db_connection.row_factory = sqlite3.Row
@@ -2855,14 +2887,15 @@ def welcome():
     msg("="*len(strmsg))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
-    if ARGS.new is None and ARGS.downloaddefaultcfg is None:
+    if ARGS.new is None and ARGS.downloaddefaultcfg is False:
         msg("  = target directory given as parameter : \"{0}\" " \
             "(path : \"{1}\")".format(ARGS.targetpath,
                                       normpath(ARGS.targetpath)))
 
         if ARGS.configfile is not None:
-            msg("  = expected config file : \"{0}\" (path : \"{1}\")".format(ARGS.configfile,
-                                                                             normpath(ARGS.configfile)))
+            msg("  = expected config file : \"{0}\" " \
+                "(path : \"{1}\")".format(ARGS.configfile,
+                                          normpath(ARGS.configfile)))
         else:
             msg("  = no config file specified on the command line : " \
                 "let's search a config file...")
