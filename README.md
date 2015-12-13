@@ -258,9 +258,36 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             \\?\ (default: False)
       --version             show the version and exit
       --whatabout WHATABOUT
-                            Say if the file given as a parameter is in the target
-                            directory notwithstanding its name. (default: None)
+                            Say if the file[the files in a directory] already in
+                            the given as a parameter is in the target directory
+                            notwithstanding its name. (default: None)
+
 #(8) history
+
+    v 0.2.3 (2015_12_13) : --whatabout, cfg file in user directory,
+                           --sourceinfos, 'iname'
+
+        o the config file is now searched in the Katal's user path
+          (i.e., on Linux systems, /home/user/.katal/katal.ini) and then in the current
+           directory.
+        o 'ci_name' > 'iname' in config files
+        o new option : --whatabout
+        o new option : -si/--sourceinfos
+
+        o new function : action__whatabout() 
+        o new function : create_empty_db()
+        o new function : possible_paths_to_cfg()
+        o -ddcfg/--downloaddefaultcfg can now be called directly from the command line
+        o fixed several bugs linked to ARGS.downloaddefaultcfg
+        o improved create_faked_target.sh : added a --whatabout test
+        o renamed the function 'test_is_ntfs_prefix_mandatory()' > 'is_ntfs_prefix_mandatory()'
+        o improved messages in several functions
+        o improved the documentation in README.md
+
+        o updated pylintrc (max-branches=16)
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
 
     v 0.2.2 (2015_12_07) : improved documentation and messages
 
