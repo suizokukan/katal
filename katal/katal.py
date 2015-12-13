@@ -944,54 +944,64 @@ def action__whatabout(_src):
         whatabout()
         ________________________________________________________________________
 
-        Take a look at the _src file and answer the following question :
-        is this file already in the target directory ?
+        Take a look at the _src file/directory and answer the following question :
+        is(are) this(these) file(s) already in the target directory ?
         ________________________________________________________________________
 
         PARAMETER
             o _src : (str) the source file's name
 
-        RETURNED VALUE
-            o -1 if an error occured
-            o 0 if _src is already in the target directory and in the database
-            o 1 if _src isn't in the database
+        RETURNED VALUE : (bool)is everything ok (=no error) ?
     """
+    #. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+    def show_infos_about_a_srcfile(_srcfile_name):
+        """
+                Display the expected informations about a file named _srcfile_name .
+        """
+        msg("  = what about the \"{0}\" file ? (normpath : \"{1}\")".format(_src, _srcfile_name))
+        size = os.stat(_srcfile_name).st_size
+        msg("    = size : {0}".format(size_as_str(size)))
+
+        sourcedate = datetime.utcfromtimestamp(os.path.getmtime(_srcfile_name))
+        sourcedate = sourcedate.replace(second=0, microsecond=0)
+        sourcedate2 = sourcedate
+        sourcedate2 -= datetime(1970, 1, 1)
+        sourcedate2 = sourcedate2.total_seconds()
+        msg("    = mtime : {0} (epoch value : {1})".format(sourcedate, sourcedate2))
+
+        srchash = hashfile64(_srcfile_name)
+        msg("    = hash : {0}".format(srchash))
+
+        # is the hash in the database ?
+        already_present_in_db = False
+        for hashid in TARGET_DB:
+            if hashid == srchash:
+                already_present_in_db = True
+                break
+        if already_present_in_db:
+            msg("    = the file is ALREADY present in the database")
+        else:
+            msg("    = the file isn't present in the database")
+
+    # (1) does _src exist ?
     normsrc = normpath(_src)
-
-    msg("  = what about the \"{0}\" file ? (normpath : \"{1}\")".format(_src, normsrc))
-
     if not os.path.exists(normsrc):
         msg("  ! error : can't find source file \"{0}\" .".format(normsrc))
-        return -1
+        return False
 
+    # (2) is _src a file or a directory ?
     if os.path.isdir(normsrc):
-        msg("  ! error : source \"{0}\" is a directory.".format(normsrc))
-        return -1
+        # informations about the source directory :
+        for dirpath, _, filenames in os.walk(normpath(_src)):
+            for filename in filenames:
+                fullname = os.path.join(normpath(dirpath), filename)
+                show_infos_about_a_srcfile(fullname)
 
-    # informations about the source file :
-    size = os.stat(normsrc).st_size
-    msg("    = size : {0}".format(size_as_str(size)))
-
-    sourcedate = datetime.utcfromtimestamp(os.path.getmtime(normsrc))
-    sourcedate = sourcedate.replace(second=0, microsecond=0)
-    sourcedate2 = sourcedate
-    sourcedate2 -= datetime(1970, 1, 1)
-    sourcedate2 = sourcedate2.total_seconds()
-    msg("    = mtime : {0} (epoch value : {1})".format(sourcedate, sourcedate2))
-
-    srchash = hashfile64(normsrc)
-    msg("    = hash : {0}".format(srchash))
-
-    # is the hash in the database ?
-    already_present_in_db = False
-    for hashid in TARGET_DB:
-        if hashid == srchash:
-            already_present_in_db = True
-            break
-    if already_present_in_db:
-        msg("    = the file is ALREADY present in the database")
     else:
-        msg("    = the file isn't present in the database")
+        # informations about the source file :
+        show_infos_about_a_srcfile(normpath(_src))
+
+    return True
 
 #///////////////////////////////////////////////////////////////////////////////
 def add_keywords_in_targetstr(_srcstring,
@@ -2212,7 +2222,8 @@ def read_command_line_arguments():
 
     parser.add_argument('--whatabout',
                         type=str,
-                        help="Say if the file given as a parameter is in the target directory " \
+                        help="Say if the file[the files in a directory] already in the " \
+                             "given as a parameter is in the target directory " \
                              "notwithstanding its name.")
 
     return parser.parse_args()

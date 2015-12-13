@@ -748,7 +748,8 @@ trash name is defined in the configuration file.
                                               overwriting ancient tags.
     o  action__target_kill()                : delete a filename from the target directory
                                               and from the database
-    o  action__whatabout()                  : is a file already in the target directory ?
+    o  action__whatabout()                  : is a file/[are the files in a dir] already in the
+                                              target directory ?
     o  add_keywords_in_targetstr()          : replace some keywords by the value given as parameters
                                               in order to make strings used to create the target files
     o  check_args()                         : check the arguments of the command line.
