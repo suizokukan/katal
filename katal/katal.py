@@ -992,6 +992,10 @@ def action__whatabout(_src):
     # (2) is _src a file or a directory ?
     if os.path.isdir(normsrc):
         # informations about the source directory :
+        if normpath(TARGET_PATH) in normsrc:
+            msg("  ! error : the given directory in inside the target directory.")
+            return False
+
         for dirpath, _, filenames in os.walk(normpath(_src)):
             for filename in filenames:
                 fullname = os.path.join(normpath(dirpath), filename)
@@ -999,7 +1003,29 @@ def action__whatabout(_src):
 
     else:
         # informations about the source file :
-        show_infos_about_a_srcfile(normpath(_src))
+        if normpath(TARGET_PATH) in normpath(_src):
+            # special case : the file is inside the target directory :
+            msg("  = what about the \"{0}\" file ? (normpath : \"{1}\")".format(_src, normsrc))
+            msg("    This file is inside the target directory.")
+            srchash = hashfile64(normsrc)
+            msg("    = hash : {0}".format(srchash))
+            msg("    Informations extracted from the database :")
+            # informations from the database :
+            db_connection = sqlite3.connect(DATABASE_FULLNAME)
+            db_connection.row_factory = sqlite3.Row
+            db_cursor = db_connection.cursor()
+            for db_record in db_cursor.execute("SELECT * FROM dbfiles WHERE hashid=?", (srchash,)):
+                msg("    = partial hashid : {0}".format(db_record["partialhashid"]))
+                msg("    = name : {0}".format(db_record["name"]))
+                msg("    = size : {0}".format(db_record["size"]))
+                msg("    = source name : {0}".format(db_record["sourcename"]))
+                msg("    = source date : {0}".format(db_record["sourcedate"]))
+                msg("    = tags' string : {0}".format(db_record["tagsstr"]))
+            db_connection.close()
+
+        else:
+            # normal case : the file is outside the target directory :
+            show_infos_about_a_srcfile(normpath(_src))
 
     return True
 
