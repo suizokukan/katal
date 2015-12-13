@@ -941,7 +941,7 @@ def action__target_kill(_filename):
 #///////////////////////////////////////////////////////////////////////////////
 def action__whatabout(_src):
     """
-        whatabout()
+        action__whatabout()
         ________________________________________________________________________
 
         Take a look at the _src file/directory and answer the following question :
@@ -1909,7 +1909,7 @@ def main_warmup():
             msg("  * trying to read \"{0}\" as a config file...".format(path))
 
             if os.path.exists(path):
-                msg("   ... ok, this config file can be read.")
+                msg("   ... ok, let's try to read this config file...")
                 configfile_name = path
                 break
 
