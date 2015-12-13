@@ -979,9 +979,9 @@ def action__whatabout(_src):
                 already_present_in_db = True
                 break
         if already_present_in_db:
-            msg("    = the file is ALREADY present in the database")
+            msg("    = the file's content is equal to a file ALREADY present in the database.")
         else:
-            msg("    = the file isn't present in the database")
+            msg("    = the file isn't present in the database.")
 
     # (1) does _src exist ?
     normsrc = normpath(_src)
