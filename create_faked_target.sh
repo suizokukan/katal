@@ -58,4 +58,5 @@ echo "(19) ../../katal/katal.py -ti"
 echo "(20) ../../katal/katal.py --whatabout 0.py"
 ../../katal/katal.py --whatabout 0.py
 
-
+echo "(20) ../../katal/katal.py --whatabout ../src/2.py"
+../../katal/katal.py --whatabout ../src/game.py
