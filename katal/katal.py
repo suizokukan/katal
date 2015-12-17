@@ -2331,6 +2331,8 @@ def read_parameters_from_cfgfile(_configfile_name):
         msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
         msg("  ! Python message : \"{0}\"".format(exception))
+        msg("  ... you may want to download a new default config file : " \
+            "see -ddcfg/--downloaddefaultcfg option")
         return None
 
     return parser
