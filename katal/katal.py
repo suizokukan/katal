@@ -1953,7 +1953,15 @@ def main_warmup():
             "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
     # we show the following informations :
-    msg("  = so, let's use \"{0}\" as config file".format(configfile_name))
+    for path, info in ((configfile_name, "config file"),
+                       (os.path.join(normpath(TARGET_PATH),
+                                     KATALSYS_SUBDIR, TRASH_SUBSUBDIR), "trash subdir"),
+                       (os.path.join(normpath(TARGET_PATH),
+                                     KATALSYS_SUBDIR, TASKS_SUBSUBDIR), "tasks subdir"),
+                       (os.path.join(normpath(TARGET_PATH),
+                                     KATALSYS_SUBDIR, LOG_SUBSUBDIR), "log subdir"),):
+        msg("  = so, let's use \"{0}\" as {1}".format(path, info))
+
     msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
                                                                  normpath(SOURCE_PATH)))
 
