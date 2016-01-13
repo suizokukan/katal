@@ -362,6 +362,9 @@ def action__findtag(_tag):
 
         Display the files tagged with _tag. _tag is a simple string, not a
         regex. The function searches a substring _tag in the tags' string.
+
+        With --copyto, copy the selected files into the directory whose name
+        is given by ARGS.copyto .
         ________________________________________________________________________
 
         PARAMETER
@@ -557,6 +560,8 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
 
         Return a dict of the files to be copied (old name, new name, ...) and
         the number of anomalies.
+
+        Anomalies : files' names collisions.
         ________________________________________________________________________
 
         PARAMETER :
