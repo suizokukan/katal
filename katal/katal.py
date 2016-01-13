@@ -950,7 +950,7 @@ def action__whatabout(_src):
         ________________________________________________________________________
 
         Take a look at the _src file/directory and answer the following question :
-        is(are) this(these) file(s) already in the target directory ?
+        is this file/(are these files) already in the target directory ?
         ________________________________________________________________________
 
         PARAMETER
