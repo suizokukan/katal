@@ -1145,6 +1145,9 @@ def check_args():
     if ARGS.copyto and not ARGS.findtag:
         raise KatalError("--copyto can only be used in combination with --findtag .")
 
+    if ARGS.mirroronly and not ARGS.move:
+        raise KatalError("--mirroronly can't be used simultaneously with --move .")
+
 #///////////////////////////////////////////////////////////////////////////////
 def create_empty_db(_db_name):
     """
@@ -1518,10 +1521,10 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
         if they don't pass the checks :
                 (1) future filename's can't be in conflict with another file in SELECT
                 (2) future filename's can't be in conflict with another file already
-                    stored in the target path :
+                    stored in the target path.
         ________________________________________________________________________
 
-        no PARAMETER
+        PARAMETERS :
                 o _number_of_discarded_files    : (int) see fill_select()
                 o _prefix                       : (str) see fill_select()
                 o _fullname                     : (str) see fill_select()
@@ -1546,17 +1549,18 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
 
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
-    msg("    ... future filename's can't be in conflict with another file already")
-    msg("        stored in the target path...")
-    for selectedfile_hash in SELECT:
-        if os.path.exists(os.path.join(normpath(TARGET_PATH),
-                                       SELECT[selectedfile_hash].targetname)):
-            msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already " \
-                "exists in the target path !".format(_prefix,
-                                                     _fullname,
-                                                     SELECT[selectedfile_hash].targetname))
+    if ARGS.mirroronly:
+        msg("    ... future filename's can't be in conflict with another file already")
+        msg("        stored in the target path...")
+        for selectedfile_hash in SELECT:
+            if os.path.exists(os.path.join(normpath(TARGET_PATH),
+                                           SELECT[selectedfile_hash].targetname)):
+                msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already " \
+                    "exists in the target path !".format(_prefix,
+                                                         _fullname,
+                                                         SELECT[selectedfile_hash].targetname))
 
-            to_be_discarded.append(selectedfile_hash)
+                to_be_discarded.append(selectedfile_hash)
 
     # final message and deletion :
     if len(to_be_discarded) == 0:
@@ -2160,6 +2164,11 @@ def read_command_line_arguments():
     parser.add_argument('-m', '--mute',
                         action="store_true",
                         help="no output to the console; no question asked on the console")
+
+    parser.add_argument('--mirroronly',
+                        type=str,
+                        help="Do not fill the target directory with the source files, fill only " \
+                             "the target database. You can't use --mirroronly with --move .")
 
     parser.add_argument('--move',
                         action="store_true",
