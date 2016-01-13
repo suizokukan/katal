@@ -16,47 +16,62 @@ cp faked/katal.ini faked/target/.katal
 echo "(06) cd faked/target"
 cd faked/target
 
+echo
 echo "(07) ../../katal/katal.py --add --move --strictcmp"
 ../../katal/katal.py --add --move --strictcmp
 
+echo
 echo "(08) ../../katal/katal.py --addtag=goose --to=*5.py"
 ../../katal/katal.py --addtag=goose --to=*5.py
 
+echo
 echo "(09) ../../katal/katal.py --addtag=tree --to=*9.py"
 ../../katal/katal.py --addtag=tree --to=*9.py
 
+echo
 echo "(10) ../../katal/katal.py --addtag=pink --to=*1*.py"
 ../../katal/katal.py --addtag=pink --to=*1*.py
 
+echo
 echo "(11) ../../katal/katal.py --rmnotag"
 ../../katal/katal.py --rmnotag
 
+echo
 echo "(12) rm 12.py"
 rm 12.py
 
+echo
 echo "(13) rm 14.py"
 rm 14.py
 
+echo
 echo "(14) ../../katal/katal.py --cleandbrm"
 ../../katal/katal.py --cleandbrm
 
+echo
 echo "(15) ../../katal/katal.py --rmtags --to=10.py"
 ../../katal/katal.py --rmtags --to=10.py
 
+echo
 echo "(16) ../../katal/katal.py --findtag=goose"
 ../../katal/katal.py --findtag=goose
 
+echo
 echo "(17) ../../katal/katal.py --settagsstr="red;marble" --to=13.py"
 ../../katal/katal.py --settagsstr="red;marble" --to=13.py
 
+echo
 echo "(18) ../../katal/katal.py --findtag=pink --copyto=xyz"
 ../../katal/katal.py --findtag=pink --copyto=xyz
 
+echo
 echo "(19) ../../katal/katal.py -ti"
 ../../katal/katal.py -ti
 
+echo
 echo "(20) ../../katal/katal.py --whatabout 0.py"
 ../../katal/katal.py --whatabout 0.py
 
+echo
 echo "(20) ../../katal/katal.py --whatabout ../src/2.py"
 ../../katal/katal.py --whatabout ../src/game.py
