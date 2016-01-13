@@ -1726,14 +1726,14 @@ def logfile_opening():
         RETURNED VALUE
                 the _io.BufferedReader object returned by the call to open()
     """
-    fullname = os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR, PARAMETERS["log file"]["name"])
+    logfile_fullname = os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR, PARAMETERS["log file"]["name"])
 
     if PARAMETERS["log file"]["overwrite"] == "True":
         # overwrite :
         log_mode = "w"
 
-        if os.path.exists(normpath(fullname)):
-            shutil.copyfile(fullname,
+        if os.path.exists(normpath(logfile_fullname)):
+            shutil.copyfile(logfile_fullname,
                             os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
                                          "oldlogfile_" + \
                                          PARAMETERS["log file"]["name"] + \
@@ -1742,7 +1742,7 @@ def logfile_opening():
         # let's append :
         log_mode = "a"
 
-    return open(fullname, log_mode)
+    return open(logfile_fullname, log_mode)
 
 #///////////////////////////////////////////////////////////////////////////////
 def main():
