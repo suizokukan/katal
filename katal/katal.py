@@ -1909,13 +1909,13 @@ def main_warmup():
     configfile_name = ARGS.configfile
     if ARGS.configfile is None:
 
-        for path in possible_paths_to_cfg():
+        for cfg_path in possible_paths_to_cfg():
 
-            msg("  * trying to read \"{0}\" as a config file...".format(path))
+            msg("  * trying to read \"{0}\" as a config file...".format(cfg_path))
 
-            if os.path.exists(path):
+            if os.path.exists(cfg_path):
                 msg("   ... ok, let's try to read this config file...")
-                configfile_name = path
+                configfile_name = cfg_path
                 break
 
         if configfile_name is not None:
