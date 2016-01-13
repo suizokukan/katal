@@ -217,16 +217,28 @@ def action__add():
         sourcedate -= datetime(1970, 1, 1)
         sourcedate = sourcedate.total_seconds()
 
-        msg("    ... ({0}/{1}) copying \"{2}\" to \"{3}\" .".format(index+1,
-                                                                    len_select,
-                                                                    complete_source_filename,
-                                                                    target_name))
         if not ARGS.off:
-            if not ARGS.move:
+            if ARGS.mirroronly:
+                # nothing to do
+                msg("    ... ({0}/{1}) due to the --mirroronly option, \"{2}\" is added in the target database.".format(index+1,len_select,complete_source_filename))
+                msg("        NB : this file will NOT be copied to \"{0}\" .".format(target_name))
+
+            elif not ARGS.move:
+                # copying the file :
+                msg("    ... ({0}/{1}) about to copy \"{2}\" to \"{3}\" .".format(index+1,
+                                                                                  len_select,
+                                                                                  complete_source_filename,
+                                                                                  target_name))
                 shutil.copyfile(complete_source_filename, target_name)
+                os.utime(target_name, (sourcedate, sourcedate))
+
             else:
+                msg("    ... ({0}/{1}) about to move \"{2}\" to \"{3}\" .".format(index+1,
+                                                                                  len_select,
+                                                                                  complete_source_filename,
+                                                                                  target_name))
                 shutil.move(complete_source_filename, target_name)
-            os.utime(target_name, (sourcedate, sourcedate))
+                os.utime(target_name, (sourcedate, sourcedate))
 
         files_to_be_added.append((hashid,
                                   SELECT[hashid].partialhashid,
