@@ -1549,7 +1549,7 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
 
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
-    if ARGS.mirroronly:
+    if not ARGS.mirroronly:
         msg("    ... future filename's can't be in conflict with another file already")
         msg("        stored in the target path...")
         for selectedfile_hash in SELECT:
