@@ -1757,6 +1757,7 @@ def logfile_opening():
         # overwrite :
         log_mode = "w"
 
+        # before overwriting the current log file, let's rename it :
         if os.path.exists(normpath(logfile_fullname)):
             shutil.copyfile(logfile_fullname,
                             os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
