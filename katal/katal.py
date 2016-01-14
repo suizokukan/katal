@@ -1122,6 +1122,27 @@ def add_keywords_in_targetstr(_srcstring,
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
+def backup_logfile(_logfile_fullname):
+    """
+        backup_logfile()
+        ________________________________________________________________________
+
+        copy a logfile named _logfile_fullname into a backuped file.
+
+          o  The backuped file is stored in the LOG_SUBSUBDIR directory.
+          o  The name of the backuped file is automatically created from a call to
+             datetime.now() .
+        ________________________________________________________________________
+
+        NO PARAMETER, no RETURNED VALUE
+    """
+    shutil.copyfile(_logfile_fullname,
+                    os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
+                                 "oldlogfile_" + \
+                                 PARAMETERS["log file"]["name"] + \
+                                 datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")))
+
+#///////////////////////////////////////////////////////////////////////////////
 def check_args():
     """
         check_args()
@@ -1759,11 +1780,8 @@ def logfile_opening():
 
         # before overwriting the current log file, let's rename it :
         if os.path.exists(normpath(logfile_fullname)):
-            shutil.copyfile(logfile_fullname,
-                            os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
-                                         "oldlogfile_" + \
-                                         PARAMETERS["log file"]["name"] + \
-                                         datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")))
+            backup_logfile(logfile_fullname)
+
     else:
         # let's append :
         log_mode = "a"
