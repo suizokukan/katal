@@ -1,7 +1,10 @@
 ################################################################################
-# pylintrc file used by the Katal project :
 #
-# Notwithstanding some obsolete options, here are the options modified by the
+# pylintrc file used by the Katal project .
+#
+################################################################################
+#
+#   Notwithstanding some obsolete options, here are the options modified by the
 # project :
 #
 # (1)
