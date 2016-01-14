@@ -220,23 +220,27 @@ def action__add():
         if not ARGS.off:
             if ARGS.mirroronly:
                 # nothing to do
-                msg("    ... ({0}/{1}) due to the --mirroronly option, \"{2}\" is added in the target database.".format(index+1,len_select,complete_source_filename))
+                msg("    ... ({0}/{1}) due to the --mirroronly option, " \
+                    "\"{2}\" is added in the target database.".format(index+1, len_select,
+                                                                      complete_source_filename))
                 msg("        NB : this file will NOT be copied to \"{0}\" .".format(target_name))
 
             elif not ARGS.move:
                 # copying the file :
-                msg("    ... ({0}/{1}) about to copy \"{2}\" to \"{3}\" .".format(index+1,
-                                                                                  len_select,
-                                                                                  complete_source_filename,
-                                                                                  target_name))
+                msg("    ... ({0}/{1}) about to " \
+                    "copy \"{2}\" to \"{3}\" .".format(index+1,
+                                                       len_select,
+                                                       complete_source_filename,
+                                                       target_name))
                 shutil.copyfile(complete_source_filename, target_name)
                 os.utime(target_name, (sourcedate, sourcedate))
 
             else:
-                msg("    ... ({0}/{1}) about to move \"{2}\" to \"{3}\" .".format(index+1,
-                                                                                  len_select,
-                                                                                  complete_source_filename,
-                                                                                  target_name))
+                msg("    ... ({0}/{1}) about to " \
+                    "move \"{2}\" to \"{3}\" .".format(index+1,
+                                                       len_select,
+                                                       complete_source_filename,
+                                                       target_name))
                 shutil.move(complete_source_filename, target_name)
                 os.utime(target_name, (sourcedate, sourcedate))
 
@@ -1714,16 +1718,21 @@ def is_ntfs_prefix_mandatory(_path):
         RETURNED VALUE
             a boolean
     """
-    longpath = os.path.join(_path, "a"*250, "b"*250)
-    longpath = os.path.normpath(os.path.abspath(os.path.expanduser(longpath)))
+    longpath1 = os.path.join(_path, "a"*250)
+    longpath1 = os.path.normpath(os.path.abspath(os.path.expanduser(longpath1)))
+
+    longpath2 = os.path.join(longpath1, "b"*250)
+
     res = False
     try:
-        os.makedirs(longpath)
+        os.makedirs(longpath2)
     except IOError:
         res = True
 
-    if res is False:
-        os.rmdir(longpath)
+    try:
+        shutil.rmtree(longpath1)
+    except IOError:
+        pass
 
     return res
 
