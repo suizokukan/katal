@@ -1672,6 +1672,23 @@ def get_filename_and_extension(_path):
     return fname_no_extens, extension
 
 #///////////////////////////////////////////////////////////////////////////////
+def get_logfile_fullname():
+    """
+        get_logfile_fullname()
+        ________________________________________________________________________
+
+        Return the logfile fullname
+        ________________________________________________________________________
+
+        no PARAMETER.
+
+        RETURNED VALUE : the expected string
+    """
+    return os.path.join(KATALSYS_SUBDIR,
+                        LOG_SUBSUBDIR,
+                        PARAMETERS["log file"]["name"])
+
+#///////////////////////////////////////////////////////////////////////////////
 def goodbye():
     """
         goodbye()
@@ -1775,7 +1792,7 @@ def logfile_opening():
                 the _io.BufferedReader object returned by the call to open()
     """
     global LOGFILE_SIZE
-    logfile_fullname = os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR, PARAMETERS["log file"]["name"])
+    logfile_fullname = get_logfile_fullname()
 
     if PARAMETERS["log file"]["overwrite"] == "True":
         # overwrite :
@@ -2113,10 +2130,7 @@ def msg(_msg, _for_console=True, _for_logfile=True):
     if USE_LOGFILE and _for_logfile and LOGFILE is not None:
         LOGFILE_SIZE += len(_msg)+1
         if LOGFILE_SIZE > 666:
-            logfile_fullname = os.path.join(KATALSYS_SUBDIR,
-                                            LOG_SUBSUBDIR,
-                                            PARAMETERS["log file"]["name"])
-            backup_logfile(logfile_fullname)
+            backup_logfile(get_logfile_fullname())
             LOGFILE.close()
             LOGFILE = logfile_opening()
 

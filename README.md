@@ -777,7 +777,7 @@ trash name is defined in the configuration file.
     o  action__rmtags()                     : remove the entire tags' string of some files
     o  action__select()                     : fill SELECT and SELECT_SIZE_IN_BYTES and
                                               display what's going on.
-    o  action__settagsstr()                 : Modify the tags string in the target directory,
+    o  action__settagsstr()                 : modify the tags string in the target directory,
                                               overwriting ancient tags.
     o  action__target_kill()                : delete a filename from the target directory
                                               and from the database
@@ -801,6 +801,7 @@ trash name is defined in the configuration file.
     o  fill_select__checks()                : final checks at the end of fill_select()
     o  get_disk_free_space()                : return the available space on disk
     o  get_filename_and_extension()         : return (filename_no_extension, extension)
+    o  get_logfile_fullname()               : return the logfile fullname.
     o  goodbye()                            : display the goodbye message
     o  hashfile64()                         : return the footprint of a file, encoded
                                               with the base 64.
