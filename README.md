@@ -267,6 +267,28 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(7) history
 
+    v 0.2.4 (2016_01_15) : --mirroronly, logfiles are now sliced if too large
+
+        o new option : -si/--sourceinfos
+        o fixed the way log files are backuped when too large :
+          added a constant in the configuration files : [log file]maximal size
+          log files are now opened with the "a" mode by the logfile_opening() function
+
+        o added the LOGFILE_SIZE constant
+        o added the LOGFILE_DTIMEFORMATSTR constant, used by the backup_logfile() function
+        o added a function by refactoring the code : backup_logfile()
+        o refactoring the code : added function get_logfile_fullname()
+        o fixed create_faked_target.sh and took in account the --configfile option
+        o in main_warmup(), 'path' > 'cfg_path'
+        o in logfile_opening(), 'fullname' > 'logfile_fullname'
+        o improved the documentation in README.md
+        o improved messages in various functions
+
+        o updated pylintrc (max-branches=17)
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v 0.2.3 (2015_12_13) : --whatabout, cfg file in user directory,
                            --sourceinfos, 'iname'
 
