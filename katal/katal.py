@@ -106,7 +106,8 @@ TARGETNAME_MAXLENGTH = 20  # maximal length of the target's filename
 # See the hashfile64() function.
 PARTIALHASHID_BYTESNBR = 1000000
 
-LOGFILE = None  # the file descriptor, initialized by logfile_opening()
+LOGFILE = None   # the file descriptor, initialized by logfile_opening()
+LOGFILE_SIZE = 0 # size of the current logfile.
 USE_LOGFILE = False  # (bool) initialized from the configuration file
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
@@ -1763,8 +1764,9 @@ def logfile_opening():
         logfile_opening()
         ________________________________________________________________________
 
-        Open the log file and return the result of the called to open().
-        If the ancient logfile exists, it is renamed to avoid its overwriting.
+          Open the log file, initialize LOGFILE_SIZE and return the result of
+        the called to open().
+          If the ancient logfile exists, it is renamed to avoid its overwriting.
         ________________________________________________________________________
 
         no PARAMETER
@@ -1772,6 +1774,7 @@ def logfile_opening():
         RETURNED VALUE
                 the _io.BufferedReader object returned by the call to open()
     """
+    global LOGFILE_SIZE
     logfile_fullname = os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR, PARAMETERS["log file"]["name"])
 
     if PARAMETERS["log file"]["overwrite"] == "True":
@@ -1785,6 +1788,11 @@ def logfile_opening():
     else:
         # let's append :
         log_mode = "a"
+
+    if os.path.exists(normpath(logfile_fullname)):
+        LOGFILE_SIZE = os.stat(normpath(logfile_fullname)).st_size
+    else:
+        LOGFILE_SIZE = 0
 
     return open(logfile_fullname, log_mode)
 
@@ -2095,12 +2103,23 @@ def msg(_msg, _for_console=True, _for_logfile=True):
 
         no RETURNED VALUE
     """
+    global LOGFILE, LOGFILE_SIZE
+
     # first to the console : otherwise, if an error occurs by writing to the log
     # file, it would'nt possible to read the message.
     if not ARGS.mute and _for_console:
         print(_msg)
 
     if USE_LOGFILE and _for_logfile and LOGFILE is not None:
+        LOGFILE_SIZE += len(_msg)+1
+        if LOGFILE_SIZE > 666:
+            logfile_fullname = os.path.join(KATALSYS_SUBDIR,
+                                            LOG_SUBSUBDIR,
+                                            PARAMETERS["log file"]["name"])
+            backup_logfile(logfile_fullname)
+            LOGFILE.close()
+            LOGFILE = logfile_opening()
+
         LOGFILE.write(_msg+"\n")
 
 #///////////////////////////////////////////////////////////////////////////////
