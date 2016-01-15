@@ -110,6 +110,7 @@ LOGFILE = None   # the file descriptor, initialized by logfile_opening()
 LOGFILE_SIZE = 0 # size of the current logfile.
 LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
                                                  # logfiles' filename .
+                                                 # see the backup_logfile() function .
 USE_LOGFILE = False  # (bool) initialized from the configuration file
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
