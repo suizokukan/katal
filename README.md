@@ -160,11 +160,13 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-ddcfg] [--findtag FINDTAG] [--infos] [-m]
-                    [--move] [-n NEW] [--off] [--rebase REBASE] [--reset]
-                    [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR] [-si]
-                    [--strictcmp] [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL]
-                    [--to TO] [--usentfsprefix] [--version]
-                    [--whatabout WHATABOUT]
+                    [--mirroronly] [--move] [-n NEW] [--off] [--rebase REBASE]
+                    [--reset] [--rmnotags] [--rmtags] [-s]
+                    [--settagsstr SETTAGSSTR] [-si] [--strictcmp]
+                    [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL] [--to TO]
+                    [--usentfsprefix] [--version] [--whatabout WHATABOUT]
+
+    Katal v. 0.2.4
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -198,6 +200,9 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             --select/--add (default: False)
       -m, --mute            no output to the console; no question asked on the
                             console (default: False)
+      --mirroronly          do not fill the target directory with the source
+                            files, fill only the target database. You can't use
+                            --mirroronly with --move . (default: False)
       --move                to be used with --select and --add : move the files,
                             don't copy them (default: False)
       -n NEW, --new NEW     create a new target directory (default: None)

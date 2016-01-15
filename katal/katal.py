@@ -2241,7 +2241,7 @@ def read_command_line_arguments():
 
     parser.add_argument('--mirroronly',
                         action="store_true",
-                        help="Do not fill the target directory with the source files, fill only " \
+                        help="do not fill the target directory with the source files, fill only " \
                              "the target database. You can't use --mirroronly with --move .")
 
     parser.add_argument('--move',
