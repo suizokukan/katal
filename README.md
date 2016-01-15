@@ -148,15 +148,13 @@ Once the target directory is filled with some files, a database is added to the 
 ####Display informations about a file belonging to the target directory :
     $ katal --whatabout=myfile
 
-#(5) author
+#(5) project's author and project's name
 suizokukan (suizokukan AT orange DOT fr)
-
 94.23.197.37
 
-#(6) name
 The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, register, catalogue").
 
-#(7) arguments
+#(6) arguments
 
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-ddcfg] [--findtag FINDTAG] [--infos] [-m]
@@ -267,7 +265,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             the given as a parameter is in the target directory
                             notwithstanding its name. (default: None)
 
-#(8) history
+#(7) history
 
     v 0.2.3 (2015_12_13) : --whatabout, cfg file in user directory,
                            --sourceinfos, 'iname'
@@ -616,15 +614,15 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     v.0.0.1 (2015_09_13) : first try, no tests, pylint=10.0, some todos
                            remain.
 
-#(9) technical details
+#(8) technical details
 
-##(9.1) exit codes
+##(8.1) exit codes
                  0      : success
                 -1      : can't read the parameters from the configuration file
                 -2      : a KatalError exception has been raised
                 -3      : an unexpected exception exception has been raised
 
-##(9.2) configuration file
+##(8.2) configuration file
     The informations stored in the configuration file are written in the PARAMETERS global variable.
     PARAMETERS is filled by read_parameters_from_cfgfile() and is a configparser.Configparser object.
     The default name of the configuration file is set by the DEFAULT_CONFIGFILE_NAME global variable
@@ -708,13 +706,14 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                 n.b. : keywords with a reduplicated letter (%%pp, %%ff, ...) are builded against
                        a set of illegal characters, replaced by "_". 
 
-##(9.3) logfile
+##(8.3) logfile
 Can be filled with many informations (verbosity="high") or less informations (verbosity="low"). See in documentation:configuration file the explanations about the log verbosity.
 
 The logfile is opened by logfile_opening. The program writes in it via msg() if _for_logfile is
-set to True.
+set to True. If the logfile becomes too large (see the "[log file]maximal size" value) the logfile
+if backuped and flushed.
 
-##(9.4) selection
+##(8.4) selection
 
     SELECT is filled by fill_select(), a function called by action__select(). SELECT is a dictionary with hashid as keys and SELECTELEMENT as values.
 
@@ -735,7 +734,7 @@ set to True.
       FILTERS["date"] = a string like '>2015-09-17 20:01', initial symbol in ('=', '<', '>', '<=', '>=')
     FILTERS is filled by read_filters().
 
-##(9.5) database
+##(8.5) database
 In every target directory a database is created and filled. Its name is set by the
 global variable DATABASE_NAME.
 TARGET_DB is initialized by read_target_db(); hashid:(partialhashid, size, fullname)
@@ -749,19 +748,12 @@ TARGET_DB is initialized by read_target_db(); hashid:(partialhashid, size, fulln
     o tagsstr text                          : a list of tags separated by the TAG_SEPARATOR
                                               symbol.
 
-##(9.6) trash directory
+##(8.6) trash directory
 the deleted files are placed in a trashed directory placed inside the target directory. The
 trash name is defined in the configuration file.
 
 
-##(9.7) the database
-
-        hashid (primary key): varchar(44)
-        name                : text
-        sourcename          : text
-        tagsstr             : text
-
-##(9.8) the functions
+##(8.7) the functions
 
     o  action__add()                        : add the source files to the target
                                               path.
