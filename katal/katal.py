@@ -1140,11 +1140,11 @@ def backup_logfile(_logfile_fullname):
 
         NO PARAMETER, no RETURNED VALUE
     """
-    shutil.copyfile(_logfile_fullname,
-                    os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
-                                 PARAMETERS["log file"]["name"] + \
-                                 datetime.strftime(datetime.now(),
-                                                   LOGFILE_DTIMEFORMATSTR)))
+    logfile_backup = os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
+                                  PARAMETERS["log file"]["name"] + \
+                                  datetime.strftime(datetime.now(),
+                                                    LOGFILE_DTIMEFORMATSTR))
+    shutil.copyfile(_logfile_fullname, logfile_backup)
 
 #///////////////////////////////////////////////////////////////////////////////
 def check_args():
@@ -1784,8 +1784,8 @@ def logfile_opening():
         logfile_opening()
         ________________________________________________________________________
 
-          Open the log file, initialize LOGFILE_SIZE and return the result of
-        the called to open().
+          Open the log file in "a" mode, initialize LOGFILE_SIZE and return
+        the result of the call to open().
           If the ancient logfile exists, it is renamed to avoid its overwriting.
         ________________________________________________________________________
 
@@ -1797,24 +1797,12 @@ def logfile_opening():
     global LOGFILE_SIZE
     logfile_fullname = get_logfile_fullname()
 
-    if PARAMETERS["log file"]["overwrite"] == "True":
-        # overwrite :
-        log_mode = "w"
-
-        # before overwriting the current log file, let's rename it :
-        if os.path.exists(normpath(logfile_fullname)):
-            backup_logfile(logfile_fullname)
-
-    else:
-        # let's append :
-        log_mode = "a"
-
     if os.path.exists(normpath(logfile_fullname)):
         LOGFILE_SIZE = os.stat(normpath(logfile_fullname)).st_size
     else:
         LOGFILE_SIZE = 0
 
-    return open(logfile_fullname, log_mode)
+    return open(logfile_fullname, "a")
 
 #///////////////////////////////////////////////////////////////////////////////
 def main():
@@ -2111,8 +2099,8 @@ def msg(_msg, _for_console=True, _for_logfile=True):
         msg()
         ________________________________________________________________________
 
-        Display a message on console, write the same message in the log file
-        The messagfe isn't displayed on console if ARGS.mute has been set to
+        Display a message on console, write the same message in the log file.
+        The message isn't displayed on console if ARGS.mute has been set to
         True (see --mute argument)
         ________________________________________________________________________
 
@@ -2125,19 +2113,29 @@ def msg(_msg, _for_console=True, _for_logfile=True):
     """
     global LOGFILE, LOGFILE_SIZE
 
+    final_msg = _msg + "\n"
+
     # first to the console : otherwise, if an error occurs by writing to the log
     # file, it would'nt possible to read the message.
     if not ARGS.mute and _for_console:
         print(_msg)
 
     if USE_LOGFILE and _for_logfile and LOGFILE is not None:
-        LOGFILE_SIZE += len(_msg)+1
-        if LOGFILE_SIZE > 666:
-            backup_logfile(get_logfile_fullname())
+        if LOGFILE_SIZE + len(final_msg) > int(PARAMETERS["log file"]["maximal size"]):
+            # let's force writing on disk...
+            LOGFILE.flush()
+            os.fsync(LOGFILE)
+            # ... before closing :
             LOGFILE.close()
+            # let's backup the current log file :
+            backup_logfile(get_logfile_fullname())
+            # let's remove the current log file's content :
+            os.remove(get_logfile_fullname())
+            # let's open a new log file :
             LOGFILE = logfile_opening()
 
-        LOGFILE.write(_msg+"\n")
+        LOGFILE.write(final_msg)
+        LOGFILE_SIZE += len(final_msg)
 
 #///////////////////////////////////////////////////////////////////////////////
 def normpath(_path):
