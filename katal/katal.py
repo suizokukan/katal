@@ -108,6 +108,8 @@ PARTIALHASHID_BYTESNBR = 1000000
 
 LOGFILE = None   # the file descriptor, initialized by logfile_opening()
 LOGFILE_SIZE = 0 # size of the current logfile.
+LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
+                                                 # logfiles' filename .
 USE_LOGFILE = False  # (bool) initialized from the configuration file
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
@@ -1132,16 +1134,16 @@ def backup_logfile(_logfile_fullname):
 
           o  The backuped file is stored in the LOG_SUBSUBDIR directory.
           o  The name of the backuped file is automatically created from a call to
-             datetime.now() .
+             datetime.now() . See the LOGFILE_DTIMEFORMATSTR constant.
         ________________________________________________________________________
 
         NO PARAMETER, no RETURNED VALUE
     """
     shutil.copyfile(_logfile_fullname,
                     os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
-                                 "oldlogfile_" + \
                                  PARAMETERS["log file"]["name"] + \
-                                 datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")))
+                                 datetime.strftime(datetime.now(),
+                                                   LOGFILE_DTIMEFORMATSTR)))
 
 #///////////////////////////////////////////////////////////////////////////////
 def check_args():
