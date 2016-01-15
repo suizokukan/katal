@@ -2415,10 +2415,16 @@ def read_parameters_from_cfgfile(_configfile_name):
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
         TAGSSTR_MAXLENGTH = int(parser["display"]["tag.max length on console"])
+        # just to check the existence of the following values in the configuration file :
+        _ = parser["log file"]["maximal size"]
+        _ = parser["target"]["name of the target files"]
+        _ = parser["log file"]["name"]
+        _ = parser["source"]["eval"]
     except BaseException as exception:
         msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
         msg("  ! Python message : \"{0}\"".format(exception))
+        msg("  ! Your configuration file maybe lacks a specific value.")
         msg("  ... you may want to download a new default config file : " \
             "see -ddcfg/--downloaddefaultcfg option")
         return None
