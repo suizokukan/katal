@@ -3,8 +3,6 @@ main()
     |           | USE_LOGFILE = parser["log file"]["use log file"] == "True"
     |           | SOURCE_PATH = parser["source"]["path"]
     |           | SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
-    |           | HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
-    |           | TAGSSTR_MAXLENGTH = int(parser["display"]["tag.max length on console"])
     |
     | TARGET_PATH = ARGS.targetpath
     |

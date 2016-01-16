@@ -97,7 +97,6 @@ TASKS_SUBSUBDIR = "tasks"
 LOG_SUBSUBDIR = "logs"
 
 # The following values are default values and will be set by the config file.
-TAGSSTR_MAXLENGTH = 20  # maximal length of the tags' string displayed.
 SOURCENAME_MAXLENGTH = 20  # maximal length of the source's filename
 
 # How many bytes have to be read to compute the partial hashid ?
@@ -2439,7 +2438,6 @@ def read_parameters_from_cfgfile(_configfile_name):
     """
     global USE_LOGFILE
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
-    global TAGSSTR_MAXLENGTH
 
     parser = configparser.ConfigParser()
 
@@ -2448,7 +2446,6 @@ def read_parameters_from_cfgfile(_configfile_name):
         USE_LOGFILE = parser["log file"]["use log file"] == "True"
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
-        TAGSSTR_MAXLENGTH = int(parser["display"]["tag.max length on console"])
         # just to check the existence of the following values in the configuration file :
         _ = parser["log file"]["maximal size"]
         _ = parser["target"]["name of the target files"]
@@ -2456,6 +2453,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["source"]["eval"]
         _ = parser["display"]["target filename.max length on console"]
         _ = parser["display"]["hashid.max length on console"]
+        _ = parser["display"]["tag.max length on console"]
     except BaseException as exception:
         msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -2753,12 +2751,14 @@ def show_infos_about_target_path():
                     int(PARAMETERS["display"]["target filename.max length on console"])
             hashid_maxlength = \
                     int(PARAMETERS["display"]["hashid.max length on console"])
+            tagsstr_maxlength = \
+                    int(PARAMETERS["display"]["tag.max length on console"])
 
             # beware : characters like "║" are forbidden (think to the cp1252 encoding
             # required by Windows terminal)
             draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
                               ("name", targetname_maxlength, "|"),
-                              ("tags", TAGSSTR_MAXLENGTH, "|"),
+                              ("tags", tagsstr_maxlength, "|"),
                               ("source name", SOURCENAME_MAXLENGTH, "|"),
                               ("source date", DTIME_FORMAT_LENGTH, "|")),
                        _data=rows_data)
