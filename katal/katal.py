@@ -2008,6 +2008,7 @@ def main_warmup():
 
     else:
         # A config file has been given as a parameter :
+        configfile_name = ARGS.configfile
 
         msg("  * config file given as a parameter : \"{0}\" " \
             "(path : \"{1}\"".format(configfile_name,
