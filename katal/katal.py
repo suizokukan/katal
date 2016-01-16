@@ -223,9 +223,9 @@ def action__add():
             if ARGS.mirroronly:
                 # nothing to do
                 msg("    ... ({0}/{1}) due to the --mirroronly option, " \
-                    "\"{2}\" is added in the target database.".format(index+1, len_select,
-                                                                      complete_source_filename))
-                msg("        NB : this file will NOT be copied to \"{0}\" .".format(target_name))
+                    "\"{2}\" is added in the target database BUT".format(index+1, len_select,
+                                                                         complete_source_filename))
+                msg("        THIS FILE WILL NOT BE COPIED into \"{0}\" .".format(target_name))
 
             elif not ARGS.move:
                 # copying the file :
