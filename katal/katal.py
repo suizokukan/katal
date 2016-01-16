@@ -89,7 +89,7 @@ SOURCE_PATH = ""  # initialized from the configuration file.
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
 
-TARGET_PATH = "."  # initialized from the configuration file.
+TARGET_PATH = "."
 TARGET_DB = dict()  # see documentation:database; initialized by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
@@ -1823,6 +1823,7 @@ def main():
 
     try:
         ARGS = read_command_line_arguments()
+        TARGET_PATH = ARGS.targetpath
         check_args()
 
         welcome()
@@ -2409,7 +2410,6 @@ def read_parameters_from_cfgfile(_configfile_name):
     try:
         parser.read(_configfile_name)
         USE_LOGFILE = parser["log file"]["use log file"] == "True"
-        TARGET_PATH = ARGS.targetpath
         TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])

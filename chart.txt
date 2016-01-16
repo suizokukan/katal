@@ -1,0 +1,40 @@
+main()
+    | ARGS = read_command_line_arguments()
+    |
+    |     read_command_line_arguments()
+    |       | USE_LOGFILE = parser["log file"]["use log file"] == "True"
+    |       | TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
+    |       | SOURCE_PATH = parser["source"]["path"]
+    |       | SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
+    |       | HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
+    |       | TAGSSTR_MAXLENGTH = int(parser["display"]["tag.max length on console"])
+    |
+    | TARGET_PATH = ARGS.targetpath
+    | check_args()
+    | 
+    | welcome()
+    | main_warmup()
+    |     | DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
+    |     | 
+    |     | if ARGS.targetinfos:
+    |     |     show_infos_about_target_path()
+    |     | 
+    |     | configfile_name = ARGS.configfile [...]
+    |     | PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+    |     | 
+    |     | create_subdirs_in_target_path()
+    |     | 
+    |     | if USE_LOGFILE:
+    |     |     LOGFILE = logfile_opening()
+    |     |     welcome_in_logfile()
+    |     |
+    |     | if ARGS.infos:
+    |     |     action__infos()
+    |     |
+    |     | if ARGS.sourceinfos:
+    |     |     show_infos_about_source_path()
+    | 
+    | main_actions_tags()
+    | main_actions()
+    | 
+    | goodbye()
