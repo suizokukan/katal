@@ -506,8 +506,8 @@ def action__new(_targetname):
 
         if answer in ("y", "yes"):
             if action__downloadefaultcfg(_targetname=os.path.join(normpath(_targetname),
-                                                                 KATALSYS_SUBDIR,
-                                                                 DEFAULT_CONFIGFILE_NAME),
+                                                                  KATALSYS_SUBDIR,
+                                                                  DEFAULT_CONFIGFILE_NAME),
                                          _location="local"):
                 msg("  ... done.")
             else:
@@ -1832,7 +1832,7 @@ def main():
         o  sys.exit(-2) is called if a KatalError exception is raised
         o  sys.exit(-3) is called if another exception is raised
     """
-    global ARGS
+    global ARGS, TARGET_PATH
 
     try:
         ARGS = read_command_line_arguments()
@@ -2266,12 +2266,14 @@ def read_command_line_arguments():
 
     parser.add_argument('--mirroronly',
                         action="store_true",
-                        help="# Do not fill the target directory with the source files, fill only " \
-                             "the target database. You can't use --mirroronly with --move .")
+                        help="# Do not fill the target directory with the source files, " \
+                             "fill only the target database. " \
+                             "You can't use --mirroronly with --move .")
 
     parser.add_argument('--move',
                         action="store_true",
-                        help="# To be used with --select and --add : move the files, don't copy them")
+                        help="# To be used with --select and --add : " \
+                             "move the files, don't copy them")
 
     parser.add_argument('-n', '--new',
                         type=str,
@@ -2426,7 +2428,7 @@ def read_parameters_from_cfgfile(_configfile_name):
                 or the expected configparser.ConfigParser object=.
     """
     global USE_LOGFILE
-    global TARGET_PATH, TARGETNAME_MAXLENGTH
+    global TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
     global HASHID_MAXLENGTH, TAGSSTR_MAXLENGTH
 

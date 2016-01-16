@@ -265,7 +265,9 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             the given as a parameter is in the target directory
                             notwithstanding its name. (default: None)
 
-#(7) history
+#(7) history / future versions
+
+    [intended] v 0.2.6 : reduce the number of global constants
 
     v 0.2.4 (2016_01_15) : --mirroronly, logfiles are now sliced if too large
 
