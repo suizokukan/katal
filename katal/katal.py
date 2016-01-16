@@ -341,29 +341,41 @@ def action__cleandbrm():
             "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__downloadefaultcfg(newname=DEFAULT_CONFIGFILE_NAME):
+def action__downloadefaultcfg(_targetname=DEFAULT_CONFIGFILE_NAME, _location="local"):
     """
         action__downloadefaultcfg()
         ________________________________________________________________________
 
-        Download the default configuration file and give to it the name "newname"
+        Download the default configuration file; save it in the current directory
+        (_location='local') or in the user's HOME directory (_location='home').
         ________________________________________________________________________
 
-        PARAMETER :
-            (str) newname : the new name of the downloaded file
+        PARAMETERS :
+            o (str) _targetname : the new name of the downloaded file
+            o (str) _location : "local" or "home"
 
         RETURNED VALUE :
             (bool) success
     """
     msg("  = downloading the default configuration file =")
-    msg("  ... trying to download {0} from {1}".format(newname, DEFAULTCFGFILE_URL))
+    msg("    ... trying to download {0} from {1}".format(_targetname, DEFAULTCFGFILE_URL))
 
     try:
         if not ARGS.off:
             with urllib.request.urlopen(DEFAULTCFGFILE_URL) as response, \
-                 open(newname, 'wb') as out_file:
+                 open(_targetname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
-        msg("  * download completed.")
+        msg("  * download completed : \"{0}\" (path : \"{1}\")".format(_targetname,
+                                                                       normpath(_targetname)))
+
+        if _location == 'home':
+            newname = os.path.join(possible_paths_to_cfg()[-1],
+                                   os.path.basename(_targetname))
+            msg("  * Since you wrote '--downloaddefaultcfg=home', " \
+                "let's move the download file to the user's home directory...")
+            msg("    namely {0} -> {1}".format(_targetname, newname))
+            shutil.move(_targetname, newname)
+
         return True
 
     except urllib.error.URLError as exception:
@@ -458,7 +470,7 @@ def action__infos():
     return show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__new(targetname):
+def action__new(_targetname):
     """
         action__new()
         ________________________________________________________________________
@@ -469,21 +481,21 @@ def action__new(targetname):
         no PARAMETER, no RETURNED VALUE
     """
     msg("  = about to create a new target directory " \
-        "named \"{0}\" (path : \"{1}\")".format(targetname,
-                                                normpath(targetname)))
-    if os.path.exists(normpath(targetname)):
+        "named \"{0}\" (path : \"{1}\")".format(_targetname,
+                                                normpath(_targetname)))
+    if os.path.exists(normpath(_targetname)):
         msg("  ! can't go further : the directory already exists.")
         return
 
     if not ARGS.off:
         msg("  ... creating the target directory with its sub-directories...")
-        os.mkdir(normpath(targetname))
-        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR))
-        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
-        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
-        os.mkdir(os.path.join(normpath(targetname), KATALSYS_SUBDIR, LOG_SUBSUBDIR))
+        os.mkdir(normpath(_targetname))
+        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR))
+        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR, LOG_SUBSUBDIR))
 
-        create_empty_db(os.path.join(normpath(targetname),
+        create_empty_db(os.path.join(normpath(_targetname),
                                      KATALSYS_SUBDIR,
                                      DATABASE_NAME))
 
@@ -493,15 +505,16 @@ def action__new(targetname):
                   "into the expected directory ? (y/N) ")
 
         if answer in ("y", "yes"):
-            if action__downloadefaultcfg(os.path.join(normpath(targetname),
-                                                      KATALSYS_SUBDIR,
-                                                      DEFAULT_CONFIGFILE_NAME)):
+            if action__downloadefaultcfg(_targetname=os.path.join(normpath(_targetname),
+                                                                 KATALSYS_SUBDIR,
+                                                                 DEFAULT_CONFIGFILE_NAME),
+                                         _location="local"):
                 msg("  ... done.")
             else:
                 print("  ! A problem occured : " \
                       "the creation of the target directory has been aborted.")
 
-    msg("  ... done with the creation of \"{0}\" as a new target directory.".format(targetname))
+    msg("  ... done with the creation of \"{0}\" as a new target directory.".format(_targetname))
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rebase(_newtargetpath):
@@ -983,7 +996,7 @@ def action__whatabout(_src):
         """
                 Display the expected informations about a file named _srcfile_name .
         """
-        msg("  = what about the \"{0}\" file ? (normpath : \"{1}\")".format(_src, _srcfile_name))
+        msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(_src, _srcfile_name))
         size = os.stat(_srcfile_name).st_size
         msg("    = size : {0}".format(size_as_str(size)))
 
@@ -1030,7 +1043,7 @@ def action__whatabout(_src):
         # informations about the source file :
         if normpath(TARGET_PATH) in normpath(_src):
             # special case : the file is inside the target directory :
-            msg("  = what about the \"{0}\" file ? (normpath : \"{1}\")".format(_src, normsrc))
+            msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(_src, normsrc))
             msg("    This file is inside the target directory.")
             srchash = hashfile64(normsrc)
             msg("    = hash : {0}".format(srchash))
@@ -1899,8 +1912,9 @@ def main_actions():
     if ARGS.findtag:
         action__findtag(ARGS.findtag)
 
-    if ARGS.downloaddefaultcfg is True:
-        action__downloadefaultcfg()
+    if ARGS.downloaddefaultcfg is not None:
+        action__downloadefaultcfg(_targetname=DEFAULT_CONFIGFILE_NAME,
+                                  _location=ARGS.downloaddefaultcfg)
 
 #///////////////////////////////////////////////////////////////////////////////
 def main_actions_tags():
@@ -1935,6 +1949,9 @@ def main_warmup():
         Initializations :
 
             o initialize DATABASE_FULLNAME
+
+            and if the --new/--downloaddefaultcfg options have not be used :
+
             o -si / --sourceinfos
             o -ti / --targetinfos
             o reading of the configuration file
@@ -1951,42 +1968,47 @@ def main_warmup():
     DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
 
     #...........................................................................
+    # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
+    if ARGS.new is not None or ARGS.downloaddefaultcfg is not None:
+        return
+
+    #...........................................................................
     if ARGS.targetinfos:
         show_infos_about_target_path()
 
-    #...........................................................................
-    # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
-    if ARGS.new is not None or ARGS.downloaddefaultcfg is True:
-        return
-
     # let's find a config file to be read :
-    msg_useddcfg = \
+    msg_please_use_dlcfg = \
      "    ! error : can't find any config file !\n" \
-     "    Use the -ddcfg/--downloaddefaultcfg option to download a default config file \n" \
-     "    and move this downloaded file (a) either into the main Katal's config directory \n" \
-     "    (choose between {0}) \n" \
-     "    (b) either into the target/.katal/ directory .".format(possible_paths_to_cfg())
+     "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file."
 
-    configfile_name = ARGS.configfile
+    configfile_name = None
     if ARGS.configfile is None:
+        # no config file given as a parameter, let's guess where it is :
 
         for cfg_path in possible_paths_to_cfg():
+            msg("  * trying to find a config file in \"{0}\"...".format(cfg_path))
 
-            msg("  * trying to read \"{0}\" as a config file...".format(cfg_path))
-
-            if os.path.exists(cfg_path):
-                msg("   ... ok, let's try to read this config file...")
-                configfile_name = cfg_path
+            if os.path.exists(os.path.join(cfg_path, DEFAULT_CONFIGFILE_NAME)):
+                msg("   ... ok a config file has been found, let's try to read it...")
+                configfile_name = os.path.join(cfg_path, DEFAULT_CONFIGFILE_NAME)
                 break
 
         if configfile_name is not None:
             msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
                                                                          normpath(configfile_name)))
+
         else:
-            msg(msg_useddcfg)
-            sys.exit(-1)
+
+            if ARGS.downloaddefaultcfg is None:
+                msg(msg_please_use_dlcfg)
+                sys.exit(-1)
+            else:
+                msg("  ! Can't find any configuration file.")
+                return
 
     else:
+        # A config file has been given as a parameter :
+
         msg("  * config file given as a parameter : \"{0}\" " \
             "(path : \"{1}\"".format(configfile_name,
                                      normpath(configfile_name)))
@@ -1996,8 +2018,8 @@ def main_warmup():
                 "doesn't exist. ".format(configfile_name,
                                          normpath(configfile_name)))
 
-            if ARGS.downloaddefaultcfg is False:
-                msg(msg_useddcfg)
+            if ARGS.downloaddefaultcfg is None:
+                msg(msg_please_use_dlcfg)
             sys.exit(-1)
 
     # let's read the config file :
@@ -2218,11 +2240,12 @@ def read_command_line_arguments():
                         help="To be used with the --findtag parameter. Copy the found files " \
                               "into an export directory.")
 
-    parser.add_argument('-ddcfg', '--downloaddefaultcfg',
-                        action="store_true",
+    parser.add_argument('-dlcfg', '--downloaddefaultcfg',
+                        choices=("local", "home",),
                         help="Download the default config file and overwrite the file having " \
                              "the same name. This is done before the script reads the parameters " \
-                             "in the config file")
+                             "in the config file. Use 'local' to download in the current " \
+                             "directory, 'home' to download in the user's HOME directory.")
 
     parser.add_argument('--findtag',
                         type=str,
@@ -2357,7 +2380,11 @@ def possible_paths_to_cfg():
         possible_paths_to_cfg()
         ________________________________________________________________________
 
-        return a list of the (str)paths to the config file.
+        return a list of the (str)paths to the config file, without the name
+        of the file.
+
+          The first element of the list is the local directory + ".katal",
+        the last element of the list is ~ + .katal .
         ________________________________________________________________________
 
         NO PARAMETER.
@@ -2366,21 +2393,18 @@ def possible_paths_to_cfg():
     """
     res = []
 
-    res.append(os.path.join(os.path.expanduser("~"),
-                            ".katal",
-                            DEFAULT_CONFIGFILE_NAME))
+    res.append(os.path.os.path.join(normpath("."),
+                                    normpath(ARGS.targetpath),
+                                    KATALSYS_SUBDIR))
 
     if platform.system() == 'Windows':
         res.append(os.path.join(os.path.expanduser("~"),
                                 "Local Settings",
                                 "Application Data",
-                                "katal",
-                                DEFAULT_CONFIGFILE_NAME))
+                                "katal"))
 
-    res.append(os.path.os.path.join(normpath("."),
-                                    normpath(ARGS.targetpath),
-                                    KATALSYS_SUBDIR,
-                                    DEFAULT_CONFIGFILE_NAME))
+    res.append(os.path.join(os.path.expanduser("~"),
+                            ".katal"))
 
     return res
 
@@ -2426,7 +2450,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         msg("  ! Python message : \"{0}\"".format(exception))
         msg("  ! Your configuration file maybe lacks a specific value.")
         msg("  ... you may want to download a new default config file : " \
-            "see -ddcfg/--downloaddefaultcfg option")
+            "see -dlcfg/--downloaddefaultcfg option")
         return None
 
     return parser
@@ -2684,7 +2708,7 @@ def show_infos_about_target_path():
 
     if not os.path.exists(os.path.join(normpath(TARGET_PATH),
                                        KATALSYS_SUBDIR, DATABASE_NAME)):
-        msg("    o no database in the target directory o")
+        msg("    o no database in the target directory.")
     else:
         db_connection = sqlite3.connect(DATABASE_FULLNAME)
         db_connection.row_factory = sqlite3.Row
@@ -3041,7 +3065,7 @@ def welcome():
     msg("  = command line arguments : {0}".format(sys.argv))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
-    if ARGS.new is None and ARGS.downloaddefaultcfg is False:
+    if ARGS.new is None and ARGS.downloaddefaultcfg is None:
         msg("  = target directory given as parameter : \"{0}\" " \
             "(path : \"{1}\")".format(ARGS.targetpath,
                                       normpath(ARGS.targetpath)))
@@ -3051,7 +3075,7 @@ def welcome():
                 "(path : \"{1}\")".format(ARGS.configfile,
                                           normpath(ARGS.configfile)))
         else:
-            msg("  = no config file specified on the command line : " \
+            msg("  * no config file specified on the command line : " \
                 "let's search a config file...")
 
     if ARGS.off:

@@ -19,7 +19,7 @@ main()
     |     | if ARGS.targetinfos:
     |     |     show_infos_about_target_path()
     |     | 
-    |     | configfile_name = ARGS.configfile [...]
+    |     | configfile_name = ... (different possibilities)
     |     | PARAMETERS = read_parameters_from_cfgfile(configfile_name)
     |     | 
     |     | create_subdirs_in_target_path()
@@ -92,7 +92,7 @@ main()
     |    | if ARGS.findtag:
     |    |     action__findtag(ARGS.findtag)
     |    | 
-    |    | if ARGS.downloaddefaultcfg is True:
-    |    |     action__downloadefaultcfg()
+    |    | if ARGS.downloaddefaultcfg is not None:
+    |    |     action__downloadefaultcfg(...)
     | 
     | goodbye()
