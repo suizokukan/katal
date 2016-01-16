@@ -24,16 +24,16 @@ main()
     |     | 
     |     | create_subdirs_in_target_path()
     |     | 
-    |     | if USE_LOGFILE:
-    |     |     LOGFILE = logfile_opening()
-    |     |                   | LOGFILE_SIZE = 0 / os.stat(normpath(logfile_fullname)).st_size
-    |     |     welcome_in_logfile()
+    |     | (...)welcome_in_logfile()
     |     |
     |     | if ARGS.infos:
     |     |     action__infos()
     |     |
     |     | if ARGS.sourceinfos:
     |     |     show_infos_about_source_path()
+    |     |
+    |     | if ARGS.targetinfos:
+    |     |     show_infos_about_target_path()
     | 
     | main_actions_tags()
     |     | if ARGS.rmnotags:

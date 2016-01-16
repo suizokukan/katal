@@ -100,7 +100,6 @@ LOG_SUBSUBDIR = "logs"
 HASHID_MAXLENGTH = 20  # maximal length of the hashids displayed. Can't be greater than 44.
 TAGSSTR_MAXLENGTH = 20  # maximal length of the tags' string displayed.
 SOURCENAME_MAXLENGTH = 20  # maximal length of the source's filename
-TARGETNAME_MAXLENGTH = 20  # maximal length of the target's filename
 
 # How many bytes have to be read to compute the partial hashid ?
 # See the hashfile64() function.
@@ -1952,10 +1951,15 @@ def main_warmup():
 
             and if the --new/--downloaddefaultcfg options have not be used :
 
+            o configfile_name = None / a string
+            o reading of the configuration file
+            o list of the expected directories : if one directory is missing, let's create it.
+              create_subdirs_in_target_path()
+            o welcome_in_logfile()
+            o warning if source path == target path
+            o --infos
             o -si / --sourceinfos
             o -ti / --targetinfos
-            o reading of the configuration file
-            o --infos
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
@@ -1973,15 +1977,13 @@ def main_warmup():
         return
 
     #...........................................................................
-    if ARGS.targetinfos:
-        show_infos_about_target_path()
-
     # let's find a config file to be read :
+    configfile_name = None
+    
     msg_please_use_dlcfg = \
      "    ! error : can't find any config file !\n" \
      "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file."
 
-    configfile_name = None
     if ARGS.configfile is None:
         # no config file given as a parameter, let's guess where it is :
 
@@ -2023,6 +2025,7 @@ def main_warmup():
                 msg(msg_please_use_dlcfg)
             sys.exit(-1)
 
+    #...........................................................................
     # let's read the config file :
     PARAMETERS = read_parameters_from_cfgfile(configfile_name)
     if PARAMETERS is None:
@@ -2030,17 +2033,21 @@ def main_warmup():
     else:
         msg("    ... config file found and read (ok)")
 
+    #...........................................................................
     # list of the expected directories : if one directory is missing, let's create it.
     create_subdirs_in_target_path()
 
+    #...........................................................................
     if USE_LOGFILE:
         LOGFILE = logfile_opening()
         welcome_in_logfile()
 
+    #...........................................................................
     if TARGET_PATH == SOURCE_PATH:
         msg("  ! warning : " \
             "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
+    #...........................................................................
     # we show the following informations :
     for path, info in ((configfile_name, "config file"),
                        (os.path.join(normpath(TARGET_PATH),
@@ -2061,6 +2068,10 @@ def main_warmup():
     #...........................................................................
     if ARGS.sourceinfos:
         show_infos_about_source_path()
+
+    #...........................................................................
+    if ARGS.targetinfos:
+        show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
 def modify_the_tag_of_some_files(_tag, _to, _mode):
@@ -2428,7 +2439,6 @@ def read_parameters_from_cfgfile(_configfile_name):
                 or the expected configparser.ConfigParser object=.
     """
     global USE_LOGFILE
-    global TARGETNAME_MAXLENGTH
     global SOURCE_PATH, SOURCENAME_MAXLENGTH
     global HASHID_MAXLENGTH, TAGSSTR_MAXLENGTH
 
@@ -2437,7 +2447,6 @@ def read_parameters_from_cfgfile(_configfile_name):
     try:
         parser.read(_configfile_name)
         USE_LOGFILE = parser["log file"]["use log file"] == "True"
-        TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
         SOURCE_PATH = parser["source"]["path"]
         SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
         HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
@@ -2447,6 +2456,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["target"]["name of the target files"]
         _ = parser["log file"]["name"]
         _ = parser["source"]["eval"]
+        _ = parser["display"]["target filename.max length on console"]
     except BaseException as exception:
         msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -2642,6 +2652,8 @@ def show_infos_about_target_path():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
+    global PARAMETERS
+
     msg("  = informations about the \"{0}\" " \
         "(path: \"{1}\") target directory =".format(TARGET_PATH,
                                                     normpath(TARGET_PATH)))
@@ -2738,10 +2750,11 @@ def show_infos_about_target_path():
             msg("    ! (empty database)")
         else:
             msg("    o {0} file(s) in the database :".format(row_index))
+            targetname_maxlength = int(PARAMETERS["display"]["target filename.max length on console"])
             # beware : characters like "║" are forbidden (think to the cp1252 encoding
             # required by Windows terminal)
             draw_table(_rows=(("hashid/base64", HASHID_MAXLENGTH, "|"),
-                              ("name", TARGETNAME_MAXLENGTH, "|"),
+                              ("name", targetname_maxlength, "|"),
                               ("tags", TAGSSTR_MAXLENGTH, "|"),
                               ("source name", SOURCENAME_MAXLENGTH, "|"),
                               ("source date", DTIME_FORMAT_LENGTH, "|")),
