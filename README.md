@@ -269,6 +269,23 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
     [intended] v 0.2.6 : reduce the number of global constants
 
+    v 0.2.5 (2016_01_16) : --downloaddefaultcfg=[home|local]
+
+        o '-ddcfg' > '-dlcfg'
+        o --downloaddefaultcfg takes now a parameter : 'local' or 'home';
+          with 'home', the downloaded file is moved in the user's home directory.
+
+        o improved read_parameters_from_cfgfile : test the existence of some values in the cfg file
+        o (defaukt)katal.ini : fixed logfile's maximal size to 100 Mo
+        o added the chart.txt file
+        o welcome() : command line arguments are now displayed
+        o improved the documentation in README.md
+
+        o updated pylintrc (max-branches=18)
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v 0.2.4 (2016_01_15) : --mirroronly, logfiles are now sliced if too large
 
         o new option : -si/--sourceinfos
