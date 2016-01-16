@@ -2215,7 +2215,7 @@ def read_command_line_arguments():
 
     parser.add_argument('--add',
                         action="store_true",
-                        help="select files according to what is described " \
+                        help="# Select files according to what is described " \
                              "in the configuration file " \
                              "then add them to the target directory. " \
                              "This option can't be used with the --select one." \
@@ -2224,68 +2224,68 @@ def read_command_line_arguments():
 
     parser.add_argument('--addtag',
                         type=str,
-                        help="Add a tag to some file(s) in combination " \
+                        help="# Add a tag to some file(s) in combination " \
                              "with the --to option. ")
 
     parser.add_argument('-cfg', '--configfile',
                         type=str,
-                        help="set the name of the config file, e.g. config.ini")
+                        help="# Set the name of the config file, e.g. config.ini")
 
     parser.add_argument('--cleandbrm',
                         action="store_true",
-                        help="Remove from the database the missing files in the target path.")
+                        help="# Remove from the database the missing files in the target path.")
 
     parser.add_argument('--copyto',
                         type=str,
-                        help="To be used with the --findtag parameter. Copy the found files " \
+                        help="# To be used with the --findtag parameter. Copy the found files " \
                               "into an export directory.")
 
     parser.add_argument('-dlcfg', '--downloaddefaultcfg',
                         choices=("local", "home",),
-                        help="Download the default config file and overwrite the file having " \
+                        help="# Download the default config file and overwrite the file having " \
                              "the same name. This is done before the script reads the parameters " \
                              "in the config file. Use 'local' to download in the current " \
                              "directory, 'home' to download in the user's HOME directory.")
 
     parser.add_argument('--findtag',
                         type=str,
-                        help="find the files in the target directory with the given tag. " \
-                              "The tag is a simple string, not a regex.")
+                        help="# Find the files in the target directory with the given tag. " \
+                             "The tag is a simple string, not a regex.")
 
     parser.add_argument('--infos',
                         action="store_true",
-                        help="display informations about the source directory " \
+                        help="# Display informations about the source directory " \
                              "given in the configuration file. Help the --select/--add " \
                              "options to display more informations about the process : in " \
 			     "this case, the --infos will be executed before --select/--add")
 
     parser.add_argument('-m', '--mute',
                         action="store_true",
-                        help="no output to the console; no question asked on the console")
+                        help="# No output to the console; no question asked on the console")
 
     parser.add_argument('--mirroronly',
                         action="store_true",
-                        help="do not fill the target directory with the source files, fill only " \
+                        help="# Do not fill the target directory with the source files, fill only " \
                              "the target database. You can't use --mirroronly with --move .")
 
     parser.add_argument('--move',
                         action="store_true",
-                        help="to be used with --select and --add : move the files, don't copy them")
+                        help="# To be used with --select and --add : move the files, don't copy them")
 
     parser.add_argument('-n', '--new',
                         type=str,
-                        help="create a new target directory")
+                        help="# Create a new target directory")
 
     parser.add_argument('--off',
                         action="store_true",
-                        help="don't write anything into the target directory or into " \
+                        help="# Don't write anything into the target directory or into " \
                              "the database, except into the current log file. " \
                              "Use this option to simulate an operation : you get the messages " \
                              "but no file is modified on disk, no directory is created.")
 
     parser.add_argument('--rebase',
                         type=str,
-                        help="copy the current target directory into a new one : you " \
+                        help="# Copy the current target directory into a new one : you " \
                              "rename the files in the target directory and in the database. " \
                              "First, use the --new option to create a new target directory, " \
                              "modify the .ini file of the new target directory " \
@@ -2294,29 +2294,29 @@ def read_command_line_arguments():
 
     parser.add_argument('--reset',
                         action="store_true",
-                        help="Delete the database and the files in the target directory")
+                        help="# Delete the database and the files in the target directory")
 
     parser.add_argument('--rmnotags',
                         action="store_true",
-                        help="remove all files without a tag")
+                        help="# Remove all files without a tag")
 
     parser.add_argument('--rmtags',
                         action="store_true",
-                        help="remove all the tags of some file(s) in combination " \
+                        help="# Remove all the tags of some file(s) in combination " \
                              "with the --to option. ")
 
     parser.add_argument('-s', '--select',
                         action="store_true",
-                        help="select files according to what is described " \
+                        help="# Select files according to what is described " \
                              "in the configuration file " \
                              "without adding them to the target directory. " \
                              "This option can't be used with the --add one." \
-                     "If you want more informations about the process, please " \
-                 "use this option in combination with --infos .")
+                             "If you want more informations about the process, please " \
+                             "use this option in combination with --infos .")
 
     parser.add_argument('--settagsstr',
                         type=str,
-                        help="give the tag to some file(s) in combination " \
+                        help="# Give the tag to some file(s) in combination " \
                              "with the --to option. " \
                              "Overwrite the ancient tag string. " \
                              "If you want to empty the tags' string, please use a space, " \
@@ -2325,50 +2325,50 @@ def read_command_line_arguments():
 
     parser.add_argument('-si', '--sourceinfos',
                         action="store_true",
-                        help="display informations about the source directory")
+                        help="# Display informations about the source directory")
 
     parser.add_argument('--strictcmp',
                         action="store_true",
-                        help="to be used with --add or --select. Force a bit-to-bit comparision" \
+                        help="# To be used with --add or --select. Force a bit-to-bit comparision" \
                              "between files whose hashid-s is equal.")
 
     parser.add_argument('--targetpath',
                         type=str,
                         default=".",
-                        help="target path, usually '.' . If you set path to . (=dot character)" \
+                        help="# Target path, usually '.' . If you set path to . (=dot character)" \
                              ", it means that the source path is the current directory" \
                              " (=the directory where the script katal.py has been launched)")
 
     parser.add_argument('-ti', '--targetinfos',
                         action="store_true",
-                        help="display informations about the target directory")
+                        help="# Display informations about the target directory")
 
     parser.add_argument('-tk', '--targetkill',
                         type=str,
-                        help="kill (=move to the trash directory) one file from " \
+                        help="# Kill (=move to the trash directory) one file from " \
                              "the target directory." \
                              "DO NOT GIVE A PATH, just the file's name, " \
                              "without the path to the target directory")
 
     parser.add_argument('--to',
                         type=str,
-                        help="give the name of the file(s) concerned by --settagsstr. " \
+                        help="# Give the name of the file(s) concerned by --settagsstr. " \
                         "wildcards accepted; e.g. to select all .py files, use '*.py' . " \
                         "Please DON'T ADD the path to the target directory, only the filenames")
 
     parser.add_argument('--usentfsprefix',
                         action="store_true",
-                        help="Force the script to prefix filenames by a special string " \
+                        help="# Force the script to prefix filenames by a special string " \
                              "required by the NTFS for long filenames, namely \\\\?\\")
 
     parser.add_argument('--version',
                         action='version',
                         version="{0} v. {1}".format(__projectname__, __version__),
-                        help="show the version and exit")
+                        help="# Show the version and exit")
 
     parser.add_argument('--whatabout',
                         type=str,
-                        help="Say if the file[the files in a directory] already in the " \
+                        help="# Say if the file[the files in a directory] already in the " \
                              "given as a parameter is in the target directory " \
                              "notwithstanding its name.")
 
