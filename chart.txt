@@ -1,18 +1,18 @@
 main()
     | ARGS = read_command_line_arguments()
-    |
-    |     read_command_line_arguments()
-    |       | USE_LOGFILE = parser["log file"]["use log file"] == "True"
-    |       | TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
-    |       | SOURCE_PATH = parser["source"]["path"]
-    |       | SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
-    |       | HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
-    |       | TAGSSTR_MAXLENGTH = int(parser["display"]["tag.max length on console"])
+    |           | USE_LOGFILE = parser["log file"]["use log file"] == "True"
+    |           | TARGETNAME_MAXLENGTH = int(parser["display"]["target filename.max length on console"])
+    |           | SOURCE_PATH = parser["source"]["path"]
+    |           | SOURCENAME_MAXLENGTH = int(parser["display"]["source filename.max length on console"])
+    |           | HASHID_MAXLENGTH = int(parser["display"]["hashid.max length on console"])
+    |           | TAGSSTR_MAXLENGTH = int(parser["display"]["tag.max length on console"])
     |
     | TARGET_PATH = ARGS.targetpath
+    |
     | check_args()
     | 
     | welcome()
+    |
     | main_warmup()
     |     | DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
     |     | 
@@ -26,6 +26,7 @@ main()
     |     | 
     |     | if USE_LOGFILE:
     |     |     LOGFILE = logfile_opening()
+    |     |                   | LOGFILE_SIZE = 0 / os.stat(normpath(logfile_fullname)).st_size
     |     |     welcome_in_logfile()
     |     |
     |     | if ARGS.infos:
@@ -35,6 +36,63 @@ main()
     |     |     show_infos_about_source_path()
     | 
     | main_actions_tags()
+    |     | if ARGS.rmnotags:
+    |     |     action__rmnotags()
+    |     | 
+    |     | if ARGS.settagsstr:
+    |     |     action__settagsstr(ARGS.settagsstr, ARGS.to)
+    |     | 
+    |     | if ARGS.addtag:
+    |     |     action__addtag(ARGS.addtag, ARGS.to)
+    |     | 
+    |     | if ARGS.rmtags:
+    |     |     action__rmtags(ARGS.to)
+    | 
     | main_actions()
+    |    | if ARGS.cleandbrm:
+    |    |     action__cleandbrm()
+    |    | 
+    |    | if ARGS.reset:
+    |    |     action__reset()
+    |    | 
+    |    | if ARGS.targetkill:
+    |    |     action__target_kill(ARGS.targetkill)
+    |    | 
+    |    | if ARGS.whatabout:
+    |    |     read_target_db()
+    |    |     action__whatabout(ARGS.whatabout)
+    |    | 
+    |    | if ARGS.select:
+    |    |     read_target_db()
+    |    |     read_filters()
+    |    |     action__select()
+    |    | 
+    |    |     if not ARGS.mute and len(SELECT) > 0:
+    |    |         answer = \
+    |    |             input("\nDo you want to add the selected " \
+    |    |                   "files to the target directory (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+    |    | 
+    |    |         if answer in ("y", "yes"):
+    |    |             action__add()
+    |    |             show_infos_about_target_path()
+    |    | 
+    |    | if ARGS.add:
+    |    |     read_target_db()
+    |    |     read_filters()
+    |    |     action__select()
+    |    |     action__add()
+    |    |     show_infos_about_target_path()
+    |    | 
+    |    | if ARGS.new:
+    |    |     action__new(ARGS.new)
+    |    | 
+    |    | if ARGS.rebase:
+    |    |     action__rebase(ARGS.rebase)
+    |    | 
+    |    | if ARGS.findtag:
+    |    |     action__findtag(ARGS.findtag)
+    |    | 
+    |    | if ARGS.downloaddefaultcfg is True:
+    |    |     action__downloadefaultcfg()
     | 
     | goodbye()
