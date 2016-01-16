@@ -3028,6 +3028,7 @@ def welcome():
 
         sys.exit(-1) if the config file doesn't exist.
     """
+    # first welcome message :
     strmsg = "=== {0} v.{1} " \
              "(launched at {2}) ===".format(__projectname__,
                                             __version__,
@@ -3035,6 +3036,9 @@ def welcome():
     msg("="*len(strmsg))
     msg(strmsg)
     msg("="*len(strmsg))
+
+    # command line arguments :
+    msg("  = command line arguments : {0}".format(sys.argv))
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is False:
