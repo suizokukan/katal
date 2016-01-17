@@ -267,7 +267,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(7) history / future versions
 
-    [intended] v 0.2.6 : reduce the number of global constants
+    [intended] v 0.2.6 : reduce the number of global constants (next:TARGET_PATH)
 
     v 0.2.5 (2016_01_16) : --downloaddefaultcfg=[home|local]
 

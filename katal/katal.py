@@ -85,7 +85,6 @@ TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of 
 
 PARAMETERS = None # see documentation:configuration file
 
-SOURCE_PATH = ""  # initialized from the configuration file.
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
 
@@ -524,9 +523,11 @@ def action__rebase(_newtargetpath):
 
         no RETURNED VALUE
     """
+    source_path = PARAMETERS["source"]["path"]
+
     msg("  = copying the current target directory into a new one =")
-    msg("    o from {0} (path : \"{1}\")".format(SOURCE_PATH,
-                                                 normpath(SOURCE_PATH)))
+    msg("    o from {0} (path : \"{1}\")".format(source_path,
+                                                 normpath(source_path)))
 
     msg("    o to   {0} (path : \"{1}\")".format(_newtargetpath,
                                                  normpath(_newtargetpath)))
@@ -607,12 +608,14 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                                          (4)size,
                                          (5)partialhashid)
     """
+    source_path = PARAMETERS["source"]["path"]
+
     files = dict()      # dict to be returned.
     filenames = set()   # to be used to avoid duplicates.
 
     anomalies_nbr = 0
     for index, olddb_record in enumerate(_olddb_cursor.execute('SELECT * FROM dbfiles')):
-        fullname = normpath(os.path.join(SOURCE_PATH, olddb_record["name"]))
+        fullname = normpath(os.path.join(source_path, olddb_record["name"]))
         filename_no_extens, extension = get_filename_and_extension(fullname)
 
         size = olddb_record["size"]
@@ -1454,7 +1457,7 @@ def fill_select(_debug_datatime=None):
         ________________________________________________________________________
 
         Fill SELECT and SELECT_SIZE_IN_BYTES from the files stored in
-        SOURCE_PATH. This function is used by action__select() .
+        the source path. This function is used by action__select() .
         ________________________________________________________________________
 
         PARAMETERS
@@ -1466,6 +1469,8 @@ def fill_select(_debug_datatime=None):
     """
     global SELECT, SELECT_SIZE_IN_BYTES
 
+    source_path = PARAMETERS["source"]["path"]
+
     SELECT = {}  # see the SELECT format in the documentation:selection
     SELECT_SIZE_IN_BYTES = 0
     number_of_discarded_files = 0
@@ -1475,7 +1480,7 @@ def fill_select(_debug_datatime=None):
     fullname = ""
 
     file_index = 0  # number of the current file in the source directory.
-    for dirpath, _, filenames in os.walk(normpath(SOURCE_PATH)):
+    for dirpath, _, filenames in os.walk(normpath(source_path)):
         for filename in filenames:
             file_index += 1
             fullname = os.path.join(normpath(dirpath), filename)
@@ -2028,6 +2033,8 @@ def main_warmup():
     else:
         msg("    ... config file found and read (ok)")
 
+    source_path = PARAMETERS["source"]["path"]
+
     #...........................................................................
     # list of the expected directories : if one directory is missing, let's create it.
     create_subdirs_in_target_path()
@@ -2038,7 +2045,7 @@ def main_warmup():
         welcome_in_logfile()
 
     #...........................................................................
-    if TARGET_PATH == SOURCE_PATH:
+    if TARGET_PATH == source_path:
         msg("  ! warning : " \
             "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
 
@@ -2053,8 +2060,8 @@ def main_warmup():
                                      KATALSYS_SUBDIR, LOG_SUBSUBDIR), "log subdir"),):
         msg("  = so, let's use \"{0}\" as {1}".format(path, info))
 
-    msg("  = source directory : \"{0}\" (path : \"{1}\")".format(SOURCE_PATH,
-                                                                 normpath(SOURCE_PATH)))
+    msg("  = source directory : \"{0}\" (path : \"{1}\")".format(source_path,
+                                                                 normpath(source_path)))
 
     #...........................................................................
     if ARGS.infos:
@@ -2434,14 +2441,12 @@ def read_parameters_from_cfgfile(_configfile_name):
                 or the expected configparser.ConfigParser object=.
     """
     global USE_LOGFILE
-    global SOURCE_PATH
 
     parser = configparser.ConfigParser()
 
     try:
         parser.read(_configfile_name)
         USE_LOGFILE = parser["log file"]["use log file"] == "True"
-        SOURCE_PATH = parser["source"]["path"]
         # just to check the existence of the following values in the configuration file :
         _ = parser["log file"]["maximal size"]
         _ = parser["target"]["name of the target files"]
@@ -2451,6 +2456,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["display"]["hashid.max length on console"]
         _ = parser["display"]["tag.max length on console"]
         _ = parser["display"]["source filename.max length on console"]
+        _ = parser["source"]["path"]
     except BaseException as exception:
         msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name))
@@ -2584,18 +2590,20 @@ def show_infos_about_source_path():
     """
     global INFOS_ABOUT_SRC_PATH
 
+    source_path = PARAMETERS["source"]["path"]
+
     msg("  = informations about the \"{0}\" " \
-        "(path: \"{1}\") source directory =".format(SOURCE_PATH,
-                                                    normpath(SOURCE_PATH)))
+        "(path: \"{1}\") source directory =".format(source_path,
+                                                    normpath(source_path)))
 
-    if not os.path.exists(normpath(SOURCE_PATH)):
-        msg("    ! can't find source path \"{0}\" .".format(SOURCE_PATH))
+    if not os.path.exists(normpath(source_path)):
+        msg("    ! can't find source path \"{0}\" .".format(source_path))
         return
-    if not os.path.isdir(normpath(SOURCE_PATH)):
-        msg("    ! source path \"{0}\" isn't a directory .".format(SOURCE_PATH))
+    if not os.path.isdir(normpath(source_path)):
+        msg("    ! source path \"{0}\" isn't a directory .".format(source_path))
         return
 
-    if is_ntfs_prefix_mandatory(SOURCE_PATH):
+    if is_ntfs_prefix_mandatory(source_path):
         msg("    ! the source path should be used with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
@@ -2607,7 +2615,7 @@ def show_infos_about_source_path():
     total_size = 0
     files_number = 0
     extensions = dict()  # (str)extension : [number of files, total size]
-    for dirpath, _, fnames in os.walk(normpath(SOURCE_PATH)):
+    for dirpath, _, fnames in os.walk(normpath(source_path)):
         for filename in fnames:
             fullname = os.path.join(normpath(dirpath), filename)
             size = os.stat(normpath(fullname)).st_size

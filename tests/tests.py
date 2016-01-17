@@ -141,10 +141,10 @@ class Tests(unittest.TestCase):
         katal.read_filters()
         katal.fill_select()
 
-        self.assertEqual(len(katal.SELECT), 2)
+        #for k in katal.SELECT:
+        #    print(k, katal.SELECT[k].fullname)
 
-        for k in katal.SELECT:
-            print(k, katal.SELECT[k].fullname)
+        self.assertEqual(len(katal.SELECT), 2)
 
         # hashid of c.5 == c.4 :
         hashid = "rc2y98HRxM0xEpm9nouE60nVk4TUq3ec9sr10UEwpnY="
