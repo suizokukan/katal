@@ -79,8 +79,6 @@ DEFAULTCFGFILE_URL = "https://raw.githubusercontent.com/suizokukan/katal/master/
 DATABASE_NAME = "katal.db"
 TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
 
-TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
-
 PARAMETERS = None  # see documentation:configuration file
                    # see the read_parameters_from_cfgfile() function
 
@@ -1720,7 +1718,7 @@ def get_logfile_fullname():
                         PARAMETERS["log file"]["name"])
 
 #///////////////////////////////////////////////////////////////////////////////
-def goodbye():
+def goodbye(_timestamp_start):
     """
         goodbye()
         ________________________________________________________________________
@@ -1728,11 +1726,14 @@ def goodbye():
         display a goodbye message.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER :
+                o  _timestamp_start : a datetime.datetime object
+
+        no RETURNED VALUE
     """
     msg("=== exit (stopped at {0}; " \
         "total duration time : {1}) ===".format(datetime.now().strftime(DTIME_FORMAT),
-                                                datetime.now() - TIMESTAMP_BEGIN))
+                                                datetime.now() - _timestamp_start))
 
 #///////////////////////////////////////////////////////////////////////////////
 def hashfile64(_filename, _stop_after=None):
@@ -1833,7 +1834,7 @@ def logfile_opening():
     return open(logfile_fullname, "a")
 
 #///////////////////////////////////////////////////////////////////////////////
-def main():
+def main(_timestamp_start):
     """
         main()
         ________________________________________________________________________
@@ -1841,7 +1842,10 @@ def main():
         Main entry point.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER :
+                o  _timestamp_start : a datetime.datetime object
+
+        no RETURNED VALUE
 
         o  sys.exit(-1) is called if the config file is ill-formed.
         o  sys.exit(-2) is called if a KatalError exception is raised
@@ -1853,12 +1857,12 @@ def main():
         ARGS = read_command_line_arguments()
         check_args()
 
-        welcome()
-        main_warmup()
+        welcome(_timestamp_start)
+        main_warmup(_timestamp_start)
         main_actions_tags()
         main_actions()
 
-        goodbye()
+        goodbye(_timestamp_start)
 
         if USE_LOGFILE:
             LOGFILE.close()
@@ -1955,7 +1959,7 @@ def main_actions_tags():
         action__rmtags(ARGS.to)
 
 #///////////////////////////////////////////////////////////////////////////////
-def main_warmup():
+def main_warmup(_timestamp_start):
     """
         main_warmup()
         ________________________________________________________________________
@@ -1975,7 +1979,10 @@ def main_warmup():
             o -ti / --targetinfos
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER :
+                o  _timestamp_start : a datetime.datetime object
+
+        no RETURNED VALUE
 
         o  sys.exit(-1) is called if the config file is ill-formed or missing.
     """
@@ -2052,7 +2059,7 @@ def main_warmup():
     #...........................................................................
     if USE_LOGFILE:
         LOGFILE = logfile_opening()
-        welcome_in_logfile()
+        welcome_in_logfile(_timestamp_start)
 
     #...........................................................................
     if ARGS.targetpath == source_path:
@@ -3070,7 +3077,7 @@ def thefilehastobeadded__filt_size(_filter, _size):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def welcome():
+def welcome(_timestamp_start):
     """
         welcome()
         ________________________________________________________________________
@@ -3084,7 +3091,10 @@ def welcome():
         function)
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER :
+                o  _timestamp_start : a datetime.datetime object
+
+        no RETURNED VALUE
 
         sys.exit(-1) if the config file doesn't exist.
     """
@@ -3092,7 +3102,7 @@ def welcome():
     strmsg = "=== {0} v.{1} " \
              "(launched at {2}) ===".format(__projectname__,
                                             __version__,
-                                            TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S"))
+                                            _timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
     msg("="*len(strmsg))
     msg(strmsg)
     msg("="*len(strmsg))
@@ -3128,7 +3138,7 @@ def welcome():
         msg("  =                 directory.                                            =")
 
 #///////////////////////////////////////////////////////////////////////////////
-def welcome_in_logfile():
+def welcome_in_logfile(_timestamp_start):
     """
         welcome_in_logfile()
         ________________________________________________________________________
@@ -3138,17 +3148,21 @@ def welcome_in_logfile():
 
         This function has to be called after the opening of the log file.
         This function doesn't write anything on the console.
+
         See welcome() function for more informations since welcome() and
         welcome_in_logfile() do the same job, the first on console, the
         second in the log file.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER :
+                o  _timestamp_start : a datetime.datetime object
+
+        no RETURNED VALUE
     """
     msg(_msg="=== {0} v.{1} " \
         "(launched at {2}) ===".format(__projectname__,
                                        __version__,
-                                       TIMESTAMP_BEGIN.strftime("%Y-%m-%d %H:%M:%S")),
+                                       _timestamp_start.strftime("%Y-%m-%d %H:%M:%S")),
         _for_logfile=True,
         _for_console=False)
 
@@ -3156,4 +3170,4 @@ def welcome_in_logfile():
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
 if __name__ == '__main__':
-    main()
+    main(_timestamp_start=datetime.now())

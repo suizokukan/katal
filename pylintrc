@@ -23,6 +23,10 @@
 # Maximum number of branch for function / method body
 # max-branches=18 (formerly=12)
 #
+# (5)
+# Maximum number of locals for function / method body
+# max-locals=16
+#
 ################################################################################
 
 [MASTER]
@@ -371,7 +375,7 @@ max-args=5
 ignored-argument-names=_.*
 
 # Maximum number of locals for function / method body
-max-locals=15
+max-locals=16
 
 # Maximum number of return / yield for function / method body
 max-returns=6
