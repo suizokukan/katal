@@ -267,7 +267,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(7) history / future versions
 
-    v 0.2.8 [intended] : doc about --mirroronly
+    v 0.2.8 [intended] : doc about --mirroronly + NTFS(source/target) + caveats
 
     v 0.2.7 (2016_01_17) : fixed a critical bug
 
