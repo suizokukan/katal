@@ -56,7 +56,7 @@ import sys
 import unicodedata
 
 __projectname__ = "Katal"
-__version__ = "0.2.7a"   # see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
+__version__ = "0.2.7"   # see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
 __author__ = "Xavier Faure (suizokukan)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
@@ -1834,7 +1834,7 @@ def logfile_opening():
     return open(logfile_fullname, "a")
 
 #///////////////////////////////////////////////////////////////////////////////
-def main(_timestamp_start):
+def main():
     """
         main()
         ________________________________________________________________________
@@ -1842,10 +1842,10 @@ def main(_timestamp_start):
         Main entry point.
         ________________________________________________________________________
 
-        PARAMETER :
-                o  _timestamp_start : a datetime.datetime object
+        no PARAMETER, no RETURNED VALUE
 
-        no RETURNED VALUE
+        This function should NOT have arguments : otherwise, the entrypoint
+        defined in setup.py would not be valid.
 
         o  sys.exit(-1) is called if the config file is ill-formed.
         o  sys.exit(-2) is called if a KatalError exception is raised
@@ -1853,16 +1853,18 @@ def main(_timestamp_start):
     """
     global ARGS
 
+    timestamp_start = datetime.now()
+
     try:
         ARGS = read_command_line_arguments()
         check_args()
 
-        welcome(_timestamp_start)
-        main_warmup(_timestamp_start)
+        welcome(timestamp_start)
+        main_warmup(timestamp_start)
         main_actions_tags()
         main_actions()
 
-        goodbye(_timestamp_start)
+        goodbye(timestamp_start)
 
         if USE_LOGFILE:
             LOGFILE.close()
@@ -3170,4 +3172,4 @@ def welcome_in_logfile(_timestamp_start):
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
 if __name__ == '__main__':
-    main(_timestamp_start=datetime.now())
+    main()

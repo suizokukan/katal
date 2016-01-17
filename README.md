@@ -267,6 +267,16 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(7) history / future versions
 
+    v 0.2.7 (2016_01_17) : fixed a critical bug
+
+        o modified main() so that this function doesn't have any argument,
+          allowing the setup.py to define a valid entry-point in the
+          program. Added a warning in main() so that this error does not
+          occur anymore.
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
     v 0.2.6 (2016_01_17) : reduced the number of global constants
 
         o removed FULLNAME_DATABASE, TARGET_PATH,SOURCE_PATH, SOURCENAME_MAXLENGTH,
