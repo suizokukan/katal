@@ -88,7 +88,6 @@ PARAMETERS = None # see documentation:configuration file
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
 
-TARGET_PATH = "."
 TARGET_DB = dict()  # see documentation:database; initialized by read_target_db()
 KATALSYS_SUBDIR = ".katal"
 TRASH_SUBSUBDIR = "trash"
@@ -195,7 +194,7 @@ def action__add():
     db_connection = sqlite3.connect(DATABASE_FULLNAME)
     db_cursor = db_connection.cursor()
 
-    if get_disk_free_space(TARGET_PATH) < SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
+    if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
         msg("    ! Not enough space on disk. Stopping the program.")
         # returned value : -1 = error
         return -1
@@ -205,7 +204,7 @@ def action__add():
     for index, hashid in enumerate(SELECT):
 
         complete_source_filename = SELECT[hashid].fullname
-        target_name = os.path.join(normpath(TARGET_PATH), SELECT[hashid].targetname)
+        target_name = os.path.join(normpath(ARGS.targetpath), SELECT[hashid].targetname)
 
         sourcedate = datetime.utcfromtimestamp(os.path.getmtime(complete_source_filename))
         sourcedate = sourcedate.replace(second=0, microsecond=0)
@@ -312,10 +311,10 @@ def action__cleandbrm():
 
     files_to_be_rmved_from_the_db = []  # hashid of the files
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        if not os.path.exists(os.path.join(normpath(TARGET_PATH), db_record["name"])):
+        if not os.path.exists(os.path.join(normpath(ARGS.targetpath), db_record["name"])):
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
             msg("    o about to remove \"{0}\" " \
-                "from the database".format(os.path.join(normpath(TARGET_PATH),
+                "from the database".format(os.path.join(normpath(ARGS.targetpath),
                                                         db_record["name"])))
 
     if len(files_to_be_rmved_from_the_db) == 0:
@@ -438,7 +437,7 @@ def action__findtag(_tag):
                 os.mkdir(normpath(ARGS.copyto))
 
         for i, filename in enumerate(res):
-            src = os.path.join(normpath(TARGET_PATH), filename)
+            src = os.path.join(normpath(ARGS.targetpath), filename)
             dest = os.path.join(normpath(ARGS.copyto), filename)
             msg("    o ({0}/{1}) copying \"{2}\" as \"{3}\"...".format(i+1, len_res, src, dest))
             if not ARGS.off:
@@ -754,8 +753,8 @@ def action__reset():
         msg("   o removing {0} from the database and from the target path".format(name))
         if not ARGS.off:
             # let's remove the file from the target directory :
-            shutil.move(os.path.join(normpath(TARGET_PATH), name),
-                        os.path.join(normpath(TARGET_PATH),
+            shutil.move(os.path.join(normpath(ARGS.targetpath), name),
+                        os.path.join(normpath(ARGS.targetpath),
                                      KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
             # let's remove the file from the database :
             db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
@@ -799,8 +798,8 @@ def action__rmnotags():
                 msg("   o removing {0} from the database and from the target path".format(name))
                 if not ARGS.off:
                     # let's remove the file from the target directory :
-                    shutil.move(os.path.join(normpath(TARGET_PATH), name),
-                                os.path.join(normpath(TARGET_PATH),
+                    shutil.move(os.path.join(normpath(ARGS.targetpath), name),
+                                os.path.join(normpath(ARGS.targetpath),
                                              KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
                     # let's remove the file from the database :
                     db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
@@ -840,8 +839,8 @@ def action__select():
                 "in the config file... =")
 
     msg("  o the files will be copied in \"{0}\" " \
-        "(path: \"{1}\")".format(TARGET_PATH,
-                                 normpath(TARGET_PATH)))
+        "(path: \"{1}\")".format(ARGS.targetpath,
+                                 normpath(ARGS.targetpath)))
     msg("  o the files will be renamed according " \
         "to the \"{0}\" pattern.".format(PARAMETERS["target"]["name of the target files"]))
 
@@ -869,7 +868,7 @@ def action__select():
                                                          ratio))
 
     # let's check that the target path has sufficient free space :
-    available_space = get_disk_free_space(TARGET_PATH)
+    available_space = get_disk_free_space(ARGS.targetpath)
     if available_space > SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
         size_ok = "ok"
     else:
@@ -886,7 +885,7 @@ def action__select():
 
             complete_source_filename = SELECT[hashid].fullname
 
-            target_name = os.path.join(normpath(TARGET_PATH), SELECT[hashid].targetname)
+            target_name = os.path.join(normpath(ARGS.targetpath), SELECT[hashid].targetname)
 
             msg("    o e.g. ... \"{0}\" " \
                 "would be copied as \"{1}\" .".format(complete_source_filename,
@@ -935,7 +934,7 @@ def action__target_kill(_filename):
     """
     msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) " \
         "and from its database =".format(_filename))
-    if not os.path.exists(os.path.join(normpath(TARGET_PATH), _filename)):
+    if not os.path.exists(os.path.join(normpath(ARGS.targetpath), _filename)):
         msg("    ! can't find \"{0}\" file on disk.".format(_filename))
         return -1
 
@@ -949,7 +948,7 @@ def action__target_kill(_filename):
 
         filename_hashid = None
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            if db_record["name"] == os.path.join(normpath(TARGET_PATH), _filename):
+            if db_record["name"] == os.path.join(normpath(ARGS.targetpath), _filename):
                 filename_hashid = db_record["hashid"]
 
         if filename_hashid is None:
@@ -958,8 +957,8 @@ def action__target_kill(_filename):
         else:
             if not ARGS.off:
                 # let's remove _filename from the target directory :
-                shutil.move(os.path.join(normpath(TARGET_PATH), _filename),
-                            os.path.join(normpath(TARGET_PATH),
+                shutil.move(os.path.join(normpath(ARGS.targetpath), _filename),
+                            os.path.join(normpath(ARGS.targetpath),
                                          KATALSYS_SUBDIR, TRASH_SUBSUBDIR, _filename))
 
                 # let's remove _filename from the database :
@@ -1027,7 +1026,7 @@ def action__whatabout(_src):
     # (2) is _src a file or a directory ?
     if os.path.isdir(normsrc):
         # informations about the source directory :
-        if normpath(TARGET_PATH) in normsrc:
+        if normpath(ARGS.targetpath) in normsrc:
             msg("  ! error : the given directory in inside the target directory.")
             return False
 
@@ -1038,7 +1037,7 @@ def action__whatabout(_src):
 
     else:
         # informations about the source file :
-        if normpath(TARGET_PATH) in normpath(_src):
+        if normpath(ARGS.targetpath) in normpath(_src):
             # special case : the file is inside the target directory :
             msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(_src, normsrc))
             msg("    This file is inside the target directory.")
@@ -1235,21 +1234,21 @@ def create_subdirs_in_target_path():
         create_subdirs_in_target_path()
         ________________________________________________________________________
 
-        Create the expected subdirectories in TARGET_PATH .
+        Create the expected subdirectories in ARGS.targetpath .
         ________________________________________________________________________
 
         no PARAMETERS, no RETURNED VALUE
     """
     # (str)name for the message, (str)full path :
     for name, \
-        fullpath in (("target", TARGET_PATH),
-                     ("system", os.path.join(normpath(TARGET_PATH),
+        fullpath in (("target", ARGS.targetpath),
+                     ("system", os.path.join(normpath(ARGS.targetpath),
                                              KATALSYS_SUBDIR)),
-                     ("trash", os.path.join(normpath(TARGET_PATH),
+                     ("trash", os.path.join(normpath(ARGS.targetpath),
                                             KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
-                     ("log", os.path.join(normpath(TARGET_PATH),
+                     ("log", os.path.join(normpath(ARGS.targetpath),
                                           KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
-                     ("tasks", os.path.join(normpath(TARGET_PATH),
+                     ("tasks", os.path.join(normpath(ARGS.targetpath),
                                             KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
         if not os.path.exists(normpath(fullpath)):
             msg("  * Since the {0} path \"{1}\" (path : \"{2}\") " \
@@ -1606,7 +1605,7 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
         msg("    ... future filename's can't be in conflict with another file already")
         msg("        stored in the target path...")
         for selectedfile_hash in SELECT:
-            if os.path.exists(os.path.join(normpath(TARGET_PATH),
+            if os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                            SELECT[selectedfile_hash].targetname)):
                 msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already " \
                     "exists in the target path !".format(_prefix,
@@ -1831,11 +1830,10 @@ def main():
         o  sys.exit(-2) is called if a KatalError exception is raised
         o  sys.exit(-3) is called if another exception is raised
     """
-    global ARGS, TARGET_PATH
+    global ARGS
 
     try:
         ARGS = read_command_line_arguments()
-        TARGET_PATH = ARGS.targetpath
         check_args()
 
         welcome()
@@ -1889,7 +1887,7 @@ def main_actions():
         if not ARGS.mute and len(SELECT) > 0:
             answer = \
                 input("\nDo you want to add the selected " \
-                      "files to the target directory (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+                      "files to the target directory (\"{0}\") ? (y/N) ".format(ARGS.targetpath))
 
             if answer in ("y", "yes"):
                 action__add()
@@ -1969,7 +1967,7 @@ def main_warmup():
     global PARAMETERS, LOGFILE, DATABASE_FULLNAME
 
     #...........................................................................
-    DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
+    DATABASE_FULLNAME = os.path.join(normpath(ARGS.targetpath), KATALSYS_SUBDIR, DATABASE_NAME)
 
     #...........................................................................
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
@@ -2045,18 +2043,18 @@ def main_warmup():
         welcome_in_logfile()
 
     #...........................................................................
-    if TARGET_PATH == source_path:
+    if ARGS.targetpath == source_path:
         msg("  ! warning : " \
-            "source path and target path have the same value ! (\"{0}\")".format(TARGET_PATH))
+            "source path and target path have the same value ! (\"{0}\")".format(ARGS.targetpath))
 
     #...........................................................................
     # we show the following informations :
     for path, info in ((configfile_name, "config file"),
-                       (os.path.join(normpath(TARGET_PATH),
+                       (os.path.join(normpath(ARGS.targetpath),
                                      KATALSYS_SUBDIR, TRASH_SUBSUBDIR), "trash subdir"),
-                       (os.path.join(normpath(TARGET_PATH),
+                       (os.path.join(normpath(ARGS.targetpath),
                                      KATALSYS_SUBDIR, TASKS_SUBSUBDIR), "tasks subdir"),
-                       (os.path.join(normpath(TARGET_PATH),
+                       (os.path.join(normpath(ARGS.targetpath),
                                      KATALSYS_SUBDIR, LOG_SUBSUBDIR), "log subdir"),):
         msg("  = so, let's use \"{0}\" as {1}".format(path, info))
 
@@ -2655,10 +2653,10 @@ def show_infos_about_target_path():
                 (int) 0 if ok, -1 if an error occured
     """
     msg("  = informations about the \"{0}\" " \
-        "(path: \"{1}\") target directory =".format(TARGET_PATH,
-                                                    normpath(TARGET_PATH)))
+        "(path: \"{1}\") target directory =".format(ARGS.targetpath,
+                                                    normpath(ARGS.targetpath)))
 
-    if is_ntfs_prefix_mandatory(TARGET_PATH):
+    if is_ntfs_prefix_mandatory(ARGS.targetpath):
         msg("    ! the target path should be used with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
@@ -2714,14 +2712,14 @@ def show_infos_about_target_path():
 
         draw_line()
 
-    if not os.path.exists(normpath(TARGET_PATH)):
-        msg("Can't find target path \"{0}\".".format(TARGET_PATH))
+    if not os.path.exists(normpath(ARGS.targetpath)):
+        msg("Can't find target path \"{0}\".".format(ARGS.targetpath))
         return -1
-    if not os.path.isdir(normpath(TARGET_PATH)):
-        msg("target path \"{0}\" isn't a directory.".format(TARGET_PATH))
+    if not os.path.isdir(normpath(ARGS.targetpath)):
+        msg("target path \"{0}\" isn't a directory.".format(ARGS.targetpath))
         return -1
 
-    if not os.path.exists(os.path.join(normpath(TARGET_PATH),
+    if not os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                        KATALSYS_SUBDIR, DATABASE_NAME)):
         msg("    o no database in the target directory.")
     else:

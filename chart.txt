@@ -3,14 +3,12 @@ main()
     |           | USE_LOGFILE = parser["log file"]["use log file"] == "True"
     |           | SOURCE_PATH = parser["source"]["path"]
     |
-    | TARGET_PATH = ARGS.targetpath
-    |
     | check_args()
     | 
     | welcome()
     |
     | main_warmup()
-    |     | DATABASE_FULLNAME = os.path.join(normpath(TARGET_PATH), KATALSYS_SUBDIR, DATABASE_NAME)
+    |     | DATABASE_FULLNAME = os.path.join(normpath(ARGS.targetpath), KATALSYS_SUBDIR, DATABASE_NAME)
     |     | 
     |     | if ARGS.targetinfos:
     |     |     show_infos_about_target_path()
@@ -66,7 +64,7 @@ main()
     |    |     if not ARGS.mute and len(SELECT) > 0:
     |    |         answer = \
     |    |             input("\nDo you want to add the selected " \
-    |    |                   "files to the target directory (\"{0}\") ? (y/N) ".format(TARGET_PATH))
+    |    |                   "files to the target directory (\"{0}\") ? (y/N) ".format(ARGS.targetpath))
     |    | 
     |    |         if answer in ("y", "yes"):
     |    |             action__add()
