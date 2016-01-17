@@ -2244,12 +2244,13 @@ def read_command_line_arguments():
     """
     parser = \
       argparse.ArgumentParser(description="{0} v. {1}".format(__projectname__, __version__),
-                              epilog="-------- {0} v. {1} ({2}), " \
-                                     "a project by {3} ({4})".format(__projectname__,
-                                                                     __version__,
-                                                                     __license__,
-                                                                     __author__,
-                                                                     __email__),
+                              epilog="________ {0} v. {1} ({2}), " \
+                                     "a project by {3} " \
+                                     "________ ({4})".format(__projectname__,
+                                                             __version__,
+                                                             __license__,
+                                                             __author__,
+                                                             __email__),
                               formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--add',
