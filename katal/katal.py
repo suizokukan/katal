@@ -56,7 +56,7 @@ import sys
 import unicodedata
 
 __projectname__ = "Katal"
-__version__ = "0.2.6a"   # see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
+__version__ = "0.2.6"   # see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
 __author__ = "Xavier Faure (suizokukan)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"

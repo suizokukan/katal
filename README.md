@@ -267,7 +267,20 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
 #(7) history / future versions
 
-    [intended] v 0.2.6 : reduce the number of global constants (next:TARGET_PATH)
+    v 0.2.6 (2016_01_17) : reduced the number of global constants
+
+        o removed FULLNAME_DATABASE, TARGET_PATH,SOURCE_PATH, SOURCENAME_MAXLENGTH,
+          TAGSSTR_MAXLENGTH, HASHID_MAXLENGTH and TARGETNAME_MAXLENGTH constants.
+
+        o fixed tests/tests.py + tests/cfgfile5.ini ("c.5" -> "^c.5$")
+        o the value of DTIME_FORMAT_LENGTH is now automatically computed .
+        o improved the documentation in README.md and chart.txt
+        o improved messages in various functions
+
+        o updated pylintrc (max-locals=16)
+
+        o 6 tests, pylint=10.0 for the three Python scripts
+        o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
 
     v 0.2.5 (2016_01_16) : --downloaddefaultcfg=[home|local]
 
