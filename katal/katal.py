@@ -120,9 +120,10 @@ SELECT = {} # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
 FILTERS = {}  # see documentation:selection; initialized by read_filters()
 
-# date's string format, e.g. "2015-09-17 20:01"
-DTIME_FORMAT = "%Y-%m-%d %H:%M"
-DTIME_FORMAT_LENGTH = 16
+# date's string format used by Katal :
+DTIME_FORMAT = "%Y-%m-%d %H:%M"  # e.g. "2015-09-17 20:01"
+# let's compute the length of such a string :
+DTIME_FORMAT_LENGTH = len(datetime.strftime(datetime.now(), DTIME_FORMAT))
 
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
