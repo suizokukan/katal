@@ -8,8 +8,6 @@ main()
     | welcome()
     |
     | main_warmup()
-    |     | DATABASE_FULLNAME = os.path.join(normpath(ARGS.targetpath), KATALSYS_SUBDIR, DATABASE_NAME)
-    |     | 
     |     | if ARGS.targetinfos:
     |     |     show_infos_about_target_path()
     |     | 

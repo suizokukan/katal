@@ -835,6 +835,7 @@ trash name is defined in the configuration file.
                                               the files stored in SOURCE_PATH.
     o  fill_select__checks()                : final checks at the end of fill_select()
     o  get_disk_free_space()                : return the available space on disk
+    o  get_database_fullname()              : return the full name of the db stored in ARGS.targetpath
     o  get_filename_and_extension()         : return (filename_no_extension, extension)
     o  get_logfile_fullname()               : return the logfile fullname.
     o  goodbye()                            : display the goodbye message

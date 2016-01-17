@@ -77,7 +77,6 @@ FREESPACE_MARGIN = 1.1
 DEFAULT_CONFIGFILE_NAME = "katal.ini"
 DEFAULTCFGFILE_URL = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
 DATABASE_NAME = "katal.db"
-DATABASE_FULLNAME = ""  # initialized by main_warmup()
 TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
 
 TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
@@ -191,7 +190,7 @@ def action__add():
     """
     msg("  = copying data =")
 
-    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection = sqlite3.connect(get_database_fullname())
     db_cursor = db_connection.cursor()
 
     if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
@@ -301,11 +300,11 @@ def action__cleandbrm():
     """
     msg("  = clean the database : remove missing files from the target directory =")
 
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+    if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.")
         return
 
-    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection = sqlite3.connect(get_database_fullname())
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
@@ -398,11 +397,11 @@ def action__findtag(_tag):
     """
     msg("  = searching the files with the tag \"{0}\" =".format(_tag))
 
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+    if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.")
         return
 
-    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection = sqlite3.connect(get_database_fullname())
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
@@ -556,7 +555,7 @@ def action__rebase(_newtargetpath):
             os.remove(new_db)
 
     # let's compute the new names :
-    olddb_connection = sqlite3.connect(DATABASE_FULLNAME)
+    olddb_connection = sqlite3.connect(get_database_fullname())
     olddb_connection.row_factory = sqlite3.Row
     olddb_cursor = olddb_connection.cursor()
 
@@ -730,7 +729,7 @@ def action__reset():
     """
     msg("    = about to delete (=move in the trash) the target files and the database.")
 
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+    if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found, nothing to do .")
         return
 
@@ -741,7 +740,7 @@ def action__reset():
         if answer not in ("y", "yes"):
             return
 
-    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection = sqlite3.connect(get_database_fullname())
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
@@ -779,10 +778,10 @@ def action__rmnotags():
     """
     msg("  = removing all files with no tags (=moving them to the trash) =")
 
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+    if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.")
     else:
-        db_connection = sqlite3.connect(DATABASE_FULLNAME)
+        db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
@@ -938,11 +937,11 @@ def action__target_kill(_filename):
         msg("    ! can't find \"{0}\" file on disk.".format(_filename))
         return -1
 
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+    if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.")
         return -3
     else:
-        db_connection = sqlite3.connect(DATABASE_FULLNAME)
+        db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
@@ -1045,7 +1044,7 @@ def action__whatabout(_src):
             msg("    = hash : {0}".format(srchash))
             msg("    Informations extracted from the database :")
             # informations from the database :
-            db_connection = sqlite3.connect(DATABASE_FULLNAME)
+            db_connection = sqlite3.connect(get_database_fullname())
             db_connection.row_factory = sqlite3.Row
             db_cursor = db_connection.cursor()
             for db_record in db_cursor.execute("SELECT * FROM dbfiles WHERE hashid=?", (srchash,)):
@@ -1636,6 +1635,23 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
     return _number_of_discarded_files
 
 #///////////////////////////////////////////////////////////////////////////////
+def get_database_fullname():
+    """
+        get_database_fullname()
+        ________________________________________________________________________
+
+          Return the full name (=full path + name) of the database in
+        ARGS.targetpath .
+        ________________________________________________________________________
+
+        NO PARAMETER
+
+        RETURNED VALUE
+                the expected string
+    """
+    return os.path.join(normpath(ARGS.targetpath), KATALSYS_SUBDIR, DATABASE_NAME)
+
+#///////////////////////////////////////////////////////////////////////////////
 def get_disk_free_space(_path):
     """
         get_disk_free_space()
@@ -1945,9 +1961,7 @@ def main_warmup():
 
         Initializations :
 
-            o initialize DATABASE_FULLNAME
-
-            and if the --new/--downloaddefaultcfg options have not be used :
+            if the --new/--downloaddefaultcfg options have not be used :
 
             o configfile_name = None / a string
             o reading of the configuration file
@@ -1964,10 +1978,7 @@ def main_warmup():
 
         o  sys.exit(-1) is called if the config file is ill-formed or missing.
     """
-    global PARAMETERS, LOGFILE, DATABASE_FULLNAME
-
-    #...........................................................................
-    DATABASE_FULLNAME = os.path.join(normpath(ARGS.targetpath), KATALSYS_SUBDIR, DATABASE_NAME)
+    global PARAMETERS, LOGFILE
 
     #...........................................................................
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
@@ -2089,10 +2100,10 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
                 o _mode         : (str) "append" to add _tag to the other tags
                                         "set" to replace old tag(s) by a new one
     """
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
+    if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.")
     else:
-        db_connection = sqlite3.connect(DATABASE_FULLNAME)
+        db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
@@ -2519,10 +2530,10 @@ def read_target_db():
 
         no PARAMETER, no RETURNED VALUE
     """
-    if not os.path.exists(normpath(DATABASE_FULLNAME)):
-        create_empty_db(normpath(DATABASE_FULLNAME))
+    if not os.path.exists(normpath(get_database_fullname())):
+        create_empty_db(normpath(get_database_fullname()))
 
-    db_connection = sqlite3.connect(DATABASE_FULLNAME)
+    db_connection = sqlite3.connect(get_database_fullname())
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
 
@@ -2723,7 +2734,7 @@ def show_infos_about_target_path():
                                        KATALSYS_SUBDIR, DATABASE_NAME)):
         msg("    o no database in the target directory.")
     else:
-        db_connection = sqlite3.connect(DATABASE_FULLNAME)
+        db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
         db_cursor = db_connection.cursor()
 
