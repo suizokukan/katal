@@ -2242,9 +2242,15 @@ def read_command_line_arguments():
         RETURNED VALUE
                 return the argparse object.
     """
-    parser = argparse.ArgumentParser(description="{0} v. {1}".format(__projectname__, __version__),
-                                     epilog="by suizokukan AT orange DOT fr",
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = \
+      argparse.ArgumentParser(description="{0} v. {1}".format(__projectname__, __version__),
+                              epilog="-------- {0} v. {1} ({2}), " \
+                                     "a project by {3} ({4})".format(__projectname__,
+                                                                     __version__,
+                                                                     __license__,
+                                                                     __author__,
+                                                                     __email__),
+                              formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--add',
                         action="store_true",
