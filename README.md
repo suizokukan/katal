@@ -3,9 +3,15 @@ A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules tha
 
 Create a catalogue from various source directories, without any duplicate. Add some tags to the files.
 
-#(2) purpose
+#(2) purpose and caveats
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
+
+Caveats :
+
+* Katal uses sqlite3 databases since sqlite3 is supported out-of-the-box by Python
+* Katal is slow, very slow : you could speed up the execution by reducing the amount of console messages but the core is absolutely inefficient.
+* Katal isn't immune to unexpected shutdowns/programs' stops.
 
 #(3) installation and tests
 
