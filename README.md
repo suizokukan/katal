@@ -672,9 +672,6 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
     [log file]    : parameters about the logfile
     use log file  : True/False; if False, all the messages are written only to the console.
     name          : no quotation mark here !
-    overwrite     : True/False; if False, the log file will grow after each execution.
-    verbosity     : log verbosity="high" or "low"; turn if off (=low) if the log message is too big 
-                    or too verbose.
 
     [display]         : parameters about the way informations are displayed
     target filename.max length on console : (max length of the file names displayed)
@@ -684,7 +681,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
     [source.filterN]   : N is an integer greater or equal to  1; [source.filter1], [source.filter2], ...
     name/iname         : a regex; e.g. for all files with an .jpg extension : .*\.jpg$
-                         (iname : case insensitive)
+                         (iname : case insensitive); "^c.5$" is different from "c.5" !
     size              : a symbol plus an integer
                         e.g., either >999, either <999, either =999, either <=999 either >=999
 

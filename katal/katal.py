@@ -56,20 +56,19 @@ import sys
 import unicodedata
 
 __projectname__ = "Katal"
+__version__ = "0.2.6a"   # see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
 __author__ = "Xavier Faure (suizokukan)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
 # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
 __licensepipy__ = 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
-# see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
-__version__ = "0.2.6a"
 __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"
 __status__ = "Beta"
 # see https://pypi.python.org/pypi?%3Aaction=list_classifiers
 __statuspypi__ = 'Development Status :: 5 - Production/Stable'
 
-ARGS = None # initialized by main()
+ARGS = None  # parameters given on the command line; initialized by main();
 
 # when the program verifies that there's enough free space on disk, it multiplies
 # the required amount of space by these coefficient
@@ -83,7 +82,8 @@ TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
 
 TIMESTAMP_BEGIN = datetime.now()  # timestamp used to compute the total time of execution.
 
-PARAMETERS = None # see documentation:configuration file
+PARAMETERS = None  # see documentation:configuration file
+                   # see the read_parameters_from_cfgfile() function
 
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
@@ -95,15 +95,15 @@ TASKS_SUBSUBDIR = "tasks"
 LOG_SUBSUBDIR = "logs"
 
 # How many bytes have to be read to compute the partial hashid ?
-# See the hashfile64() function.
+# See the thefilehastobeadded__db() and the hashfile64() functions.
 PARTIALHASHID_BYTESNBR = 1000000
 
+USE_LOGFILE = False  # (bool) initialized from the configuration file
 LOGFILE = None   # the file descriptor, initialized by logfile_opening()
 LOGFILE_SIZE = 0 # size of the current logfile.
 LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
                                                  # logfiles' filename .
                                                  # see the backup_logfile() function .
-USE_LOGFILE = False  # (bool) initialized from the configuration file
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
 # are stored.
@@ -127,7 +127,7 @@ DTIME_FORMAT_LENGTH = 16
 
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
-# keywords an symbols : filter, parentheses, and, or, not, xor, True, False
+# keywords an symbols : filter, parentheses, "and", "or", "not", "xor", "True", "False"
 #                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 AUTHORIZED_EVALCHARS = " TFasdlfiteruxnot0123456789&|^()"
 
