@@ -10,7 +10,7 @@ Create a catalogue from various source directories, without any duplicate. Add s
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
-Katal can also be used to create a "mirror database" from a source, without copying the files in the tarrget directory (see the --mirroronly option).
+Katal can also be used to create a "mirror database" from a source, without copying the files in the tarrget directory (see the --mode='mirror' option).
 
 Caveats :
 
@@ -112,7 +112,8 @@ Caveats :
     $ katal --select  ... and answer 'yes' to the final question if all the details are ok to you.    
     The files will be copied in the target directory.
     
-    If you want to move the files from source directory to target directory, use the --move option.
+    If you want to move the files from source directory to target directory, use the --mode='move'
+    option.
     If you want a bit-to-bit check if two files have the same hashes, use the --strictcmp option.
     
 ####See the result (ti : target informations)
@@ -166,10 +167,9 @@ __author__ : __email__
 The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, register, catalogue").
 
 #(6) arguments
-
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-dlcfg {local,home}] [--findtag FINDTAG]
-                    [--infos] [-m] [--mirroronly] [--move] [-n NEW] [--off]
+                    [--infos] [-m] [--mode {copy,move,mirror}] [-n NEW] [--off]
                     [--rebase REBASE] [--reset] [--rmnotags] [--rmtags] [-s]
                     [--settagsstr SETTAGSSTR] [-si] [--strictcmp]
                     [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL] [--to TO]
@@ -209,11 +209,11 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             executed before --select/--add (default: False)
       -m, --mute            # No output to the console; no question asked on the
                             console (default: False)
-      --mirroronly          # Do not fill the target directory with the source
-                            files, fill only the target database. You can't use
-                            --mirroronly with --move . (default: False)
-      --move                # To be used with --select and --add : move the files,
-                            don't copy them (default: False)
+      --mode {copy,move,mirror}
+                            'copy' to copy source files in the target directory;
+                            'move' to move source files in the target directory;
+                            'mirror' to not copy source files in the target
+                            directory; (default: copy)
       -n NEW, --new NEW     # Create a new target directory (default: None)
       --off                 # Don't write anything into the target directory or
                             into the database, except into the current log file.
