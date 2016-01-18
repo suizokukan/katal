@@ -63,7 +63,7 @@ import unicodedata
 #
 #===============================================================================
 __projectname__ = "Katal"
-__version__ = "0.2.8a"   
+__version__ = "0.2.8a"
 __author__ = "Xavier Faure (suizokukan)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
@@ -241,14 +241,14 @@ def action__add():
         sourcedate = sourcedate.total_seconds()
 
         if not ARGS.off:
-            if ARGS.mirroronly:
+            if ARGS.mode == "mirror":
                 # nothing to do
-                msg("    ... ({0}/{1}) due to the --mirroronly option, " \
+                msg("    ... ({0}/{1}) due to the '--mode=mirror' option, " \
                     "\"{2}\" is added in the target database BUT".format(index+1, len_select,
                                                                          complete_source_filename))
                 msg("        THIS FILE WILL NOT BE COPIED into \"{0}\" .".format(target_name))
 
-            elif not ARGS.move:
+            elif ARGS.mode == "copy":
                 # copying the file :
                 msg("    ... ({0}/{1}) about to " \
                     "copy \"{2}\" to \"{3}\" .".format(index+1,
@@ -258,7 +258,8 @@ def action__add():
                 shutil.copyfile(complete_source_filename, target_name)
                 os.utime(target_name, (sourcedate, sourcedate))
 
-            else:
+            elif ARGS.mode == "move":
+                # moving the file :
                 msg("    ... ({0}/{1}) about to " \
                     "move \"{2}\" to \"{3}\" .".format(index+1,
                                                        len_select,
@@ -1210,10 +1211,6 @@ def check_args():
     if ARGS.rmtags and not ARGS.to:
         raise KatalError("please use --to in combination with --rmtags")
 
-    # --move can only be used with --select or with --add :
-    if ARGS.move and not (ARGS.add or ARGS.select):
-        raise KatalError("--move can only be used in combination with --select or with --add")
-
     # --strictcmp can only be used with --select or with --add :
     if ARGS.strictcmp and not (ARGS.add or ARGS.select):
         raise KatalError("--strictcmp can only be used in combination with --select or with --add")
@@ -1221,9 +1218,6 @@ def check_args():
     # --copyto can only be used with --findtag :
     if ARGS.copyto and not ARGS.findtag:
         raise KatalError("--copyto can only be used in combination with --findtag .")
-
-    if ARGS.mirroronly and not ARGS.move:
-        raise KatalError("--mirroronly can't be used simultaneously with --move .")
 
 #///////////////////////////////////////////////////////////////////////////////
 def create_empty_db(_db_name):
@@ -1628,7 +1622,7 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
 
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
-    if not ARGS.mirroronly:
+    if not ARGS.mode == 'mirror':
         msg("    ... future filename's can't be in conflict with another file already")
         msg("        stored in the target path...")
         for selectedfile_hash in SELECT:
@@ -2332,16 +2326,12 @@ def read_command_line_arguments():
                         action="store_true",
                         help="# No output to the console; no question asked on the console")
 
-    parser.add_argument('--mirroronly',
-                        action="store_true",
-                        help="# Do not fill the target directory with the source files, " \
-                             "fill only the target database. " \
-                             "You can't use --mirroronly with --move .")
-
-    parser.add_argument('--move',
-                        action="store_true",
-                        help="# To be used with --select and --add : " \
-                             "move the files, don't copy them")
+    parser.add_argument('--mode',
+                        choices=("copy", "move", "mirror"),
+                        default="copy",
+                        help="'copy' to copy source files in the target directory; " \
+                             "'move' to move source files in the target directory; " \
+                             "'mirror' to not copy source files in the target directory; ")
 
     parser.add_argument('-n', '--new',
                         type=str,
@@ -3170,10 +3160,16 @@ def welcome(_timestamp_start):
         msg("  =                but the corresponding messages will be written in the  =")
         msg("  =                log file.                                              =")
 
-    if ARGS.move:
+    if ARGS.mode == 'move':
         msg("  = WARNING                                                               =")
-        msg("  = --move option detected :                                              =")
+        msg("  = --mode=move option detected :                                         =")
         msg("  =                 the files will be moved (NOT copied) in the target    =")
+        msg("  =                 directory.                                            =")
+
+    if ARGS.mode == 'mirror':
+        msg("  = WARNING                                                               =")
+        msg("  = --mode=mirror option detected                                         =")
+        msg("  =                 the files will NOT be copied or moved in the target   =")
         msg("  =                 directory.                                            =")
 
 #///////////////////////////////////////////////////////////////////////////////

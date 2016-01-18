@@ -33,7 +33,7 @@ import unittest
 
 from katal import katal
 katal.ARGS = namedtuple("ARGS", ("configfile", "mute", "targetpath",))
-katal.ARGS.mirroronly = None
+katal.ARGS.mode = 'copy'
 katal.ARGS.mute = True
 katal.ARGS.targetpath = "tests"
 katal.ARGS.usentfsprefix = None
