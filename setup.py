@@ -35,7 +35,7 @@ from os import path
 from setuptools import setup, find_packages
 
 from katal.katal import __projectname__, __version__, __author__, __email__, \
-                        __license__, __licensepipy__, \
+                        __license__, __licensepypi__, \
                         __statuspypi__
 
 HERE = path.abspath(path.dirname(__file__))
@@ -78,7 +78,7 @@ setup(
         'Topic :: Utilities',
 
         # Pick your license as you wish (should match "license" above)
-        __licensepipy__,
+        __licensepypi__,
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.

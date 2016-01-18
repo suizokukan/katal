@@ -64,10 +64,11 @@ import unicodedata
 #===============================================================================
 __projectname__ = "Katal"
 __version__ = "0.2.8a"
-__author__ = "Xavier Faure (suizokukan)"
+__laststableversion__ = "0.2.7"
+__author__ = "Xavier Faure (suizokukan / 94.23.197.37)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
-__licensepipy__ = 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
+__licensepypi__ = 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
 __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"
 __status__ = "Beta"

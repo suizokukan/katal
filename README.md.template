@@ -1,10 +1,10 @@
-#(1) Katal (0.2.7)
+#(1) __projectname__ (__laststableversion__)
 A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3.
 
 Create a catalogue from various source directories, without any duplicate. Add some tags to the files.
 
-* license : GPL-3.0 (License :: OSI Approved :: GNU General Public License v3 (GPLv3))
-* status : Beta (Development Status :: 5 - Production/Stable)
+* license : __license__ (__licensepypi__)
+* status : __status__ (__statuspypi__)
 
 #(2) purpose and caveats
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
@@ -161,7 +161,7 @@ Caveats :
     $ katal --whatabout=myfile
 
 #(5) project's author and project's name
-Xavier Faure (suizokukan / 94.23.197.37) : suizokukan @T orange D@T fr
+__author__ : __email__
 
 The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, register, catalogue").
 

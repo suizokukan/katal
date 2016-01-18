@@ -27,6 +27,18 @@ pylint setup.py
 
 #-------------------------------------------------------------------------------
 echo
+echo    "  = next step : $ pylint fill_readme.py"
+read -p "  = go on ? ('y' to continue) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+
+pylint fill_readme.py
+
+#-------------------------------------------------------------------------------
+echo
 echo    "  = next step : $ pylint tests/tests.py"
 read -p "  = go on ? ('y' to continue) " -n 1 -r
 echo
