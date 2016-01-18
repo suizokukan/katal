@@ -58,13 +58,15 @@ import unicodedata
 #===============================================================================
 # project's settings
 #
-# for __version__, see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
-# See also https://pypi.python.org/pypi?%3Aaction=list_classifiers
+# o for __version__ format string, see https://www.python.org/dev/peps/pep-0440/ :
+#   e.g. "0.1.2.dev1" or "0.1a"
+#
+# o See also https://pypi.python.org/pypi?%3Aaction=list_classifiers
 #
 #===============================================================================
 __projectname__ = "Katal"
-__version__ = "0.2.8a"
-__laststableversion__ = "0.2.7"
+__version__ = "0.2.8"
+__laststableversion__ = "0.2.8"
 __author__ = "Xavier Faure (suizokukan / 94.23.197.37)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"

@@ -1,4 +1,18 @@
-v 0.2.8 [intended] : doc about --mirroronly + NTFS(source/target) + caveats
+v 0.2.8 (2016_01_19) : --mode=[copy|move|mirror]
+
+    o --mode=[copy|move|mirror] replaces from now --mirroronly and --move
+    o added fill_readme.py and README.md.template : both are used to
+      automatically fill the README.md file from the informations stored
+      in katal.py (namely, the __***__ strings) .
+
+    o added CST__ prefix at the beginning of global constants
+    o added documentation about global type(s)/constants/variables;
+    o added 4 sections at the beginning of the script : project's settings,
+      global variables, global constants, global types
+    o modified argparse's epilog in read_command_line_arguments()
+
+    o 6 tests, pylint=10.0 for the four Python scripts
+    o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
 
 v 0.2.7 (2016_01_17) : fixed a critical bug
 
