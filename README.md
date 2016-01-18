@@ -7,11 +7,14 @@ Create a catalogue from various source directories, without any duplicate. Add s
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
+Katal can also be used to create a "mirror database" from a source, without copying the files in the tarrget directory (see the --mirroronly option).
+
 Caveats :
 
 * Katal uses sqlite3 databases since sqlite3 is supported out-of-the-box by Python
 * Katal is slow, very slow : you could speed up the execution by reducing the amount of console messages but the core is absolutely inefficient.
 * Katal isn't immune to unexpected shutdowns/programs' stops.
+* please use the `--usentfsprefix` option if you read files from a NTFS volume.
 
 #(3) installation and tests
 
@@ -51,7 +54,7 @@ Caveats :
     It may be convenient to go inside the target directory, e.g. :
     $ cd myworkingdirectory
     
-    If katal wasn't installed on the computer (pip3 install katal), it may be convenient to copy the 
+    If Katal wasn't installed on the computer ($ pip3 install katal), it may be convenient to copy the 
     script katal.py inside the target directory, e.g. :
     $ cp katal.py myworkingdirectory
     
