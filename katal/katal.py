@@ -55,29 +55,29 @@ import urllib.request
 import sys
 import unicodedata
 
+#===============================================================================
+# project's settings
+#
+# for __version__, see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
+# See also https://pypi.python.org/pypi?%3Aaction=list_classifiers
+#
+#===============================================================================
 __projectname__ = "Katal"
-__version__ = "0.2.8a"   # see https://www.python.org/dev/peps/pep-0440/ e.g 0.1.2.dev1
+__version__ = "0.2.8a"   
 __author__ = "Xavier Faure (suizokukan)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
-# see https://pypi.python.org/pypi?%3Aaction=list_classifiers
 __licensepipy__ = 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)'
 __maintainer__ = "Xavier Faure (suizokukan)"
 __email__ = "suizokukan @T orange D@T fr"
 __status__ = "Beta"
-# see https://pypi.python.org/pypi?%3Aaction=list_classifiers
 __statuspypi__ = 'Development Status :: 5 - Production/Stable'
 
+#===============================================================================
+# global variables
+#===============================================================================
+
 ARGS = None  # parameters given on the command line; initialized by main();
-
-# when the program verifies that there's enough free space on disk, it multiplies
-# the required amount of space by these coefficient
-FREESPACE_MARGIN = 1.1
-
-DEFAULT_CONFIGFILE_NAME = "katal.ini"
-DEFAULTCFGFILE_URL = "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
-DATABASE_NAME = "katal.db"
-TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
 
 PARAMETERS = None  # see documentation:configuration file
                    # see the read_parameters_from_cfgfile() function
@@ -85,25 +85,24 @@ PARAMETERS = None  # see documentation:configuration file
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
 
-TARGET_DB = dict()  # see documentation:database; initialized by read_target_db()
-KATALSYS_SUBDIR = ".katal"
-TRASH_SUBSUBDIR = "trash"
-TASKS_SUBSUBDIR = "tasks"
-LOG_SUBSUBDIR = "logs"
+TARGET_DB = dict()      # see documentation:database; initialized by read_target_db()
 
-# How many bytes have to be read to compute the partial hashid ?
-# See the thefilehastobeadded__db() and the hashfile64() functions.
-PARTIALHASHID_BYTESNBR = 1000000
+USE_LOGFILE = False     # (bool) initialized from the configuration file
+LOGFILE = None          # the file descriptor, initialized by logfile_opening()
+LOGFILE_SIZE = 0        # size of the current logfile.
 
-USE_LOGFILE = False  # (bool) initialized from the configuration file
-LOGFILE = None   # the file descriptor, initialized by logfile_opening()
-LOGFILE_SIZE = 0 # size of the current logfile.
-LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
-                                                 # logfiles' filename .
-                                                 # see the backup_logfile() function .
+SELECT = {}               # see documentation:selection; initialized by action__select()
+SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
+FILTERS = {}              # see documentation:selection; initialized by read_filters()
+
+#===============================================================================
+# type(s)
+#===============================================================================
 
 # SELECT is made of SELECTELEMENT objects, where data about the original files
 # are stored.
+#
+# Due to Pylint's requirements, we can't name this type SelectElement.
 SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
                                              "partialhashid",
                                              "path",
@@ -114,48 +113,78 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
                                              "targetname",
                                              "targettags",])
 
-SELECT = {} # see documentation:selection; initialized by action__select()
-SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
-FILTERS = {}  # see documentation:selection; initialized by read_filters()
-
-# date's string format used by Katal :
-DTIME_FORMAT = "%Y-%m-%d %H:%M"  # e.g. "2015-09-17 20:01"
-# let's compute the length of such a string :
-DTIME_FORMAT_LENGTH = len(datetime.strftime(datetime.now(), DTIME_FORMAT))
+#===============================================================================
+# global constants : CST__*
+#===============================================================================
 
 # this minimal subset of characters are the only characters to be used in the
 # eval() function. Other characters are forbidden to avoid malicious code execution.
 # keywords an symbols : filter, parentheses, "and", "or", "not", "xor", "True", "False"
 #                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-AUTHORIZED_EVALCHARS = " TFasdlfiteruxnot0123456789&|^()"
+CST__AUTHORIZED_EVALCHARS = " TFasdlfiteruxnot0123456789&|^()"
 
-# string used to create the database :
-SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
-                 'hashid varchar(44) PRIMARY KEY UNIQUE, ' \
-                 'partialhashid varchar(44), ' \
-                 'size INTEGER, ' \
-                 'name TEXT UNIQUE, ' \
-                 'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
+CST__DATABASE_NAME = "katal.db"
+
+CST__DEFAULT_CONFIGFILE_NAME = "katal.ini"
+
+CST__DEFAULTCFGFILE_URL = \
+        "https://raw.githubusercontent.com/suizokukan/katal/master/katal/katal.ini"
+
+# date's string format used by Katal :
+CST__DTIME_FORMAT = "%Y-%m-%d %H:%M"  # e.g. "2015-09-17 20:01"
+
+# let's compute the length of such a string :
+CST__DTIME_FORMAT_LENGTH = len(datetime.strftime(datetime.now(), CST__DTIME_FORMAT))
+
+# when the program verifies that there's enough free space on disk, it multiplies
+# the required amount of space by these coefficient
+CST__FREESPACE_MARGIN = 1.1
+
+CST__KATALSYS_SUBDIR = ".katal"
+
+CST__LOG_SUBSUBDIR = "logs"
+
+CST__LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
+                                                      # logfiles' filename .
+                                                      # see the backup_logfile() function .
 
 # suffix, multiple :
 # about the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte
-MULTIPLES = (("kB", 1000),
-             ("KB", 1000),
-             ("MB", 1000**2),
-             ("GB", 1000**3),
-             ("TB", 1000**4),
-             ("PB", 1000**5),
-             ("EB", 1000**6),
-             ("ZB", 1000**7),
-             ("YB", 1000**8),
-             ("KiB", 1024),
-             ("MiB", 1024**2),
-             ("GiB", 1024**3),
-             ("TiB", 1024**4),
-             ("PiB", 1024**5),
-             ("EiB", 1024**6),
-             ("ZiB", 1024**7),
-             ("YiB", 1024**8))
+CST__MULTIPLES = (("kB", 1000),
+                  ("KB", 1000),
+                  ("MB", 1000**2),
+                  ("GB", 1000**3),
+                  ("TB", 1000**4),
+                  ("PB", 1000**5),
+                  ("EB", 1000**6),
+                  ("ZB", 1000**7),
+                  ("YB", 1000**8),
+                  ("KiB", 1024),
+                  ("MiB", 1024**2),
+                  ("GiB", 1024**3),
+                  ("TiB", 1024**4),
+                  ("PiB", 1024**5),
+                  ("EiB", 1024**6),
+                  ("ZiB", 1024**7),
+                  ("YiB", 1024**8))
+
+# How many bytes have to be read to compute the partial hashid ?
+# See the thefilehastobeadded__db() and the hashfile64() functions.
+CST__PARTIALHASHID_BYTESNBR = 1000000
+
+# string used to create the database :
+CST__SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
+                      'hashid varchar(44) PRIMARY KEY UNIQUE, ' \
+                      'partialhashid varchar(44), ' \
+                      'size INTEGER, ' \
+                      'name TEXT UNIQUE, ' \
+                      'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
+
+CST__TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
+
+CST__TASKS_SUBSUBDIR = "tasks"
+
+CST__TRASH_SUBSUBDIR = "trash"
 
 ################################################################################
 class KatalError(BaseException):
@@ -192,7 +221,7 @@ def action__add():
     db_connection = sqlite3.connect(get_database_fullname())
     db_cursor = db_connection.cursor()
 
-    if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
+    if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
         msg("    ! Not enough space on disk. Stopping the program.")
         # returned value : -1 = error
         return -1
@@ -331,7 +360,7 @@ def action__cleandbrm():
             "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__downloadefaultcfg(_targetname=DEFAULT_CONFIGFILE_NAME, _location="local"):
+def action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME, _location="local"):
     """
         action__downloadefaultcfg()
         ________________________________________________________________________
@@ -348,11 +377,11 @@ def action__downloadefaultcfg(_targetname=DEFAULT_CONFIGFILE_NAME, _location="lo
             (bool) success
     """
     msg("  = downloading the default configuration file =")
-    msg("    ... trying to download {0} from {1}".format(_targetname, DEFAULTCFGFILE_URL))
+    msg("    ... trying to download {0} from {1}".format(_targetname, CST__DEFAULTCFGFILE_URL))
 
     try:
         if not ARGS.off:
-            with urllib.request.urlopen(DEFAULTCFGFILE_URL) as response, \
+            with urllib.request.urlopen(CST__DEFAULTCFGFILE_URL) as response, \
                  open(_targetname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
         msg("  * download completed : \"{0}\" (path : \"{1}\")".format(_targetname,
@@ -373,7 +402,7 @@ def action__downloadefaultcfg(_targetname=DEFAULT_CONFIGFILE_NAME, _location="lo
         msg("  ... if you can't download the default config file, what about simply")
         msg("  ... copy another config file to the target directory ?")
         msg("  ... In a target directory, the config file is " \
-            "in the \"{0}\" directory.".format(os.path.join(KATALSYS_SUBDIR)))
+            "in the \"{0}\" directory.".format(os.path.join(CST__KATALSYS_SUBDIR)))
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -480,14 +509,14 @@ def action__new(_targetname):
     if not ARGS.off:
         msg("  ... creating the target directory with its sub-directories...")
         os.mkdir(normpath(_targetname))
-        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR))
-        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR, TRASH_SUBSUBDIR))
-        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR, TASKS_SUBSUBDIR))
-        os.mkdir(os.path.join(normpath(_targetname), KATALSYS_SUBDIR, LOG_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR))
+        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR))
 
         create_empty_db(os.path.join(normpath(_targetname),
-                                     KATALSYS_SUBDIR,
-                                     DATABASE_NAME))
+                                     CST__KATALSYS_SUBDIR,
+                                     CST__DATABASE_NAME))
 
     if not ARGS.mute:
         answer = \
@@ -496,8 +525,8 @@ def action__new(_targetname):
 
         if answer in ("y", "yes"):
             if action__downloadefaultcfg(_targetname=os.path.join(normpath(_targetname),
-                                                                  KATALSYS_SUBDIR,
-                                                                  DEFAULT_CONFIGFILE_NAME),
+                                                                  CST__KATALSYS_SUBDIR,
+                                                                  CST__DEFAULT_CONFIGFILE_NAME),
                                          _location="local"):
                 msg("  ... done.")
             else:
@@ -530,8 +559,8 @@ def action__rebase(_newtargetpath):
                                                  normpath(_newtargetpath)))
 
     to_configfile = os.path.join(_newtargetpath,
-                                 KATALSYS_SUBDIR,
-                                 DEFAULT_CONFIGFILE_NAME)
+                                 CST__KATALSYS_SUBDIR,
+                                 CST__DEFAULT_CONFIGFILE_NAME)
     msg("    o trying to read dest config file {0} " \
         "(path : \"{1}\") .".format(to_configfile,
                                     normpath(to_configfile)))
@@ -547,7 +576,7 @@ def action__rebase(_newtargetpath):
     msg("    o tags to be added : " \
         "{0}".format(dest_params["target"]["tags"]))
 
-    new_db = os.path.join(normpath(_newtargetpath), KATALSYS_SUBDIR, DATABASE_NAME)
+    new_db = os.path.join(normpath(_newtargetpath), CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)
     if not ARGS.off:
         if os.path.exists(new_db):
             # let's delete the previous new database :
@@ -624,7 +653,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                                _path=olddb_record["sourcename"],
                                _extension=extension,
                                _size=size,
-                               _date=datetime.utcfromtimestamp(date).strftime(DTIME_FORMAT),
+                               _date=datetime.utcfromtimestamp(date).strftime(CST__DTIME_FORMAT),
                                _database_index=index)
         new_name = normpath(os.path.join(_newtargetpath, new_name))
         tagsstr = olddb_record["tagsstr"]
@@ -672,7 +701,7 @@ def action__rebase__write(_new_db, _files):
 
     try:
         if not ARGS.off:
-            newdb_cursor.execute(SQL__CREATE_DB)
+            newdb_cursor.execute(CST__SQL__CREATE_DB)
 
         for index, futurefile_hashid in enumerate(_files):
             futurefile = _files[futurefile_hashid]
@@ -684,7 +713,7 @@ def action__rebase__write(_new_db, _files):
                                 futurefile[2],          # sourcedate
                                 futurefile[3])          # tags
 
-            strdate = datetime.utcfromtimestamp(futurefile[2]).strftime(DTIME_FORMAT)
+            strdate = datetime.utcfromtimestamp(futurefile[2]).strftime(CST__DTIME_FORMAT)
             msg("    o ({0}/{1}) adding a file in the new database".format(index+1, len(_files)))
             msg("      o hashid      : {0}".format(futurefile_hashid))
             msg("      o source name : \"{0}\"".format(futurefile[0]))
@@ -753,7 +782,7 @@ def action__reset():
             # let's remove the file from the target directory :
             shutil.move(os.path.join(normpath(ARGS.targetpath), name),
                         os.path.join(normpath(ARGS.targetpath),
-                                     KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
+                                     CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR, name))
             # let's remove the file from the database :
             db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
@@ -798,7 +827,7 @@ def action__rmnotags():
                     # let's remove the file from the target directory :
                     shutil.move(os.path.join(normpath(ARGS.targetpath), name),
                                 os.path.join(normpath(ARGS.targetpath),
-                                             KATALSYS_SUBDIR, TRASH_SUBSUBDIR, name))
+                                             CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR, name))
                     # let's remove the file from the database :
                     db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
 
@@ -867,7 +896,7 @@ def action__select():
 
     # let's check that the target path has sufficient free space :
     available_space = get_disk_free_space(ARGS.targetpath)
-    if available_space > SELECT_SIZE_IN_BYTES*FREESPACE_MARGIN:
+    if available_space > SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
         size_ok = "ok"
     else:
         size_ok = "!!! problem !!!"
@@ -957,7 +986,7 @@ def action__target_kill(_filename):
                 # let's remove _filename from the target directory :
                 shutil.move(os.path.join(normpath(ARGS.targetpath), _filename),
                             os.path.join(normpath(ARGS.targetpath),
-                                         KATALSYS_SUBDIR, TRASH_SUBSUBDIR, _filename))
+                                         CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR, _filename))
 
                 # let's remove _filename from the database :
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
@@ -1095,7 +1124,7 @@ def add_keywords_in_targetstr(_srcstring,
                 o _path                         : (str
                 o _extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see DTIME_FORMAT
+                o _date                         : (str) see CST__DTIME_FORMAT
                 o _database_index               : (int)
 
         RETURNED VALUE
@@ -1106,7 +1135,7 @@ def add_keywords_in_targetstr(_srcstring,
     # beware : order matters !
     res = res.replace("%ht",
                       hex(int(datetime.strptime(_date,
-                                                DTIME_FORMAT).timestamp()))[2:])
+                                                CST__DTIME_FORMAT).timestamp()))[2:])
 
     res = res.replace("%h", _hashid)
 
@@ -1125,7 +1154,7 @@ def add_keywords_in_targetstr(_srcstring,
 
     res = res.replace("%t",
                       str(int(datetime.strptime(_date,
-                                                DTIME_FORMAT).timestamp())))
+                                                CST__DTIME_FORMAT).timestamp())))
 
     res = res.replace("%i",
                       remove_illegal_characters(str(_database_index)))
@@ -1140,17 +1169,17 @@ def backup_logfile(_logfile_fullname):
 
         copy a logfile named _logfile_fullname into a backuped file.
 
-          o  The backuped file is stored in the LOG_SUBSUBDIR directory.
+          o  The backuped file is stored in the CST__LOG_SUBSUBDIR directory.
           o  The name of the backuped file is automatically created from a call to
-             datetime.now() . See the LOGFILE_DTIMEFORMATSTR constant.
+             datetime.now() . See the CST__LOGFILE_DTIMEFORMATSTR constant.
         ________________________________________________________________________
 
         NO PARAMETER, no RETURNED VALUE
     """
-    logfile_backup = os.path.join(KATALSYS_SUBDIR, LOG_SUBSUBDIR,
+    logfile_backup = os.path.join(CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR,
                                   PARAMETERS["log file"]["name"] + \
                                   datetime.strftime(datetime.now(),
-                                                    LOGFILE_DTIMEFORMATSTR))
+                                                    CST__LOGFILE_DTIMEFORMATSTR))
     shutil.copyfile(_logfile_fullname, logfile_backup)
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1219,7 +1248,7 @@ def create_empty_db(_db_name):
         db_connection = sqlite3.connect(_db_name)
         db_cursor = db_connection.cursor()
 
-        db_cursor.execute(SQL__CREATE_DB)
+        db_cursor.execute(CST__SQL__CREATE_DB)
 
         db_connection.commit()
         db_connection.close()
@@ -1241,13 +1270,13 @@ def create_subdirs_in_target_path():
     for name, \
         fullpath in (("target", ARGS.targetpath),
                      ("system", os.path.join(normpath(ARGS.targetpath),
-                                             KATALSYS_SUBDIR)),
+                                             CST__KATALSYS_SUBDIR)),
                      ("trash", os.path.join(normpath(ARGS.targetpath),
-                                            KATALSYS_SUBDIR, TRASH_SUBSUBDIR)),
+                                            CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR)),
                      ("log", os.path.join(normpath(ARGS.targetpath),
-                                          KATALSYS_SUBDIR, LOG_SUBSUBDIR)),
+                                          CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR)),
                      ("tasks", os.path.join(normpath(ARGS.targetpath),
-                                            KATALSYS_SUBDIR, TASKS_SUBSUBDIR))):
+                                            CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))):
         if not os.path.exists(normpath(fullpath)):
             msg("  * Since the {0} path \"{1}\" (path : \"{2}\") " \
                 "doesn't exist, let's create it.".format(name,
@@ -1291,7 +1320,7 @@ def create_target_name(_parameters,
                 o _path                         : (str
                 o _extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see DTIME_FORMAT
+                o _date                         : (str) see CST__DTIME_FORMAT
                 o _database_index               : (int)
 
         RETURNED VALUE
@@ -1342,7 +1371,7 @@ def create_target_name_and_tags(_parameters,
                 o _path                         : (str
                 o _extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see DTIME_FORMAT
+                o _date                         : (str) see CST__DTIME_FORMAT
                 o _database_index               : (int)
 
         RETURNED VALUE
@@ -1402,7 +1431,7 @@ def create_target_tags(_parameters,
                 o _path                         : (str
                 o _extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see DTIME_FORMAT
+                o _date                         : (str) see CST__DTIME_FORMAT
                 o _database_index               : (int)
 
         RETURNED VALUE
@@ -1458,7 +1487,7 @@ def fill_select(_debug_datatime=None):
         ________________________________________________________________________
 
         PARAMETERS
-                o  _debug_datatime : None (normal value) or a dict of DTIME_FORMAT
+                o  _debug_datatime : None (normal value) or a dict of CST__DTIME_FORMAT
                                      strings if in debug/test mode.
 
         RETURNED VALUE
@@ -1486,7 +1515,7 @@ def fill_select(_debug_datatime=None):
                 time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
                 time = time.replace(second=0, microsecond=0)
             else:
-                time = datetime.strptime(_debug_datatime[fullname], DTIME_FORMAT)
+                time = datetime.strptime(_debug_datatime[fullname], CST__DTIME_FORMAT)
 
             fname_no_extens, extension = get_filename_and_extension(normpath(filename))
 
@@ -1521,7 +1550,7 @@ def fill_select(_debug_datatime=None):
                                    filename_no_extens=fname_no_extens,
                                    extension=extension,
                                    size=size,
-                                   date=time.strftime(DTIME_FORMAT),
+                                   date=time.strftime(CST__DTIME_FORMAT),
                                    targetname= \
                                         create_target_name(_parameters=PARAMETERS,
                                                            _hashid=hashid,
@@ -1529,7 +1558,7 @@ def fill_select(_debug_datatime=None):
                                                            _path=dirpath,
                                                            _extension=extension,
                                                            _size=size,
-                                                           _date=time.strftime(DTIME_FORMAT),
+                                                           _date=time.strftime(CST__DTIME_FORMAT),
                                                            _database_index=len(TARGET_DB) + \
                                                                            len(SELECT)),
                                    targettags= \
@@ -1539,14 +1568,14 @@ def fill_select(_debug_datatime=None):
                                                            _path=dirpath,
                                                            _extension=extension,
                                                            _size=size,
-                                                           _date=time.strftime(DTIME_FORMAT),
+                                                           _date=time.strftime(CST__DTIME_FORMAT),
                                                            _database_index=len(TARGET_DB) + \
                                                                            len(SELECT)))
 
                     msg("    + {0} selected \"{1}\" (file selected #{2})".format(prefix,
                                                                                  fullname,
                                                                                  len(SELECT)))
-                    msg("       size={0}; date={1}".format(size, time.strftime(DTIME_FORMAT)))
+                    msg("       size={0}; date={1}".format(size, time.strftime(CST__DTIME_FORMAT)))
 
                     SELECT_SIZE_IN_BYTES += size
 
@@ -1648,7 +1677,7 @@ def get_database_fullname():
         RETURNED VALUE
                 the expected string
     """
-    return os.path.join(normpath(ARGS.targetpath), KATALSYS_SUBDIR, DATABASE_NAME)
+    return os.path.join(normpath(ARGS.targetpath), CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)
 
 #///////////////////////////////////////////////////////////////////////////////
 def get_disk_free_space(_path):
@@ -1713,8 +1742,8 @@ def get_logfile_fullname():
 
         RETURNED VALUE : the expected string
     """
-    return os.path.join(KATALSYS_SUBDIR,
-                        LOG_SUBSUBDIR,
+    return os.path.join(CST__KATALSYS_SUBDIR,
+                        CST__LOG_SUBSUBDIR,
                         PARAMETERS["log file"]["name"])
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1732,7 +1761,7 @@ def goodbye(_timestamp_start):
         no RETURNED VALUE
     """
     msg("=== exit (stopped at {0}; " \
-        "total duration time : {1}) ===".format(datetime.now().strftime(DTIME_FORMAT),
+        "total duration time : {1}) ===".format(datetime.now().strftime(CST__DTIME_FORMAT),
                                                 datetime.now() - _timestamp_start))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1743,7 +1772,7 @@ def hashfile64(_filename, _stop_after=None):
 
         return the footprint of a file, encoded with the base 64. If _stop_after
         is set to an integer, only the beginning of the file will be used to
-        compute the hash (see PARTIALHASHID_BYTESNBR constant).
+        compute the hash (see CST__PARTIALHASHID_BYTESNBR constant).
         ________________________________________________________________________
 
         PARAMETER
@@ -1933,7 +1962,7 @@ def main_actions():
         action__findtag(ARGS.findtag)
 
     if ARGS.downloaddefaultcfg is not None:
-        action__downloadefaultcfg(_targetname=DEFAULT_CONFIGFILE_NAME,
+        action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME,
                                   _location=ARGS.downloaddefaultcfg)
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -2009,9 +2038,9 @@ def main_warmup(_timestamp_start):
         for cfg_path in possible_paths_to_cfg():
             msg("  * trying to find a config file in \"{0}\"...".format(cfg_path))
 
-            if os.path.exists(os.path.join(cfg_path, DEFAULT_CONFIGFILE_NAME)):
+            if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
                 msg("   ... ok a config file has been found, let's try to read it...")
-                configfile_name = os.path.join(cfg_path, DEFAULT_CONFIGFILE_NAME)
+                configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
                 break
 
         if configfile_name is not None:
@@ -2072,11 +2101,11 @@ def main_warmup(_timestamp_start):
     # we show the following informations :
     for path, info in ((configfile_name, "config file"),
                        (os.path.join(normpath(ARGS.targetpath),
-                                     KATALSYS_SUBDIR, TRASH_SUBSUBDIR), "trash subdir"),
+                                     CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR), "trash subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
-                                     KATALSYS_SUBDIR, TASKS_SUBSUBDIR), "tasks subdir"),
+                                     CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
-                                     KATALSYS_SUBDIR, LOG_SUBSUBDIR), "log subdir"),):
+                                     CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
         msg("  = so, let's use \"{0}\" as {1}".format(path, info))
 
     msg("  = source directory : \"{0}\" (path : \"{1}\")".format(source_path,
@@ -2139,7 +2168,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
 
                 elif _mode == "append":
                     sqlorder = 'UPDATE dbfiles SET tagsstr = tagsstr || \"{0}{1}\" ' \
-                               'WHERE hashid=\"{2}\"'.format(TAG_SEPARATOR, _tag, hashid)
+                               'WHERE hashid=\"{2}\"'.format(CST__TAG_SEPARATOR, _tag, hashid)
                     db_connection.executescript(sqlorder)
 
                 else:
@@ -2437,7 +2466,7 @@ def possible_paths_to_cfg():
 
     res.append(os.path.os.path.join(normpath("."),
                                     normpath(ARGS.targetpath),
-                                    KATALSYS_SUBDIR))
+                                    CST__KATALSYS_SUBDIR))
 
     if platform.system() == 'Windows':
         res.append(os.path.join(os.path.expanduser("~"),
@@ -2748,7 +2777,7 @@ def show_infos_about_target_path():
         return -1
 
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath),
-                                       KATALSYS_SUBDIR, DATABASE_NAME)):
+                                       CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)):
         msg("    o no database in the target directory.")
     else:
         db_connection = sqlite3.connect(get_database_fullname())
@@ -2762,7 +2791,7 @@ def show_infos_about_target_path():
         row_index = 0
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
             sourcedate = \
-                datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(DTIME_FORMAT)
+                datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(CST__DTIME_FORMAT)
 
             rows_data.append((db_record["hashid"],
                               db_record["name"],
@@ -2793,7 +2822,7 @@ def show_infos_about_target_path():
                               ("name", targetname_maxlength, "|"),
                               ("tags", tagsstr_maxlength, "|"),
                               ("source name", sourcename_maxlength, "|"),
-                              ("source date", DTIME_FORMAT_LENGTH, "|")),
+                              ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
                        _data=rows_data)
 
         db_connection.close()
@@ -2853,7 +2882,7 @@ def tagsstr_repr(_tagsstr):
     """
     # let's remove the first tag separator :
     tagsstr = _tagsstr
-    if tagsstr.startswith(TAG_SEPARATOR):
+    if tagsstr.startswith(CST__TAG_SEPARATOR):
         tagsstr = tagsstr[1:]
 
     return tagsstr
@@ -2887,14 +2916,14 @@ def thefilehastobeadded__db(_filename, _size):
     if len(res) == 0:
         return (True,
                 hashfile64(_filename=_filename,
-                           _stop_after=PARTIALHASHID_BYTESNBR),
+                           _stop_after=CST__PARTIALHASHID_BYTESNBR),
                 hashfile64(_filename=_filename))
 
     # (2) how many file(s) among those in <res> have a partial hashid equal
     # to the partial hashid of _filename ?
     new_res = []
     src_partialhashid = hashfile64(_filename=_filename,
-                                   _stop_after=PARTIALHASHID_BYTESNBR)
+                                   _stop_after=CST__PARTIALHASHID_BYTESNBR)
     for hashid in res:
         target_partialhashid, _, _ = TARGET_DB[hashid]
         if target_partialhashid == src_partialhashid:
@@ -2960,18 +2989,19 @@ def thefilehastobeadded__filters(_filename, _size, _date):
                                   str(eval_filter_for_a_file(_filter, _filename, _size, _date)))
 
     try:
-        # eval() IS a dangerous function : see the note about AUTHORIZED_EVALCHARS.
+        # eval() IS a dangerous function : see the note about CST__AUTHORIZED_EVALCHARS.
         for char in evalstr:
-            if char not in AUTHORIZED_EVALCHARS:
+            if char not in CST__AUTHORIZED_EVALCHARS:
                 raise KatalError("Error in configuration file : " \
                                    "trying to compute the \"{0}\" string; " \
                                    "wrong character '{1}'({2}) " \
                                    "used in the string to be evaluated. " \
                                    "Authorized " \
-                                   "characters are {3}".format(evalstr,
-                                                               char,
-                                                               unicodedata.name(char),
-                                                               "|"+"|".join(AUTHORIZED_EVALCHARS)))
+                                   "characters are " \
+                                   "{3}".format(evalstr,
+                                                char,
+                                                unicodedata.name(char),
+                                                "|"+"|".join(CST__AUTHORIZED_EVALCHARS)))
         return eval(evalstr)
 
     except BaseException as exception:
@@ -2998,15 +3028,15 @@ def thefilehastobeadded__filt_date(_filter, _date):
     """
     # beware ! the order matters (<= before <, >= before >)
     if _filter["date"].startswith("="):
-        return _date == datetime.strptime(_filter["date"][1:], DTIME_FORMAT)
+        return _date == datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith(">="):
-        return _date >= datetime.strptime(_filter["date"][2:], DTIME_FORMAT)
+        return _date >= datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith(">"):
-        return _date > datetime.strptime(_filter["date"][1:], DTIME_FORMAT)
+        return _date > datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith("<="):
-        return _date < datetime.strptime(_filter["date"][2:], DTIME_FORMAT)
+        return _date < datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith("<"):
-        return _date < datetime.strptime(_filter["date"][1:], DTIME_FORMAT)
+        return _date < datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
     else:
         raise KatalError("Can't analyse a 'date' field : "+_filter["date"])
 
@@ -3053,7 +3083,7 @@ def thefilehastobeadded__filt_size(_filter, _size):
     filter_size = _filter["size"] # a string like ">999" : see documentation:selection
 
     multiple = 1
-    for suffix, _multiple in MULTIPLES:
+    for suffix, _multiple in CST__MULTIPLES:
         if filter_size.endswith(suffix):
             multiple = _multiple
             filter_size = filter_size[:-len(suffix)]
@@ -3062,7 +3092,7 @@ def thefilehastobeadded__filt_size(_filter, _size):
     if multiple == 1 and not filter_size[-1].isdigit():
         raise KatalError("Can't analyse {0} in the filter. " \
                          "Available multiples are : {1}".format(filter_size,
-                                                                MULTIPLES))
+                                                                CST__MULTIPLES))
 
     # beware !  the order matters (<= before <, >= before >)
     if filter_size.startswith(">="):
