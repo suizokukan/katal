@@ -2398,7 +2398,8 @@ def read_command_line_arguments():
                         default="copy",
                         help="'copy' to copy source files in the target directory; " \
                              "'move' to move source files in the target directory; " \
-                             "'nocopy' to not copy source files in the target directory; ")
+                             "'nocopy' to forbid the copy of the source files in the " \
+                             "target directory; ")
 
     parser.add_argument('-n', '--new',
                         type=str,

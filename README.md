@@ -16,7 +16,7 @@ Caveats :
 
 * Katal uses sqlite3 databases since sqlite3 is supported out-of-the-box by Python
 * Katal is slow, very slow : you could speed up the execution by reducing the amount of console messages but the core is absolutely inefficient.
-* Katal isn't immune to unexpected shutdowns/programs' stops.
+* Katal isn't immune to unexpected shutdowns/program's stops.
 * please use the `--usentfsprefix` option if you read files from a NTFS volume.
 
 #(3) installation and tests
@@ -167,6 +167,7 @@ Xavier Faure (suizokukan / 94.23.197.37) : suizokukan @T orange D@T fr
 The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, register, catalogue").
 
 #(6) arguments
+
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-dlcfg {local,home}] [--findtag FINDTAG]
                     [--infos] [-m] [--mode {copy,move,nocopy}] [-n NEW] [--off]
@@ -212,8 +213,8 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
       --mode {copy,move,nocopy}
                             'copy' to copy source files in the target directory;
                             'move' to move source files in the target directory;
-                            'nocopy' to not copy source files in the target
-                            directory; (default: copy)
+                            'nocopy' to forbid the copy of the source files in the
+                            target directory; (default: copy)
       -n NEW, --new NEW     # Create a new target directory (default: None)
       --off                 # Don't write anything into the target directory or
                             into the database, except into the current log file.
