@@ -189,6 +189,21 @@ CST__TASKS_SUBSUBDIR = "tasks"
 
 CST__TRASH_SUBSUBDIR = "trash"
 
+# foreground colors :
+CST__LINUXCONSOLECOLORS = {
+    "default"       : "\033[0m",
+    "red"           : "\033[0;31;1m",
+    "green"         : "\033[0;32;1m",
+    "yellow"        : "\033[0;33;1m",
+    "blue"          : "\033[0;34;1m",
+    "magenta"       : "\033[0;35;1m",
+    "cyan"          : "\033[0;36;1m",
+    "white"         : "\033[0;37;1m",
+}
+
+# 'Linux', 'Windows', 'Java' according to https://docs.python.org/3.5/library/platform.html
+CST__PLATFORM = platform.system()
+
 ################################################################################
 class KatalError(BaseException):
     """
@@ -225,7 +240,8 @@ def action__add():
     db_cursor = db_connection.cursor()
 
     if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
-        msg("    ! Not enough space on disk. Stopping the program.")
+        msg("    ! Not enough space on disk. Stopping the program.",
+            _consolecolor="red")
         # returned value : -1 = error
         return -1
 
@@ -286,11 +302,14 @@ def action__add():
             db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?,?,?)', files_to_be_added)
 
     except sqlite3.IntegrityError as exception:
-        msg("!!! An error occured while writing the database : "+str(exception))
-        msg("!!! files_to_be_added : ")
+        msg("!!! An error occured while writing the database : "+str(exception),
+            _consolecolor="red")
+        msg("!!! files_to_be_added : ",
+            _consolecolor="red")
         for file_to_be_added in files_to_be_added:
             msg("     ! hashid={0}; partialhashid={1}; size={2}; name={3}; sourcename={4}; " \
-                "sourcedate={5}; tagsstr={6}".format(*file_to_be_added))
+                "sourcedate={5}; tagsstr={6}".format(*file_to_be_added),
+                _consolecolor="red")
         raise KatalError("An error occured while writing the database : "+str(exception))
 
     db_connection.commit()
@@ -333,7 +352,8 @@ def action__cleandbrm():
     msg("  = clean the database : remove missing files from the target directory =")
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.")
+        msg("    ! no database found.",
+            _consolecolor="red")
         return
 
     db_connection = sqlite3.connect(get_database_fullname())
@@ -349,7 +369,8 @@ def action__cleandbrm():
                                                         db_record["name"])))
 
     if len(files_to_be_rmved_from_the_db) == 0:
-        msg("    ! no file to be removed : the database is ok.")
+        msg("    * no file to be removed : the database is ok.",
+            _consolecolor="red")
     else:
         for hashid in files_to_be_rmved_from_the_db:
             if not ARGS.off:
@@ -402,11 +423,15 @@ def action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME, _locatio
         return True
 
     except urllib.error.URLError as exception:
-        msg("  ! An error occured : "+str(exception))
-        msg("  ... if you can't download the default config file, what about simply")
-        msg("  ... copy another config file to the target directory ?")
+        msg("  ! An error occured : "+str(exception),
+            _consolecolor="red")
+        msg("  ... if you can't download the default config file, what about simply",
+            _consolecolor="red")
+        msg("  ... copy another config file to the target directory ?",
+            _consolecolor="red")
         msg("  ... In a target directory, the config file is " \
-            "in the \"{0}\" directory.".format(os.path.join(CST__KATALSYS_SUBDIR)))
+            "in the \"{0}\" directory.".format(os.path.join(CST__KATALSYS_SUBDIR)),
+            _consolecolor="red")
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -430,7 +455,8 @@ def action__findtag(_tag):
     msg("  = searching the files with the tag \"{0}\" =".format(_tag))
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.")
+        msg("    ! no database found.",
+            _consolecolor="red")
         return
 
     db_connection = sqlite3.connect(get_database_fullname())
@@ -507,7 +533,8 @@ def action__new(_targetname):
         "named \"{0}\" (path : \"{1}\")".format(_targetname,
                                                 normpath(_targetname)))
     if os.path.exists(normpath(_targetname)):
-        msg("  ! can't go further : the directory already exists.")
+        msg("  ! can't go further : the directory already exists.",
+            _consolecolor="red")
         return
 
     if not ARGS.off:
@@ -534,8 +561,9 @@ def action__new(_targetname):
                                          _location="local"):
                 msg("  ... done.")
             else:
-                print("  ! A problem occured : " \
-                      "the creation of the target directory has been aborted.")
+                msg("  ! A problem occured : " \
+                    "the creation of the target directory has been aborted.",
+                    _consolecolor="red")
 
     msg("  ... done with the creation of \"{0}\" as a new target directory.".format(_targetname))
 
@@ -571,7 +599,8 @@ def action__rebase(_newtargetpath):
     dest_params = read_parameters_from_cfgfile(normpath(to_configfile))
 
     if dest_params is None:
-        msg("    ! can't read the dest config file !")
+        msg("    ! can't read the dest config file !",
+            _consolecolor="red")
         return
 
     msg("    o config file found and read (ok)")
@@ -669,13 +698,16 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         if new_name in filenames:
             msg("      ! anomaly : ancient file {1} should be renamed as {0} " \
                 "but this name would have been already created in the new target directory ! " \
-                "".format(new_name, fullname))
+                "".format(new_name, fullname),
+                _consolecolor="red")
             msg("        Two different files from the ancient target directory " \
-                "can't bear the same name in the new target directory !")
+                "can't bear the same name in the new target directory !",
+                _consolecolor="red")
             anomalies_nbr += 1
         elif os.path.exists(new_name):
             msg("      ! anomaly : ancient file {1} should be renamed as {0} " \
-                "but this name already exists in new target directory !".format(new_name, fullname))
+                "but this name already exists in new target directory !".format(new_name, fullname),
+                _consolecolor="red")
             anomalies_nbr += 1
         else:
             files[olddb_record["hashid"]] = (fullname, new_name, date, tagsstr)
@@ -762,7 +794,8 @@ def action__reset():
     msg("    = about to delete (=move in the trash) the target files and the database.")
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found, nothing to do .")
+        msg("    ! no database found, nothing to do .",
+            _consolecolor="red")
         return
 
     if not ARGS.mute:
@@ -811,7 +844,8 @@ def action__rmnotags():
     msg("  = removing all files with no tags (=moving them to the trash) =")
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.")
+        msg("    ! no database found.",
+            _consolecolor="red")
     else:
         db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
@@ -823,7 +857,8 @@ def action__rmnotags():
                 files_to_be_removed.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_removed) == 0:
-            msg("   ! no files to be removed.")
+            msg("   ! no files to be removed.",
+                _consolecolor="red")
         else:
             for hashid, name in files_to_be_removed:
                 msg("   o removing {0} from the database and from the target path".format(name))
@@ -889,7 +924,8 @@ def action__select():
 
     if len(SELECT) == 0:
         msg("    ! no file selected ! " \
-            "You have to modify the config file to get some files selected.")
+            "You have to modify the config file to get some files selected.",
+            _consolecolor="red")
     else:
         ratio = len(SELECT)/(len(SELECT)+number_of_discarded_files)*100.0
         msg("    o number of selected files " \
@@ -902,12 +938,15 @@ def action__select():
     available_space = get_disk_free_space(ARGS.targetpath)
     if available_space > SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
         size_ok = "ok"
+        colorconsole = "white"
     else:
         size_ok = "!!! problem !!!"
+        colorconsole = "red"
     msg("    o required space : {0}; " \
         "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
                                                      size_as_str(available_space),
-                                                     size_ok))
+                                                     size_ok),
+        _consolecolor=colorconsole)
 
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add:
@@ -966,11 +1005,13 @@ def action__target_kill(_filename):
     msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) " \
         "and from its database =".format(_filename))
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath), _filename)):
-        msg("    ! can't find \"{0}\" file on disk.".format(_filename))
+        msg("    ! can't find \"{0}\" file on disk.".format(_filename),
+            _consolecolor="red")
         return -1
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.")
+        msg("    ! no database found.",
+            _consolecolor="red")
         return -3
     else:
         db_connection = sqlite3.connect(get_database_fullname())
@@ -983,7 +1024,8 @@ def action__target_kill(_filename):
                 filename_hashid = db_record["hashid"]
 
         if filename_hashid is None:
-            msg("    ! can't find \"{0}\" file in the database.".format(_filename))
+            msg("    ! can't find \"{0}\" file in the database.".format(_filename),
+                _consolecolor="red")
             res = -2
         else:
             if not ARGS.off:
@@ -1051,14 +1093,16 @@ def action__whatabout(_src):
     # (1) does _src exist ?
     normsrc = normpath(_src)
     if not os.path.exists(normsrc):
-        msg("  ! error : can't find source file \"{0}\" .".format(normsrc))
+        msg("  ! error : can't find source file \"{0}\" .".format(normsrc),
+            _consolecolor="red")
         return False
 
     # (2) is _src a file or a directory ?
     if os.path.isdir(normsrc):
         # informations about the source directory :
         if normpath(ARGS.targetpath) in normsrc:
-            msg("  ! error : the given directory in inside the target directory.")
+            msg("  ! error : the given directory in inside the target directory.",
+                _consolecolor="red")
             return False
 
         for dirpath, _, filenames in os.walk(normpath(_src)):
@@ -1619,7 +1663,8 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
             msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" would be used " \
                 "two times for two different files !".format(_prefix,
                                                              _fullname,
-                                                             SELECT[selectedfile_hash2].targetname))
+                                                             SELECT[selectedfile_hash2].targetname),
+                _consolecolor="red")
 
             to_be_discarded.append(selectedfile_hash2)
 
@@ -1634,7 +1679,8 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
                 msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already " \
                     "exists in the target path !".format(_prefix,
                                                          _fullname,
-                                                         SELECT[selectedfile_hash].targetname))
+                                                         SELECT[selectedfile_hash].targetname),
+                    _consolecolor="red")
 
                 to_be_discarded.append(selectedfile_hash)
 
@@ -1648,7 +1694,8 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
             ending = "ies"
         msg("    !  beware : {0} anomal{1} detected. " \
             "See details above.".format(len(to_be_discarded),
-                                        ending))
+                                        ending),
+            _consolecolor="red")
 
         for _hash in to_be_discarded:
             # e.g. , _hash may have discarded two times (same target name + file
@@ -1693,7 +1740,7 @@ def get_disk_free_space(_path):
         RETURNED VALUE
                 the expected int(eger)
     """
-    if platform.system() == 'Windows':
+    if CST__PLATFORM == 'Windows':
         free_bytes = ctypes.c_ulonglong(0)
         ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(_path),
                                                    None, None, ctypes.pointer(free_bytes))
@@ -2049,10 +2096,12 @@ def main_warmup(_timestamp_start):
         else:
 
             if ARGS.downloaddefaultcfg is None:
-                msg(msg_please_use_dlcfg)
+                msg(msg_please_use_dlcfg,
+                    _consolecolor="red")
                 sys.exit(-1)
             else:
-                msg("  ! Can't find any configuration file.")
+                msg("  ! Can't find any configuration file.",
+                    _consolecolor="red")
                 return
 
     else:
@@ -2066,10 +2115,12 @@ def main_warmup(_timestamp_start):
         if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
             msg("  ! The config file \"{0}\" (path : \"{1}\") " \
                 "doesn't exist. ".format(configfile_name,
-                                         normpath(configfile_name)))
+                                         normpath(configfile_name)),
+                _consolecolor="red")
 
             if ARGS.downloaddefaultcfg is None:
-                msg(msg_please_use_dlcfg)
+                msg(msg_please_use_dlcfg,
+                    _consolecolor="red")
             sys.exit(-1)
 
     #...........................................................................
@@ -2094,7 +2145,8 @@ def main_warmup(_timestamp_start):
     #...........................................................................
     if ARGS.targetpath == source_path:
         msg("  ! warning : " \
-            "source path and target path have the same value ! (\"{0}\")".format(ARGS.targetpath))
+            "source path and target path have the same value ! (\"{0}\")".format(ARGS.targetpath),
+            _consolecolor="red")
 
     #...........................................................................
     # we show the following informations :
@@ -2139,7 +2191,8 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
                                         "set" to replace old tag(s) by a new one
     """
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.")
+        msg("    ! no database found.",
+            _consolecolor="red")
     else:
         db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
@@ -2178,7 +2231,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
         db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def msg(_msg, _for_console=True, _for_logfile=True):
+def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
     """
         msg()
         ________________________________________________________________________
@@ -2192,6 +2245,9 @@ def msg(_msg, _for_console=True, _for_logfile=True):
                 o _msg          : (str) the message to be written
                 o _for_console  : (bool) authorization to write on console
                 o _for_logfile  : (bool) authorization to write in the log file
+                o _consolecolor : (None/str) see CST__LINUXCONSOLECOLORS
+                                  The color will be displayed on console, not
+                                  in the log file.
 
         no RETURNED VALUE
     """
@@ -2202,8 +2258,14 @@ def msg(_msg, _for_console=True, _for_logfile=True):
     # first to the console : otherwise, if an error occurs by writing to the log
     # file, it would'nt possible to read the message.
     if not ARGS.mute and _for_console:
-        print(_msg)
+        if _consolecolor is None or CST__PLATFORM == 'Windows':
+            sys.stdout.write(_msg+"\n")
+        else:
+            sys.stdout.write(CST__LINUXCONSOLECOLORS[_consolecolor])
+            sys.stdout.write(_msg+"\n")
+            sys.stdout.write(CST__LINUXCONSOLECOLORS["default"])
 
+    # secondly, to the logfile :
     if USE_LOGFILE and _for_logfile and LOGFILE is not None:
         if LOGFILE_SIZE + len(final_msg) > int(PARAMETERS["log file"]["maximal size"]):
             # let's force writing on disk...
@@ -2463,7 +2525,7 @@ def possible_paths_to_cfg():
                                     normpath(ARGS.targetpath),
                                     CST__KATALSYS_SUBDIR))
 
-    if platform.system() == 'Windows':
+    if CST__PLATFORM == 'Windows':
         res.append(os.path.join(os.path.expanduser("~"),
                                 "Local Settings",
                                 "Application Data",
@@ -2509,11 +2571,15 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["source"]["path"]
     except BaseException as exception:
         msg("  ! An error occured while reading " \
-            "the config file \"{0}\".".format(_configfile_name))
-        msg("  ! Python message : \"{0}\"".format(exception))
-        msg("  ! Your configuration file maybe lacks a specific value.")
+            "the config file \"{0}\".".format(_configfile_name),
+            _consolecolor="red")
+        msg("  ! Python message : \"{0}\"".format(exception),
+            _consolecolor="red")
+        msg("  ! Your configuration file maybe lacks a specific value.",
+            _consolecolor="red")
         msg("  ... you may want to download a new default config file : " \
-            "see -dlcfg/--downloaddefaultcfg option")
+            "see -dlcfg/--downloaddefaultcfg option",
+            _consolecolor="red")
         return None
 
     return parser
@@ -2647,19 +2713,25 @@ def show_infos_about_source_path():
                                                     normpath(source_path)))
 
     if not os.path.exists(normpath(source_path)):
-        msg("    ! can't find source path \"{0}\" .".format(source_path))
+        msg("    ! can't find source path \"{0}\" .".format(source_path),
+            _consolecolor="red")
         return
     if not os.path.isdir(normpath(source_path)):
-        msg("    ! source path \"{0}\" isn't a directory .".format(source_path))
+        msg("    ! source path \"{0}\" isn't a directory .".format(source_path),
+            _consolecolor="red")
         return
 
     if is_ntfs_prefix_mandatory(source_path):
-        msg("    ! the source path should be used with the NTFS prefix for long filenames.")
+        msg("    ! the source path should be used with the NTFS prefix for long filenames.",
+            _consolecolor="red")
 
         if not ARGS.usentfsprefix:
-            msg("    ! ... but the --usentfsprefix argument wasn't given !")
-            msg("    ! You may encounter an IOError, or a FileNotFound error.")
-            msg("    ! If so, please use the --usentfsprefix argument.")
+            msg("    ! ... but the --usentfsprefix argument wasn't given !",
+                _consolecolor="red")
+            msg("    ! You may encounter an IOError, or a FileNotFound error.",
+                _consolecolor="red")
+            msg("    ! If so, please use the --usentfsprefix argument.",
+                _consolecolor="red")
             msg("")
 
     total_size = 0
@@ -2716,12 +2788,16 @@ def show_infos_about_target_path():
                                                     normpath(ARGS.targetpath)))
 
     if is_ntfs_prefix_mandatory(ARGS.targetpath):
-        msg("    ! the target path should be used with the NTFS prefix for long filenames.")
+        msg("    ! the target path should be used with the NTFS prefix for long filenames.",
+            _consolecolor="red")
 
         if not ARGS.usentfsprefix:
-            msg("    ! ... but the --usentfsprefix argument wasn't given !")
-            msg("    ! You may encounter an IOError, or a FileNotFound error.")
-            msg("    ! If so, please use the --usentfsprefix argument.")
+            msg("    ! ... but the --usentfsprefix argument wasn't given !",
+                _consolecolor="red")
+            msg("    ! You may encounter an IOError, or a FileNotFound error.",
+                _consolecolor="red")
+            msg("    ! If so, please use the --usentfsprefix argument.",
+                _consolecolor="red")
             msg("")
 
     def draw_table(_rows, _data):
@@ -2804,7 +2880,8 @@ def show_infos_about_target_path():
             row_index += 1
 
         if row_index == 0:
-            msg("    ! (empty database)")
+            msg("    ! (empty database)",
+                _consolecolor="red")
 
         else:
             msg("    o {0} file(s) in the database :".format(row_index))
@@ -3144,9 +3221,12 @@ def welcome(_timestamp_start):
              "(launched at {2}) ===".format(__projectname__,
                                             __version__,
                                             _timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
-    msg("="*len(strmsg))
-    msg(strmsg)
-    msg("="*len(strmsg))
+    msg("="*len(strmsg),
+        _consolecolor="white")
+    msg(strmsg,
+        _consolecolor="white")
+    msg("="*len(strmsg),
+        _consolecolor="white")
 
     # command line arguments :
     msg("  = command line arguments : {0}".format(sys.argv))
