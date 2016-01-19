@@ -1,4 +1,4 @@
-#(1) Katal (0.2.8)
+#(1) Katal (0.2.9)
 A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3.
 
 Create a catalogue from various source directories, without any duplicate. Add some tags to the files.

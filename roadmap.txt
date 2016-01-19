@@ -1,3 +1,24 @@
+v 0.2.9 (2016_01_19) : colored console output
+
+    o added colors to console messages for the Linux console :
+        o added the CST__PLATFORM constant
+        o added the ST__LINUXCONSOLECOLORS constant
+        o added an argument to msg() function, '_consolecolor'
+        o the welcome message in now displayed in white
+        o the message displayed if enough diskspace is available is now displayed in white
+        o error messages are now displayed in red
+
+    o show_infos_about_source_path() : improved the way extensions are displayed.
+      Before this commit, the sort was case sensitive (.JPG, .abc, .jpg, .kl, ...).
+      After this commit the sort is case insensitive (.abc, .jpg, .JPG, .kl, ...)
+    o in show_infos_about_source_path(), added a counter helping the user no to think
+      that the script has freezed.
+    o fixed argparse epilog in read_command_line_arguments()
+    o improved various messages
+
+    o 6 tests, pylint=10.0 for the four Python scripts
+    o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
 v 0.2.8 (2016_01_19) : --mode=[copy|move|mirror]
 
     o --mode=[copy|move|mirror] replaces from now --mirroronly and --move
