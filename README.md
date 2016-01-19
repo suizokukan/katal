@@ -10,7 +10,7 @@ Create a catalogue from various source directories, without any duplicate. Add s
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
-Katal can also be used to create a "mirror database" from a source, without copying the files in the tarrget directory (see the --mode='mirror' option).
+Katal can also be used to create a "mirror database" from a source, without copying the files in the tarrget directory (see the --mode='nocopy' option).
 
 Caveats :
 
@@ -169,7 +169,7 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 #(6) arguments
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-dlcfg {local,home}] [--findtag FINDTAG]
-                    [--infos] [-m] [--mode {copy,move,mirror}] [-n NEW] [--off]
+                    [--infos] [-m] [--mode {copy,move,nocopy}] [-n NEW] [--off]
                     [--rebase REBASE] [--reset] [--rmnotags] [--rmtags] [-s]
                     [--settagsstr SETTAGSSTR] [-si] [--strictcmp]
                     [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL] [--to TO]
@@ -209,10 +209,10 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             executed before --select/--add (default: False)
       -m, --mute            # No output to the console; no question asked on the
                             console (default: False)
-      --mode {copy,move,mirror}
+      --mode {copy,move,nocopy}
                             'copy' to copy source files in the target directory;
                             'move' to move source files in the target directory;
-                            'mirror' to not copy source files in the target
+                            'nocopy' to not copy source files in the target
                             directory; (default: copy)
       -n NEW, --new NEW     # Create a new target directory (default: None)
       --off                 # Don't write anything into the target directory or

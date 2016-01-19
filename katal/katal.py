@@ -260,9 +260,9 @@ def action__add():
         sourcedate = sourcedate.total_seconds()
 
         if not ARGS.off:
-            if ARGS.mode == "mirror":
+            if ARGS.mode == "nocopy":
                 # nothing to do
-                msg("    ... ({0}/{1}) due to the '--mode=mirror' option, " \
+                msg("    ... ({0}/{1}) due to the '--mode=nocopy' option, " \
                     "\"{2}\" is added in the target database BUT".format(index+1, len_select,
                                                                          complete_source_filename))
                 msg("        THIS FILE WILL NOT BE COPIED into \"{0}\" .".format(target_name))
@@ -1670,7 +1670,7 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
 
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
-    if not ARGS.mode == 'mirror':
+    if not ARGS.mode == 'nocopy':
         msg("    ... future filename's can't be in conflict with another file already")
         msg("        stored in the target path...")
         for selectedfile_hash in SELECT:
@@ -2394,11 +2394,11 @@ def read_command_line_arguments():
                         help="# No output to the console; no question asked on the console")
 
     parser.add_argument('--mode',
-                        choices=("copy", "move", "mirror"),
+                        choices=("copy", "move", "nocopy"),
                         default="copy",
                         help="'copy' to copy source files in the target directory; " \
                              "'move' to move source files in the target directory; " \
-                             "'mirror' to not copy source files in the target directory; ")
+                             "'nocopy' to not copy source files in the target directory; ")
 
     parser.add_argument('-n', '--new',
                         type=str,
@@ -3258,9 +3258,9 @@ def welcome(_timestamp_start):
         msg("  =                 the files will be moved (NOT copied) in the target    =")
         msg("  =                 directory.                                            =")
 
-    if ARGS.mode == 'mirror':
+    if ARGS.mode == 'nocopy':
         msg("  = WARNING                                                               =")
-        msg("  = --mode=mirror option detected                                         =")
+        msg("  = --mode=nocopy option detected                                         =")
         msg("  =                 the files will NOT be copied or moved in the target   =")
         msg("  =                 directory.                                            =")
 
