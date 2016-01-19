@@ -2664,6 +2664,7 @@ def show_infos_about_source_path():
 
     total_size = 0
     files_number = 0
+    files_number_interval = 0   # used to display the intermediate number, see below.
     extensions = dict()  # (str)extension : [number of files, total size]
     for dirpath, _, fnames in os.walk(normpath(source_path)):
         for filename in fnames:
@@ -2679,6 +2680,12 @@ def show_infos_about_source_path():
 
             total_size += size
             files_number += 1
+
+            files_number_interval += 1
+            if files_number_interval == 100000:
+                msg("    ... already {0} files read in the source directory, " \
+                    "still processing...".format(files_number_interval))
+                files_number_interval = 0
 
     msg("    o files number : {0} file(s)".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
