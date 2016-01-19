@@ -2,7 +2,7 @@ v 0.2.9 (2016_01_19) : colored console output
 
     o added colors to console messages for the Linux console :
         o added the CST__PLATFORM constant
-        o added the ST__LINUXCONSOLECOLORS constant
+        o added the CST__LINUXCONSOLECOLORS constant
         o added an argument to msg() function, '_consolecolor'
         o the welcome message in now displayed in white
         o the message displayed if enough diskspace is available is now displayed in white
