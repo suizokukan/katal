@@ -1935,8 +1935,10 @@ def main_actions():
 
         if not ARGS.mute and len(SELECT) > 0:
             answer = \
-                input("\nDo you want to add the selected " \
-                      "files to the target directory (\"{0}\") ? (y/N) ".format(ARGS.targetpath))
+                input("\nDo you want to update the target database and to {0} the selected " \
+                      "files into the target directory " \
+                      "(\"{1}\") ? (y/N) ".format(ARGS.mode,
+                                                  ARGS.targetpath))
 
             if answer in ("y", "yes"):
                 action__add()
@@ -2273,10 +2275,10 @@ def read_command_line_arguments():
                               epilog="{0} v. {1} ({2}), " \
                                      "a project by {3} " \
                                      "({4})".format(__projectname__,
-                                                             __version__,
-                                                             __license__,
-                                                             __author__,
-                                                             __email__),
+                                                    __version__,
+                                                    __license__,
+                                                    __author__,
+                                                    __email__),
                               formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('--add',
