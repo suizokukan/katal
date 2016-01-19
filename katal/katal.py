@@ -1101,7 +1101,7 @@ def action__whatabout(_src):
     if os.path.isdir(normsrc):
         # informations about the source directory :
         if normpath(ARGS.targetpath) in normsrc:
-            msg("  ! error : the given directory in inside the target directory.",
+            msg("  ! error : the given directory is inside the target directory.",
                 _consolecolor="red")
             return False
 
