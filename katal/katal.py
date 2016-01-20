@@ -2588,16 +2588,21 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["display"]["tag.max length on console"]
         _ = parser["display"]["source filename.max length on console"]
         _ = parser["source"]["path"]
+    except KeyError as exception:
+        msg("  ! An error occured while reading " \
+            "the config file \"{0}\".".format(_configfile_name),
+            _consolecolor="red")
+        msg("  ! Your configuration file lacks a specific value : \"{0}\".".format(exception),
+            _consolecolor="red")
+        msg("  ... you should download a new default config file : " \
+            "see -dlcfg/--downloaddefaultcfg option",
+            _consolecolor="red")
+        return None
     except BaseException as exception:
         msg("  ! An error occured while reading " \
             "the config file \"{0}\".".format(_configfile_name),
             _consolecolor="red")
         msg("  ! Python message : \"{0}\"".format(exception),
-            _consolecolor="red")
-        msg("  ! Your configuration file maybe lacks a specific value.",
-            _consolecolor="red")
-        msg("  ... you may want to download a new default config file : " \
-            "see -dlcfg/--downloaddefaultcfg option",
             _consolecolor="red")
         return None
 
