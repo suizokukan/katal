@@ -17,7 +17,7 @@ v 0.3 (2016_01_20) : mode defined in the configuration file
     o 6 tests, pylint=10.0 for the four Python scripts
     o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
 
-    o updated pylintrc : max-branches=14 (formerly: =18)
+    o updated pylintrc : max-branches=14 (formerly =18)
 
 v 0.2.9 (2016_01_19) : colored console output
 
