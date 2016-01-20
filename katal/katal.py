@@ -949,7 +949,7 @@ def action__select():
             "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
                                                          size_as_str(available_space),
                                                          size_ok),
-        _consolecolor=colorconsole)
+            _consolecolor=colorconsole)
 
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add and CFG_PARAMETERS["target"]["mode"] != "nocopy":
@@ -2504,6 +2504,9 @@ def read_parameters_from_cfgfile(_configfile_name):
         ________________________________________________________________________
 
         Read the configfile and return the parser or None if an error occured.
+
+        If the mode is set to 'nocopy', parser["target"]["name of the target files"]
+        is set to "%i" .
         ________________________________________________________________________
 
         PARAMETER
@@ -2543,6 +2546,13 @@ def read_parameters_from_cfgfile(_configfile_name):
             "see -dlcfg/--downloaddefaultcfg option",
             _consolecolor="red")
         return None
+
+    if parser["target"]["mode"] == 'nocopy':
+        parser["target"]["name of the target files"] = "%i"
+
+        msg("    *  since 'mode'=='nocopy', the value of [target]name of the target files " \
+            "       is neutralized and set to '%i' (=database index)",
+            _consolecolor="cyan")
 
     return parser
 
