@@ -116,8 +116,9 @@ Caveats :
 ####Check if everything's is alright :
     $ katal --infos
     
-####Let's see what would happen if the script select the files :
-    $ katal --select  ... and answer 'yes' to the final question if all the details are ok to you.    
+####Let's see what would happen if the script tried to select the files :
+    $ katal --select
+    ... and answer 'yes' to the final question if all the details are ok to you.
     The files will be copied/moved/left (see the mode option) in the target directory.
     
     If you want a bit-to-bit check if two files have the same hashes, use the --strictcmp option.
@@ -128,7 +129,7 @@ Caveats :
     If want to start from scratch just keeping the configuration file, you may delete all target 
     files and flush the database with :
     $ katal --reset
-    ...and modify the configuration file and use again --select
+    ... and modify the configuration file and use again --select
     
 ####Let's tag some files :
     $ katal --addtag=tree --to=*.jpg
