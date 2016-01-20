@@ -63,10 +63,18 @@ Caveats :
     
 ####Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
 
-    Inside the .ini file, modify the following line :
+    Inside the .ini file, modify the following lines :
     
     [source]
     path : ~/src/
+
+    [target]
+    mode : copy   # 'copy', 'move' or 'nocopy'
+
+    ->  'copy'   : source files are copied into the target directory .
+    ->  'move'   : source files are moved into the target directory .
+    ->  'nocopy' : no source file is copied into the target directory (the
+                   target database being updated).
     
 ####Take a look at the files stored in the source directory :
     $ katal --infos

@@ -63,10 +63,18 @@ Caveats :
     
 ####Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
 
-    Inside the .ini file, modify the following line :
+    Inside the .ini file, modify the following lines :
     
     [source]
     path : ~/src/
+
+    [target]
+    mode : copy   # 'copy', 'move' or 'nocopy'
+
+    ->  'copy'   : source files are copied into the target directory .
+    ->  'move'   : source files are moved into the target directory .
+    ->  'nocopy' : no source file is copied into the target directory (the
+                   target database being updated).
     
 ####Take a look at the files stored in the source directory :
     $ katal --infos
@@ -290,8 +298,9 @@ See the `roadmap.txt` file.
                 -3      : an unexpected exception exception has been raised
 
 ##(8.2) configuration file
-    The informations stored in the configuration file are written in the PARAMETERS global variable.
-    PARAMETERS is filled by read_parameters_from_cfgfile() and is a configparser.Configparser object.
+    The informations stored in the configuration file are written in the CFG_PARAMETERS global
+    variable. CFG_PARAMETERS is filled by read_parameters_from_cfgfile() and is a
+    configparser.Configparser object.
     The default name of the configuration file is set by the DEFAULT_CONFIGFILE_NAME global variable
     and may be set by the commande line (see --configfile option).
 
@@ -502,3 +511,5 @@ trash name is defined in the configuration file.
     o  thefilehastobeadded__filt_size()     : a part of thefilehastobeadded__filters()
     o  welcome()                            : display a welcome message on screen
     o  welcome_in_logfile()                 : display a welcome message in the log file
+    o  where_is_the_configfile()            : return the config file name from ARGS.configfile or
+                                              from the paths returned by possible_paths_to_cfg().
