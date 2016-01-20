@@ -1,3 +1,24 @@
+v 0.3 (2016_01_20) : mode defined in the configuration file
+
+    o removed the --mode option : the mode is now defined in the configuration file
+
+    o modified show_infos_about_target_path() so that this function (in mode=nocopy)
+      doesn't display a "target name" column.
+    o 'PARAMETERS' > 'CFG_PARAMETERS'
+    o removed from CST__LINUXCONSOLECOLORS some unused colors
+    o added the where_is_configfile() to shrink main_warmup()
+    o fixed action__select() : in 'nocopy' mode, some operations are useless
+    o fixed read_parameters_from_cfgfile() : If the mode is set to 'nocopy',
+      parser["target"]["name of the target files"] is set to "%i" .
+    o added create_faked_target__nocopy.h + faked/katal.ini.nocopy
+    o improved various messages
+    o updated the documentation in katal.ini and in chart.txt
+
+    o 6 tests, pylint=10.0 for the four Python scripts
+    o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
+    o updated pylintrc : max-branches=14 (formerly: =18)
+
 v 0.2.9 (2016_01_19) : colored console output
 
     o added colors to console messages for the Linux console :
