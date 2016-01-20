@@ -82,8 +82,9 @@ __statuspypi__ = 'Development Status :: 5 - Production/Stable'
 
 ARGS = None  # parameters given on the command line; initialized by main();
 
-PARAMETERS = None  # see documentation:configuration file
-                   # see the read_parameters_from_cfgfile() function
+CFG_PARAMETERS = None  # see documentation:configuration file
+                       # parameters read from the configuration file.
+                       # see the read_parameters_from_cfgfile() function
 
 INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_source_path()
                                            # ((int)total_size, (int)files_number, (dict)extensions)
@@ -581,7 +582,7 @@ def action__rebase(_newtargetpath):
 
         no RETURNED VALUE
     """
-    source_path = PARAMETERS["source"]["path"]
+    source_path = CFG_PARAMETERS["source"]["path"]
 
     msg("  = copying the current target directory into a new one =")
     msg("    o from {0} (path : \"{1}\")".format(source_path,
@@ -654,7 +655,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         PARAMETER :
                 o _olddb_cursor         : cursor to the source database
                 o _dest_params          : an object returned by read_parameters_from_cfgfile(),
-                                          like PARAMETERS
+                                          like CFG_PARAMETERS
                 o _newtargetpath        : (str) path to the new target directory.
 
         RETURNED VALUE :
@@ -667,7 +668,7 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                                          (4)size,
                                          (5)partialhashid)
     """
-    source_path = PARAMETERS["source"]["path"]
+    source_path = CFG_PARAMETERS["source"]["path"]
 
     files = dict()      # dict to be returned.
     filenames = set()   # to be used to avoid duplicates.
@@ -908,7 +909,7 @@ def action__select():
         "(path: \"{1}\")".format(ARGS.targetpath,
                                  normpath(ARGS.targetpath)))
     msg("  o the files will be renamed according " \
-        "to the \"{0}\" pattern.".format(PARAMETERS["target"]["name of the target files"]))
+        "to the \"{0}\" pattern.".format(CFG_PARAMETERS["target"]["name of the target files"]))
 
     msg("  o filters :")
 
@@ -1166,7 +1167,7 @@ def add_keywords_in_targetstr(_srcstring,
         PARAMETERS
                 o _parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
-                                                  like PARAMETERS
+                                                  like CFG_PARAMETERS
                 o _hashid                       : (str)
                 o _filename_no_extens           : (str)
                 o _path                         : (str
@@ -1225,7 +1226,7 @@ def backup_logfile(_logfile_fullname):
         NO PARAMETER, no RETURNED VALUE
     """
     logfile_backup = os.path.join(CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR,
-                                  PARAMETERS["log file"]["name"] + \
+                                  CFG_PARAMETERS["log file"]["name"] + \
                                   datetime.strftime(datetime.now(),
                                                     CST__LOGFILE_DTIMEFORMATSTR))
     shutil.copyfile(_logfile_fullname, logfile_backup)
@@ -1355,7 +1356,7 @@ def create_target_name(_parameters,
         PARAMETERS
                 o _parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
-                                                  like PARAMETERS
+                                                  like CFG_PARAMETERS
                 o _hashid                       : (str)
                 o _filename_no_extens           : (str)
                 o _path                         : (str
@@ -1406,7 +1407,7 @@ def create_target_name_and_tags(_parameters,
         PARAMETERS
                 o _parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
-                                                  like PARAMETERS
+                                                  like CFG_PARAMETERS
                 o _hashid                       : (str)
                 o _filename_no_extens           : (str)
                 o _path                         : (str
@@ -1466,7 +1467,7 @@ def create_target_tags(_parameters,
         PARAMETERS
                 o _parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
-                                                  like PARAMETERS
+                                                  like CFG_PARAMETERS
                 o _hashid                       : (str)
                 o _filename_no_extens           : (str)
                 o _path                         : (str
@@ -1536,7 +1537,7 @@ def fill_select(_debug_datatime=None):
     """
     global SELECT, SELECT_SIZE_IN_BYTES
 
-    source_path = PARAMETERS["source"]["path"]
+    source_path = CFG_PARAMETERS["source"]["path"]
 
     SELECT = {}  # see the SELECT format in the documentation:selection
     SELECT_SIZE_IN_BYTES = 0
@@ -1593,7 +1594,7 @@ def fill_select(_debug_datatime=None):
                                    size=size,
                                    date=time.strftime(CST__DTIME_FORMAT),
                                    targetname= \
-                                        create_target_name(_parameters=PARAMETERS,
+                                        create_target_name(_parameters=CFG_PARAMETERS,
                                                            _hashid=hashid,
                                                            _filename_no_extens=fname_no_extens,
                                                            _path=dirpath,
@@ -1603,7 +1604,7 @@ def fill_select(_debug_datatime=None):
                                                            _database_index=len(TARGET_DB) + \
                                                                            len(SELECT)),
                                    targettags= \
-                                        create_target_tags(_parameters=PARAMETERS,
+                                        create_target_tags(_parameters=CFG_PARAMETERS,
                                                            _hashid=hashid,
                                                            _filename_no_extens=fname_no_extens,
                                                            _path=dirpath,
@@ -1788,7 +1789,7 @@ def get_logfile_fullname():
     """
     return os.path.join(CST__KATALSYS_SUBDIR,
                         CST__LOG_SUBSUBDIR,
-                        PARAMETERS["log file"]["name"])
+                        CFG_PARAMETERS["log file"]["name"])
 
 #///////////////////////////////////////////////////////////////////////////////
 def goodbye(_timestamp_start):
@@ -2063,7 +2064,7 @@ def main_warmup(_timestamp_start):
 
         o  sys.exit(-1) is called if the config file is ill-formed or missing.
     """
-    global PARAMETERS, LOGFILE
+    global CFG_PARAMETERS, LOGFILE
 
     #...........................................................................
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
@@ -2125,13 +2126,13 @@ def main_warmup(_timestamp_start):
 
     #...........................................................................
     # let's read the config file :
-    PARAMETERS = read_parameters_from_cfgfile(configfile_name)
-    if PARAMETERS is None:
+    CFG_PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+    if CFG_PARAMETERS is None:
         sys.exit(-1)
     else:
         msg("    ... config file found and read (ok)")
 
-    source_path = PARAMETERS["source"]["path"]
+    source_path = CFG_PARAMETERS["source"]["path"]
 
     #...........................................................................
     # list of the expected directories : if one directory is missing, let's create it.
@@ -2267,7 +2268,7 @@ def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
 
     # secondly, to the logfile :
     if USE_LOGFILE and _for_logfile and LOGFILE is not None:
-        if LOGFILE_SIZE + len(final_msg) > int(PARAMETERS["log file"]["maximal size"]):
+        if LOGFILE_SIZE + len(final_msg) > int(CFG_PARAMETERS["log file"]["maximal size"]):
             # let's force writing on disk...
             LOGFILE.flush()
             os.fsync(LOGFILE)
@@ -2602,27 +2603,27 @@ def read_filters():
     filter_index = 1
 
     while not stop:
-        if not PARAMETERS.has_section("source.filter"+str(filter_index)):
+        if not CFG_PARAMETERS.has_section("source.filter"+str(filter_index)):
             stop = True
         else:
             FILTERS[filter_index] = dict()
 
-            if PARAMETERS.has_option("source.filter"+str(filter_index), "name"):
+            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "name"):
                 FILTERS[filter_index]["name"] = \
-                               re.compile(PARAMETERS["source.filter"+str(filter_index)]["name"])
+                             re.compile(CFG_PARAMETERS["source.filter"+str(filter_index)]["name"])
 
-            if PARAMETERS.has_option("source.filter"+str(filter_index), "iname"):
+            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "iname"):
                 FILTERS[filter_index]["name"] = \
-                               re.compile(PARAMETERS["source.filter"+str(filter_index)]["iname"],
-                                          re.IGNORECASE)
+                             re.compile(CFG_PARAMETERS["source.filter"+str(filter_index)]["iname"],
+                                        re.IGNORECASE)
 
-            if PARAMETERS.has_option("source.filter"+str(filter_index), "size"):
+            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "size"):
                 FILTERS[filter_index]["size"] = \
-                                PARAMETERS["source.filter"+str(filter_index)]["size"]
+                              CFG_PARAMETERS["source.filter"+str(filter_index)]["size"]
 
-            if PARAMETERS.has_option("source.filter"+str(filter_index), "date"):
+            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "date"):
                 FILTERS[filter_index]["date"] = \
-                                PARAMETERS["source.filter"+str(filter_index)]["date"]
+                              CFG_PARAMETERS["source.filter"+str(filter_index)]["date"]
 
         filter_index += 1
 
@@ -2707,7 +2708,7 @@ def show_infos_about_source_path():
     """
     global INFOS_ABOUT_SRC_PATH
 
-    source_path = PARAMETERS["source"]["path"]
+    source_path = CFG_PARAMETERS["source"]["path"]
 
     msg("  = informations about the \"{0}\" " \
         "(path: \"{1}\") source directory =".format(source_path,
@@ -2888,13 +2889,13 @@ def show_infos_about_target_path():
             msg("    o {0} file(s) in the database :".format(row_index))
 
             targetname_maxlength = \
-                    int(PARAMETERS["display"]["target filename.max length on console"])
+                    int(CFG_PARAMETERS["display"]["target filename.max length on console"])
             hashid_maxlength = \
-                    int(PARAMETERS["display"]["hashid.max length on console"])
+                    int(CFG_PARAMETERS["display"]["hashid.max length on console"])
             tagsstr_maxlength = \
-                    int(PARAMETERS["display"]["tag.max length on console"])
+                    int(CFG_PARAMETERS["display"]["tag.max length on console"])
             sourcename_maxlength = \
-                    int(PARAMETERS["display"]["source filename.max length on console"])
+                    int(CFG_PARAMETERS["display"]["source filename.max length on console"])
 
             # beware : characters like "║" are forbidden (think to the cp1252 encoding
             # required by Windows terminal)
@@ -3060,7 +3061,7 @@ def thefilehastobeadded__filters(_filename, _size, _date):
         RETURNED VALUE
                 a boolean, giving the expected answer
     """
-    evalstr = PARAMETERS["source"]["eval"]
+    evalstr = CFG_PARAMETERS["source"]["eval"]
 
     for filter_index in FILTERS:
         _filter = FILTERS[filter_index]
@@ -3203,7 +3204,7 @@ def welcome(_timestamp_start):
 
         Display a welcome message with some very broad informations about the
         program. This function may be called before reading the configuration
-        file (confer the variable PARAMETERS).
+        file (confer the variable CFG_PARAMETERS).
 
         This function is called before the opening of the log file; hence, all
         the messages are only displayed on console (see welcome_in_logfile

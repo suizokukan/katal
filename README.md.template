@@ -290,8 +290,9 @@ See the `roadmap.txt` file.
                 -3      : an unexpected exception exception has been raised
 
 ##(8.2) configuration file
-    The informations stored in the configuration file are written in the PARAMETERS global variable.
-    PARAMETERS is filled by read_parameters_from_cfgfile() and is a configparser.Configparser object.
+    The informations stored in the configuration file are written in the CFG_PARAMETERS global
+    variable. CFG_PARAMETERS is filled by read_parameters_from_cfgfile() and is a
+    configparser.Configparser object.
     The default name of the configuration file is set by the DEFAULT_CONFIGFILE_NAME global variable
     and may be set by the commande line (see --configfile option).
 
