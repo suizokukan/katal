@@ -191,13 +191,10 @@ CST__TASKS_SUBSUBDIR = "tasks"
 CST__TRASH_SUBSUBDIR = "trash"
 
 # foreground colors :
+# (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
 CST__LINUXCONSOLECOLORS = {
     "default"       : "\033[0m",
     "red"           : "\033[0;31;1m",
-    "green"         : "\033[0;32;1m",
-    "yellow"        : "\033[0;33;1m",
-    "blue"          : "\033[0;34;1m",
-    "magenta"       : "\033[0;35;1m",
     "cyan"          : "\033[0;36;1m",
     "white"         : "\033[0;37;1m",
 }
