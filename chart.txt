@@ -1,7 +1,5 @@
 main()
     | ARGS = read_command_line_arguments()
-    |           | USE_LOGFILE = parser["log file"]["use log file"] == "True"
-    |           | SOURCE_PATH = parser["source"]["path"]
     |
     | check_args()
     | 
@@ -12,11 +10,13 @@ main()
     |     |     show_infos_about_target_path()
     |     | 
     |     | configfile_name = ... (different possibilities)
-    |     | PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+    |     | CFG_PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+    |     |      | USE_LOGFILE = parser["log file"]["use log file"] == "True"
+    |     |      | [checking the presence of all the parameters expected in the .ini file]
     |     | 
     |     | create_subdirs_in_target_path()
     |     | 
-    |     | (...)welcome_in_logfile()
+    |     | [...]welcome_in_logfile()
     |     |
     |     | if ARGS.infos:
     |     |     action__infos()
@@ -61,8 +61,10 @@ main()
     |    | 
     |    |     if not ARGS.mute and len(SELECT) > 0:
     |    |         answer = \
-    |    |             input("\nDo you want to add the selected " \
-    |    |                   "files to the target directory (\"{0}\") ? (y/N) ".format(ARGS.targetpath))
+    |    |            input("\nDo you want to update the target database and to {0} the selected " \
+    |    |            "files into the target directory " \
+    |    |              "(\"{1}\") ? (y/N) ".format(CFG_PARAMETERS["target"]["mode"],
+    |    |                                          ARGS.targetpath))
     |    | 
     |    |         if answer in ("y", "yes"):
     |    |             action__add()
