@@ -2548,10 +2548,14 @@ def read_parameters_from_cfgfile(_configfile_name):
         return None
 
     if parser["target"]["mode"] == 'nocopy':
-        parser["target"]["name of the target files"] = "%i"
+        #   configparser.ConfigParser objects have to be initialized with strings
+        # exactly equal to the strings read in an .ini file : so instead of the
+        # natural "%i" we have to write "%%i" :
+        parser["target"]["name of the target files"] = "%%i"
 
-        msg("    *  since 'mode'=='nocopy', the value of [target]name of the target files " \
-            "       is neutralized and set to '%i' (=database index)",
+        msg("  *  since 'mode'=='nocopy', the value of \"[target]'name of the target files\" ",
+            _consolecolor="cyan")
+        msg("     is neutralized and set to '%i' (i.e. the database index)",
             _consolecolor="cyan")
 
     return parser
@@ -2755,23 +2759,7 @@ def show_infos_about_target_path():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
-    msg("  = informations about the \"{0}\" " \
-        "(path: \"{1}\") target directory =".format(ARGS.targetpath,
-                                                    normpath(ARGS.targetpath)))
-
-    if is_ntfs_prefix_mandatory(ARGS.targetpath):
-        msg("    ! the target path should be used with the NTFS prefix for long filenames.",
-            _consolecolor="red")
-
-        if not ARGS.usentfsprefix:
-            msg("    ! ... but the --usentfsprefix argument wasn't given !",
-                _consolecolor="red")
-            msg("    ! You may encounter an IOError, or a FileNotFound error.",
-                _consolecolor="red")
-            msg("    ! If so, please use the --usentfsprefix argument.",
-                _consolecolor="red")
-            msg("")
-
+    #. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     def draw_table(_rows, _data):
         """
                 Draw a table with some <_rows> and fill it with _data.
@@ -2782,6 +2770,7 @@ def show_infos_about_target_path():
         _data : ( (str)row_content1, (str)row_content2, ...)
         """
 
+        #.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
         def draw_line():
             " draw a simple line made of + and -"
             string = " "*6 + "+"
@@ -2819,9 +2808,30 @@ def show_infos_about_target_path():
 
         draw_line()
 
+    #...........................................................................
+    msg("  = informations about the \"{0}\" " \
+        "(path: \"{1}\") target directory =".format(ARGS.targetpath,
+                                                    normpath(ARGS.targetpath)))
+
+    #...........................................................................
+    if is_ntfs_prefix_mandatory(ARGS.targetpath):
+        msg("    ! the target path should be used with the NTFS prefix for long filenames.",
+            _consolecolor="red")
+
+        if not ARGS.usentfsprefix:
+            msg("    ! ... but the --usentfsprefix argument wasn't given !",
+                _consolecolor="red")
+            msg("    ! You may encounter an IOError, or a FileNotFound error.",
+                _consolecolor="red")
+            msg("    ! If so, please use the --usentfsprefix argument.",
+                _consolecolor="red")
+            msg("")
+
+    #...........................................................................
     if not os.path.exists(normpath(ARGS.targetpath)):
         msg("Can't find target path \"{0}\".".format(ARGS.targetpath))
         return -1
+
     if not os.path.isdir(normpath(ARGS.targetpath)):
         msg("target path \"{0}\" isn't a directory.".format(ARGS.targetpath))
         return -1
@@ -2829,54 +2839,63 @@ def show_infos_about_target_path():
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                        CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)):
         msg("    o no database in the target directory.")
+        return 0
+
+    #...........................................................................
+    db_connection = sqlite3.connect(get_database_fullname())
+    db_connection.row_factory = sqlite3.Row
+    db_cursor = db_connection.cursor()
+
+    # there's no easy way to know the size of a table in a database,
+    # so we can't display the "empty database" warning before the following
+    # code which reads the table.
+    rows_data = []
+    row_index = 0
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+        sourcedate = \
+            datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(CST__DTIME_FORMAT)
+
+        rows_data.append((db_record["hashid"],
+                          db_record["name"],
+                          tagsstr_repr(db_record["tagsstr"]),
+                          db_record["sourcename"],
+                          sourcedate))
+
+        row_index += 1
+
+    if row_index == 0:
+        msg("    ! (empty database)",
+            _consolecolor="red")
+        return 0
+
+    msg("    o {0} file(s) in the database :".format(row_index))
+
+    targetname_maxlength = \
+            int(CFG_PARAMETERS["display"]["target filename.max length on console"])
+    hashid_maxlength = \
+            int(CFG_PARAMETERS["display"]["hashid.max length on console"])
+    tagsstr_maxlength = \
+            int(CFG_PARAMETERS["display"]["tag.max length on console"])
+    sourcename_maxlength = \
+            int(CFG_PARAMETERS["display"]["source filename.max length on console"])
+
+    # beware : characters like "║" are forbidden (think to the cp1252 encoding
+    # required by Windows terminal)
+    if CFG_PARAMETERS["target"]["mode"] != 'nocopy':
+        draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
+                          ("tags", tagsstr_maxlength, "|"),
+                          ("source name", sourcename_maxlength, "|"),
+                          ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
+                   _data=rows_data)
     else:
-        db_connection = sqlite3.connect(get_database_fullname())
-        db_connection.row_factory = sqlite3.Row
-        db_cursor = db_connection.cursor()
+        draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
+                          ("name", targetname_maxlength, "|"),
+                          ("tags", tagsstr_maxlength, "|"),
+                          ("source name", sourcename_maxlength, "|"),
+                          ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
+                   _data=rows_data)
 
-        # there's no easy way to know the size of a table in a database,
-        # so we can't display the "empty database" warning before the following
-        # code which reads the table.
-        rows_data = []
-        row_index = 0
-        for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            sourcedate = \
-                datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(CST__DTIME_FORMAT)
-
-            rows_data.append((db_record["hashid"],
-                              db_record["name"],
-                              tagsstr_repr(db_record["tagsstr"]),
-                              db_record["sourcename"],
-                              sourcedate))
-
-            row_index += 1
-
-        if row_index == 0:
-            msg("    ! (empty database)",
-                _consolecolor="red")
-
-        else:
-            msg("    o {0} file(s) in the database :".format(row_index))
-
-            targetname_maxlength = \
-                    int(CFG_PARAMETERS["display"]["target filename.max length on console"])
-            hashid_maxlength = \
-                    int(CFG_PARAMETERS["display"]["hashid.max length on console"])
-            tagsstr_maxlength = \
-                    int(CFG_PARAMETERS["display"]["tag.max length on console"])
-            sourcename_maxlength = \
-                    int(CFG_PARAMETERS["display"]["source filename.max length on console"])
-
-            # beware : characters like "║" are forbidden (think to the cp1252 encoding
-            # required by Windows terminal)
-            draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
-                              ("name", targetname_maxlength, "|"),
-                              ("tags", tagsstr_maxlength, "|"),
-                              ("source name", sourcename_maxlength, "|"),
-                              ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
-                       _data=rows_data)
-
-        db_connection.close()
+    db_connection.close()
 
     return 0
 
