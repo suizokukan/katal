@@ -26,8 +26,8 @@ echo "(06) cd faked/target"
 cd faked/target
 
 echo
-echo "(07) ../../katal/katal.py --add --mode=move --strictcmp --configfile=../../faked/target/.katal/katal.ini"
-../../katal/katal.py --add --mode=move --strictcmp --configfile=../../faked/target/.katal/katal.ini
+echo "(07) ../../katal/katal.py --add --strictcmp --configfile=../../faked/target/.katal/katal.ini"
+../../katal/katal.py --add --strictcmp --configfile=../../faked/target/.katal/katal.ini
 
 echo
 echo "(08) ../../katal/katal.py --addtag=goose --to=*5.py --configfile=../../faked/target/.katal/katal.ini"

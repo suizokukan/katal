@@ -261,14 +261,14 @@ def action__add():
         sourcedate = sourcedate.total_seconds()
 
         if not ARGS.off:
-            if ARGS.mode == "nocopy":
+            if CFG_PARAMETERS["target"]["mode"] == "nocopy":
                 # nothing to do
-                msg("    ... ({0}/{1}) due to the '--mode=nocopy' option, " \
+                msg("    ... ({0}/{1}) due to the mode=nocopy' option, " \
                     "\"{2}\" is added in the target database BUT".format(index+1, len_select,
                                                                          complete_source_filename))
                 msg("        THIS FILE WILL NOT BE COPIED into \"{0}\" .".format(target_name))
 
-            elif ARGS.mode == "copy":
+            elif CFG_PARAMETERS["target"]["mode"] == "copy":
                 # copying the file :
                 msg("    ... ({0}/{1}) about to " \
                     "copy \"{2}\" to \"{3}\" .".format(index+1,
@@ -278,7 +278,7 @@ def action__add():
                 shutil.copyfile(complete_source_filename, target_name)
                 os.utime(target_name, (sourcedate, sourcedate))
 
-            elif ARGS.mode == "move":
+            elif CFG_PARAMETERS["target"]["mode"] == "move":
                 # moving the file :
                 msg("    ... ({0}/{1}) about to " \
                     "move \"{2}\" to \"{3}\" .".format(index+1,
@@ -1671,7 +1671,7 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
 
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
-    if not ARGS.mode == 'nocopy':
+    if not CFG_PARAMETERS["target"]["mode"] == 'nocopy':
         msg("    ... future filename's can't be in conflict with another file already")
         msg("        stored in the target path...")
         for selectedfile_hash in SELECT:
@@ -1985,7 +1985,7 @@ def main_actions():
             answer = \
                 input("\nDo you want to update the target database and to {0} the selected " \
                       "files into the target directory " \
-                      "(\"{1}\") ? (y/N) ".format(ARGS.mode,
+                      "(\"{1}\") ? (y/N) ".format(CFG_PARAMETERS["target"]["mode"],
                                                   ARGS.targetpath))
 
             if answer in ("y", "yes"):
@@ -2131,6 +2131,14 @@ def main_warmup(_timestamp_start):
         sys.exit(-1)
     else:
         msg("    ... config file found and read (ok)")
+
+    if parser["target"]["mode"] == 'move':
+        msg("  = WARNING : mode=move                                                   =")
+        msg("  =     the files will be moved (NOT copied) in the target directory      =")
+
+    if parser["target"]["mode"] == 'nocopy':
+        msg("  = WARNING : mode=nocopy                                                 =")
+        msg("  =     the files will NOT be copied or moved in the target directory     =")
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
@@ -2394,14 +2402,6 @@ def read_command_line_arguments():
                         action="store_true",
                         help="# No output to the console; no question asked on the console")
 
-    parser.add_argument('--mode',
-                        choices=("copy", "move", "nocopy"),
-                        default="copy",
-                        help="'copy' to copy source files in the target directory; " \
-                             "'move' to move source files in the target directory; " \
-                             "'nocopy' to forbid the copy of the source files in the " \
-                             "target directory; ")
-
     parser.add_argument('-n', '--new',
                         type=str,
                         help="# Create a new target directory")
@@ -2563,8 +2563,9 @@ def read_parameters_from_cfgfile(_configfile_name):
         USE_LOGFILE = parser["log file"]["use log file"] == "True"
         # just to check the existence of the following values in the configuration file :
         _ = parser["log file"]["maximal size"]
-        _ = parser["target"]["name of the target files"]
         _ = parser["log file"]["name"]
+        _ = parser["target"]["name of the target files"]
+        _ = parser["target"]["mode"]
         _ = parser["source"]["eval"]
         _ = parser["display"]["target filename.max length on console"]
         _ = parser["display"]["hashid.max length on console"]
@@ -3253,18 +3254,6 @@ def welcome(_timestamp_start):
         msg("  =                no file will be modified, no directory will be created =")
         msg("  =                but the corresponding messages will be written in the  =")
         msg("  =                log file.                                              =")
-
-    if ARGS.mode == 'move':
-        msg("  = WARNING                                                               =")
-        msg("  = --mode=move option detected :                                         =")
-        msg("  =                 the files will be moved (NOT copied) in the target    =")
-        msg("  =                 directory.                                            =")
-
-    if ARGS.mode == 'nocopy':
-        msg("  = WARNING                                                               =")
-        msg("  = --mode=nocopy option detected                                         =")
-        msg("  =                 the files will NOT be copied or moved in the target   =")
-        msg("  =                 directory.                                            =")
 
 #///////////////////////////////////////////////////////////////////////////////
 def welcome_in_logfile(_timestamp_start):
