@@ -1,5 +1,5 @@
 #(1) __projectname__ (__laststableversion__)
-A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3.
+A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3. This project requires the installation of *one* file (katal.py) with *one* configuration file per target directory.
 
 Create a catalogue from various source directories, without any duplicate. Add some tags to the files.
 
@@ -10,7 +10,7 @@ Create a catalogue from various source directories, without any duplicate. Add s
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
-Katal can also be used to create a "mirror database" from a source, without copying the files in the tarrget directory (see the --mode='nocopy' option).
+Katal can also be used to create a "mirror database" from a source, without copying the files in the target directory (see the --mode='nocopy' option).
 
 Caveats :
 
