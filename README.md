@@ -10,7 +10,7 @@ Create a catalogue from various source directories, without any duplicate. Add s
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
-Katal can also be used to create a "mirror database" from a source, without copying the files in the target directory (see the --mode='nocopy' option).
+Katal can also be used to create a "mirror database" from a source, without copying the files in the target directory (see the mode='nocopy' option, defined in the configuration file).
 
 Caveats :
 
@@ -118,10 +118,8 @@ Caveats :
     
 ####Let's see what would happen if the script select the files :
     $ katal --select  ... and answer 'yes' to the final question if all the details are ok to you.    
-    The files will be copied in the target directory.
+    The files will be copied/moved/left (see the mode option) in the target directory.
     
-    If you want to move the files from source directory to target directory, use the --mode='move'
-    option.
     If you want a bit-to-bit check if two files have the same hashes, use the --strictcmp option.
     
 ####See the result (ti : target informations)
