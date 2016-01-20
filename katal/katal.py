@@ -2062,7 +2062,7 @@ def main_warmup(_timestamp_start):
 
         no RETURNED VALUE
 
-        o  sys.exit(-1) is called if the config file is ill-formed or missing.
+        o  sys.exit(-1) is called if the expected config file is ill-formed or missing.
     """
     global CFG_PARAMETERS, LOGFILE
 
@@ -2073,56 +2073,13 @@ def main_warmup(_timestamp_start):
 
     #...........................................................................
     # let's find a config file to be read :
-    configfile_name = None
+    configfile_name, configfile_name__err = where_is_the_configfile()
 
-    msg_please_use_dlcfg = \
-     "    ! error : can't find any config file !\n" \
-     "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file."
+    if configfile_name__err < 0:
+        sys.exit(-1)
 
-    if ARGS.configfile is None:
-        # no config file given as a parameter, let's guess where it is :
-
-        for cfg_path in possible_paths_to_cfg():
-            msg("  * trying to find a config file in \"{0}\"...".format(cfg_path))
-
-            if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
-                msg("   ... ok a config file has been found, let's try to read it...")
-                configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
-                break
-
-        if configfile_name is not None:
-            msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
-                                                                         normpath(configfile_name)))
-
-        else:
-
-            if ARGS.downloaddefaultcfg is None:
-                msg(msg_please_use_dlcfg,
-                    _consolecolor="red")
-                sys.exit(-1)
-            else:
-                msg("  ! Can't find any configuration file.",
-                    _consolecolor="red")
-                return
-
-    else:
-        # A config file has been given as a parameter :
-        configfile_name = ARGS.configfile
-
-        msg("  * config file given as a parameter : \"{0}\" " \
-            "(path : \"{1}\"".format(configfile_name,
-                                     normpath(configfile_name)))
-
-        if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
-            msg("  ! The config file \"{0}\" (path : \"{1}\") " \
-                "doesn't exist. ".format(configfile_name,
-                                         normpath(configfile_name)),
-                _consolecolor="red")
-
-            if ARGS.downloaddefaultcfg is None:
-                msg(msg_please_use_dlcfg,
-                    _consolecolor="red")
-            sys.exit(-1)
+    if configfile_name__err > 0:
+        return
 
     #...........................................................................
     # let's read the config file :
@@ -2132,11 +2089,11 @@ def main_warmup(_timestamp_start):
     else:
         msg("    ... config file found and read (ok)")
 
-    if parser["target"]["mode"] == 'move':
+    if CFG_PARAMETERS["target"]["mode"] == 'move':
         msg("  = WARNING : mode=move                                                   =")
         msg("  =     the files will be moved (NOT copied) in the target directory      =")
 
-    if parser["target"]["mode"] == 'nocopy':
+    if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
         msg("  = WARNING : mode=nocopy                                                 =")
         msg("  =     the files will NOT be copied or moved in the target directory     =")
 
@@ -3285,7 +3242,90 @@ def welcome_in_logfile(_timestamp_start):
         _for_console=False)
 
 #///////////////////////////////////////////////////////////////////////////////
+def where_is_the_configfile():
+    """
+        where_is_the_configfile()
+        ________________________________________________________________________
+
+        Return the config file name from ARGS.configfile or from the paths
+        returned by possible_paths_to_cfg() .
+        ________________________________________________________________________
+
+        no PARAMETER
+
+        RETURNED VALUE : ( str(filename), (int)error )
+
+                        +-------------+------------------------------------------
+                        | error value | meaning                                 |
+                        +-------------+-----------------------------------------+
+                        |      0      | no error : a config file has been found.|
+                        +-------------+-----------------------------------------+
+                        |      1      | information : can't find a config file  |
+                        |             | but the --downloaddefaultcfg was set.   |
+                        +-------------+-----------------------------------------+
+                        |     -1      | error : can't find a config file and the|
+                        |             | --downloaddefaultcfg option was NOT set |
+                        +-------------+-----------------------------------------+
+                        |     -2      | error : ARGS.configfile doesn't exist.  |
+                        +-------------+-----------------------------------------+
+    """
+    configfile_name = ""
+
+    msg_please_use_dlcfg = \
+     "    ! error : can't find any config file !\n" \
+     "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file."
+
+    if ARGS.configfile is None:
+        # no config file given as a parameter, let's guess where it is :
+
+        for cfg_path in possible_paths_to_cfg():
+            msg("  * trying to find a config file in \"{0}\"...".format(cfg_path))
+
+            if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
+                msg("   ... ok a config file has been found, let's try to read it...")
+                configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
+                break
+
+        if configfile_name != "":
+            msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
+                                                                         normpath(configfile_name)))
+
+        else:
+
+            if ARGS.downloaddefaultcfg is None:
+                msg(msg_please_use_dlcfg,
+                    _consolecolor="red")
+                return ("", -1)
+            else:
+                msg("  ! Can't find any configuration file, but you used the " \
+                    "--downloaddefaultcfg option.")
+                return ("", 1)
+
+    else:
+        # A config file has been given as a parameter :
+        configfile_name = ARGS.configfile
+
+        msg("  * config file given as a parameter : \"{0}\" " \
+            "(path : \"{1}\"".format(configfile_name,
+                                     normpath(configfile_name)))
+
+        if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
+            msg("  ! The config file \"{0}\" (path : \"{1}\") " \
+                "doesn't exist. ".format(configfile_name,
+                                         normpath(configfile_name)),
+                _consolecolor="red")
+
+            if ARGS.downloaddefaultcfg is None:
+                msg(msg_please_use_dlcfg,
+                    _consolecolor="red")
+
+            return ("", -2)
+
+    return (configfile_name, 0)
+
+#///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
 #///////////////////////////////////////////////////////////////////////////////
 if __name__ == '__main__':
     main()
+

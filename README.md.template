@@ -503,3 +503,5 @@ trash name is defined in the configuration file.
     o  thefilehastobeadded__filt_size()     : a part of thefilehastobeadded__filters()
     o  welcome()                            : display a welcome message on screen
     o  welcome_in_logfile()                 : display a welcome message in the log file
+    o  where_is_the_configfile()            : return the config file name from ARGS.configfile or
+                                              from the paths returned by possible_paths_to_cfg().
