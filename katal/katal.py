@@ -1488,6 +1488,63 @@ def create_target_tags(_parameters,
                                      _database_index=_database_index))
 
 #///////////////////////////////////////////////////////////////////////////////
+def draw_table(_rows, _data):
+    """
+        draw_table()
+        ________________________________________________________________________
+
+        Draw a table with some <_rows> and fill it with _data. The output is
+        created by calling the msg() function.
+        ________________________________________________________________________
+
+        PARAMETERS :
+            o rows= ( ((str)row_name, (int)max length for this row), (str)separator)
+                   e.g. :
+                   rows= ( ("hashid", HASHID_MAXLENGTH, "|"), )
+            o  _data : ( (str)row_content1, (str)row_content2, ...)
+
+        no RETURNED VALUE
+    """
+
+    #...........................................................................
+    def draw_line():
+        " draw a simple line made of + and -"
+        string = " "*6 + "+"
+        for _, row_maxlength, _ in rows:
+            string += "-"*(row_maxlength+2) + "+"
+        msg(string)
+
+    # real rows' widths : it may happen that a row's width is greater than
+    # the maximal value given in _rows since the row name is longer than
+    # this maximal value.
+    rows = []
+    for row_name, row_maxlength, row_separator in _rows:
+        rows.append((row_name, max(len(row_name), row_maxlength), row_separator))
+
+    # header :
+    draw_line()
+
+    string = " "*6 + "|"
+    for row_name, row_maxlength, row_separator in rows:
+        string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + row_separator
+    msg(string)
+
+    draw_line()
+
+    # data :
+    for linedata in _data:
+        string = "      |"
+        for row_index, row_content in enumerate(linedata):
+            text = shortstr(row_content, _rows[row_index][1])
+            string += " " + \
+                      text + \
+                      " "*(rows[row_index][1]-len(text)) + \
+                      " " + rows[row_index][2]
+        msg(string)  # let's write the computed line
+
+    draw_line()
+
+#///////////////////////////////////////////////////////////////////////////////
 def eval_filter_for_a_file(_filter, _filename, _size, _date):
     """
         eval_filter_for_a_file()
@@ -2756,55 +2813,6 @@ def show_infos_about_target_path():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
-    #. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-    def draw_table(_rows, _data):
-        """
-                Draw a table with some <_rows> and fill it with _data.
-        rows= ( ((str)row_name, (int)max length for this row), (str)separator)
-        e.g. :
-        rows= ( ("hashid", HASHID_MAXLENGTH, "|"), )
-
-        _data : ( (str)row_content1, (str)row_content2, ...)
-        """
-
-        #.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .
-        def draw_line():
-            " draw a simple line made of + and -"
-            string = " "*6 + "+"
-            for _, row_maxlength, _ in rows:
-                string += "-"*(row_maxlength+2) + "+"
-            msg(string)
-
-        # real rows' widths : it may happen that a row's width is greater than
-        # the maximal value given in _rows since the row name is longer than
-        # this maximal value.
-        rows = []
-        for row_name, row_maxlength, row_separator in _rows:
-            rows.append((row_name, max(len(row_name), row_maxlength), row_separator))
-
-        # header :
-        draw_line()
-
-        string = " "*6 + "|"
-        for row_name, row_maxlength, row_separator in rows:
-            string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + row_separator
-        msg(string)
-
-        draw_line()
-
-        # data :
-        for linedata in _data:
-            string = "      |"
-            for row_index, row_content in enumerate(linedata):
-                text = shortstr(row_content, _rows[row_index][1])
-                string += " " + \
-                          text + \
-                          " "*(rows[row_index][1]-len(text)) + \
-                          " " + rows[row_index][2]
-            msg(string)  # let's write the computed line
-
-        draw_line()
-
     #...........................................................................
     msg("  = informations about the \"{0}\" " \
         "(path: \"{1}\") target directory =".format(ARGS.targetpath,
