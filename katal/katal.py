@@ -2745,7 +2745,7 @@ def show_infos_about_source_path():
 #///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_target_path():
     """
-        show_infos_about_target_path
+        show_infos_about_target_path()
         ________________________________________________________________________
 
         Display informations about the the target directory
@@ -2852,12 +2852,17 @@ def show_infos_about_target_path():
         sourcedate = \
             datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(CST__DTIME_FORMAT)
 
-        rows_data.append((db_record["hashid"],
-                          db_record["name"],
-                          tagsstr_repr(db_record["tagsstr"]),
-                          db_record["sourcename"],
-                          sourcedate))
-
+        if CFG_PARAMETERS["target"]["mode"] != 'nocopy':
+            rows_data.append((db_record["hashid"],
+                              db_record["name"],
+                              tagsstr_repr(db_record["tagsstr"]),
+                              db_record["sourcename"],
+                              sourcedate))
+        else:
+            rows_data.append((db_record["hashid"],
+                              tagsstr_repr(db_record["tagsstr"]),
+                              db_record["sourcename"],
+                              sourcedate))
         row_index += 1
 
     if row_index == 0:
@@ -2880,13 +2885,13 @@ def show_infos_about_target_path():
     # required by Windows terminal)
     if CFG_PARAMETERS["target"]["mode"] != 'nocopy':
         draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
+                          ("name", targetname_maxlength, "|"),
                           ("tags", tagsstr_maxlength, "|"),
                           ("source name", sourcename_maxlength, "|"),
                           ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
                    _data=rows_data)
     else:
         draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
-                          ("name", targetname_maxlength, "|"),
                           ("tags", tagsstr_maxlength, "|"),
                           ("source name", sourcename_maxlength, "|"),
                           ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
