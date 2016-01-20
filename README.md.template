@@ -178,11 +178,11 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-dlcfg {local,home}] [--findtag FINDTAG]
-                    [--infos] [-m] [--mode {copy,move,nocopy}] [-n NEW] [--off]
-                    [--rebase REBASE] [--reset] [--rmnotags] [--rmtags] [-s]
-                    [--settagsstr SETTAGSSTR] [-si] [--strictcmp]
-                    [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL] [--to TO]
-                    [--usentfsprefix] [--version] [--whatabout WHATABOUT]
+                    [--infos] [-m] [-n NEW] [--off] [--rebase REBASE] [--reset]
+                    [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR] [-si]
+                    [--strictcmp] [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL]
+                    [--to TO] [--usentfsprefix] [--version]
+                    [--whatabout WHATABOUT]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -218,11 +218,6 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             executed before --select/--add (default: False)
       -m, --mute            # No output to the console; no question asked on the
                             console (default: False)
-      --mode {copy,move,nocopy}
-                            'copy' to copy source files in the target directory;
-                            'move' to move source files in the target directory;
-                            'nocopy' to forbid the copy of the source files in the
-                            target directory; (default: copy)
       -n NEW, --new NEW     # Create a new target directory (default: None)
       --off                 # Don't write anything into the target directory or
                             into the database, except into the current log file.

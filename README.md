@@ -1,4 +1,4 @@
-#(1) Katal (0.2.9)
+#(1) Katal (0.3)
 A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3.
 
 Create a catalogue from various source directories, without any duplicate. Add some tags to the files.
@@ -178,11 +178,11 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-dlcfg {local,home}] [--findtag FINDTAG]
-                    [--infos] [-m] [--mode {copy,move,nocopy}] [-n NEW] [--off]
-                    [--rebase REBASE] [--reset] [--rmnotags] [--rmtags] [-s]
-                    [--settagsstr SETTAGSSTR] [-si] [--strictcmp]
-                    [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL] [--to TO]
-                    [--usentfsprefix] [--version] [--whatabout WHATABOUT]
+                    [--infos] [-m] [-n NEW] [--off] [--rebase REBASE] [--reset]
+                    [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR] [-si]
+                    [--strictcmp] [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL]
+                    [--to TO] [--usentfsprefix] [--version]
+                    [--whatabout WHATABOUT]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -218,11 +218,6 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             executed before --select/--add (default: False)
       -m, --mute            # No output to the console; no question asked on the
                             console (default: False)
-      --mode {copy,move,nocopy}
-                            'copy' to copy source files in the target directory;
-                            'move' to move source files in the target directory;
-                            'nocopy' to forbid the copy of the source files in the
-                            target directory; (default: copy)
       -n NEW, --new NEW     # Create a new target directory (default: None)
       --off                 # Don't write anything into the target directory or
                             into the database, except into the current log file.
@@ -465,6 +460,7 @@ trash name is defined in the configuration file.
                                               from various information (filename, ...)
     o  create_target_tags()                 : create the tags of a file (a target file)
                                               from various information (filename, ...)
+    o  draw_table()                         : draw a table with some <_rows> and fill it with _data.
     o  eval_filter_for_a_file()             : evaluate a file according to a filter
     o  fill_select()                        : fill SELECT and SELECT_SIZE_IN_BYTES from
                                               the files stored in SOURCE_PATH.
