@@ -1151,7 +1151,7 @@ def add_keywords_in_targetstr(_srcstring,
                               _date,
                               _database_index):
     """
-        create_target_name()$$$
+        add_keywords_in_targetstr()
         ________________________________________________________________________
 
         The function replaces some keywords in the string by the parameters given
