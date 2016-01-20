@@ -936,21 +936,23 @@ def action__select():
                                                          ratio))
 
     # let's check that the target path has sufficient free space :
-    available_space = get_disk_free_space(ARGS.targetpath)
-    if available_space > SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
-        size_ok = "ok"
-        colorconsole = "white"
-    else:
-        size_ok = "!!! problem !!!"
-        colorconsole = "red"
-    msg("    o required space : {0}; " \
-        "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
-                                                     size_as_str(available_space),
-                                                     size_ok),
+    if CFG_PARAMETERS["target"]["mode"] != "nocopy":
+        available_space = get_disk_free_space(ARGS.targetpath)
+        if available_space > SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
+            size_ok = "ok"
+            colorconsole = "white"
+        else:
+            size_ok = "!!! problem !!!"
+            colorconsole = "red"
+
+        msg("    o required space : {0}; " \
+            "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
+                                                         size_as_str(available_space),
+                                                         size_ok),
         _consolecolor=colorconsole)
 
     # if there's no --add option, let's give some examples of the target names :
-    if not ARGS.add:
+    if not ARGS.add and CFG_PARAMETERS["target"]["mode"] != "nocopy":
         example_index = 0
         for hashid in SELECT:
 
@@ -1149,7 +1151,7 @@ def add_keywords_in_targetstr(_srcstring,
                               _date,
                               _database_index):
     """
-        create_target_name()
+        create_target_name()$$$
         ________________________________________________________________________
 
         The function replaces some keywords in the string by the parameters given
