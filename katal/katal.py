@@ -3341,6 +3341,16 @@ def welcome_in_logfile(_timestamp_start):
         _for_logfile=True,
         _for_console=False)
 
+    msg("  = command line arguments : {0}".format(sys.argv),
+        _for_logfile=True,
+        _for_console=False)
+
+    msg("  = target directory given as parameter : \"{0}\" " \
+        "(path : \"{1}\")".format(ARGS.targetpath,
+                                  normpath(ARGS.targetpath)),
+        _for_logfile=True,
+        _for_console=False)
+
 #///////////////////////////////////////////////////////////////////////////////
 def where_is_the_configfile():
     """
