@@ -2215,7 +2215,7 @@ def main_warmup(_timestamp_start):
                                      CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
                                      CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
-        msg("  = so, let's use \"{0}\" as {1}".format(path, info))
+        msg("  = let's use \"{0}\" as {1}".format(path, info))
 
     msg("  = source directory : \"{0}\" (path : \"{1}\")".format(source_path,
                                                                  normpath(source_path)))
