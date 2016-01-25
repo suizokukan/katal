@@ -2805,23 +2805,30 @@ def show_infos_about_source_path():
     for dirpath, _, fnames in os.walk(normpath(source_path)):
         for filename in fnames:
             fullname = os.path.join(normpath(dirpath), filename)
-            size = os.stat(normpath(fullname)).st_size
-            extension = os.path.splitext(normpath(filename))[1]
 
-            if extension in extensions:
-                extensions[extension][0] += 1
-                extensions[extension][1] += size
-            else:
-                extensions[extension] = [1, size]
+            # ..................................................................
+            # protection against the FileNotFoundError exception.
+            # This exception would be raised on broken symbolic link on the
+            #   "size = os.stat(normpath(fullname)).st_size" line (see below).
+            # ..................................................................
+            if os.path.exists(fullname):
+                size = os.stat(normpath(fullname)).st_size
+                extension = os.path.splitext(normpath(filename))[1]
 
-            total_size += size
-            files_number += 1
+                if extension in extensions:
+                    extensions[extension][0] += 1
+                    extensions[extension][1] += size
+                else:
+                    extensions[extension] = [1, size]
 
-            files_number_interval += 1
-            if files_number_interval == 100000:
-                msg("    ... already {0} files read in the source directory, " \
-                    "still processing...".format(files_number_interval))
-                files_number_interval = 0
+                total_size += size
+                files_number += 1
+
+                files_number_interval += 1
+                if files_number_interval == 100000:
+                    msg("    ... already {0} files read in the source directory, " \
+                        "still processing...".format(files_number_interval))
+                    files_number_interval = 0
 
     msg("    o files number : {0} file(s)".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
