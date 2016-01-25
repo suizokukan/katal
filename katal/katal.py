@@ -1889,7 +1889,7 @@ def goodbye(_timestamp_start):
 
         no RETURNED VALUE
     """
-    msg("=== exit (stopped at {0}; " \
+    msg("=== exit (Katal stopped at {0}; " \
         "total duration time : {1}) ===".format(datetime.now().strftime(CST__DTIME_FORMAT),
                                                 datetime.now() - _timestamp_start))
 
