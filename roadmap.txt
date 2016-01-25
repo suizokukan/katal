@@ -1,3 +1,5 @@
+v 0.3.2 (2016_01_25) : --verbose option
+
 v 0.3.1 (2016_01_25) : better messages
 
     o katal.py::show_infos_about_source_path()+fill_select() : added a protection

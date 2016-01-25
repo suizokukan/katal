@@ -547,7 +547,7 @@ def action__new(_targetname):
                                      CST__KATALSYS_SUBDIR,
                                      CST__DATABASE_NAME))
 
-    if not ARGS.mute:
+    if ARGS.verbosity != 'none':
         answer = \
             input("\nDo you want to download the default config file " \
                   "into the expected directory ? (y/N) ")
@@ -795,7 +795,7 @@ def action__reset():
             _consolecolor="red")
         return
 
-    if not ARGS.mute:
+    if ARGS.verbosity != 'none':
         answer = \
             input("\nDo you really want to delete (=move to the katal trash directory)" \
                   "the files in the target directory and the database (y/N) ")
@@ -1640,8 +1640,9 @@ def fill_select(_debug_datatime=None):
                     # ... nothing : incompatibility with at least one filter :
                     number_of_discarded_files += 1
 
-                    msg("    - {0} discarded \"{1}\" " \
-                        ": incompatibility with the filter(s)".format(prefix, fullname))
+                    if ARGS.verbosity == 'high':
+                        msg("    - {0} discarded \"{1}\" " \
+                            ": incompatibility with the filter(s)".format(prefix, fullname))
                 else:
                     # 'filename' being compatible with the filters, let's try
                     # to add it in the datase :
@@ -1653,9 +1654,10 @@ def fill_select(_debug_datatime=None):
                         # <filename> :
                         number_of_discarded_files += 1
 
-                        msg("    - {0} (similar hashid among the files to be copied, " \
-                            "in the source directory) " \
-                            " discarded \"{1}\"".format(prefix, fullname))
+                        if ARGS.verbosity == 'high':
+                            msg("    - {0} (similar hashid among the files to be copied, " \
+                                "in the source directory) " \
+                                " discarded \"{1}\"".format(prefix, fullname))
 
                     elif tobeadded:
                         # . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -1702,8 +1704,9 @@ def fill_select(_debug_datatime=None):
                         # tobeadded is False : let's discard <filename> :
                         number_of_discarded_files += 1
 
-                        msg("    - {0} (similar hashid in the database) " \
-                            " discarded \"{1}\"".format(prefix, fullname))
+                        if ARGS.verbosity == 'high':
+                            msg("    - {0} (similar hashid in the database) " \
+                                " discarded \"{1}\"".format(prefix, fullname))
 
             else:
                 msg("    ! browsing {0}, an error occured : " \
@@ -2067,7 +2070,7 @@ def main_actions():
         read_filters()
         action__select()
 
-        if not ARGS.mute and len(SELECT) > 0:
+        if ARGS.verbosity != 'none' and len(SELECT) > 0:
             answer = \
                 input("\nDo you want to update the target database and to {0} the selected " \
                       "files into the target directory " \
@@ -2297,8 +2300,8 @@ def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
         ________________________________________________________________________
 
         Display a message on console, write the same message in the log file.
-        The message isn't displayed on console if ARGS.mute has been set to
-        True (see --mute argument)
+        The message isn't displayed on console if ARGS.verbosity has been set to
+        'none' (see the --verbosity argument) .
         ________________________________________________________________________
 
         PARAMETERS
@@ -2317,7 +2320,7 @@ def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
 
     # first to the console : otherwise, if an error occurs by writing to the log
     # file, it would'nt possible to read the message.
-    if not ARGS.mute and _for_console:
+    if ARGS.verbosity != 'none' and _for_console:
         if _consolecolor is None or CST__PLATFORM == 'Windows':
             sys.stdout.write(_msg+"\n")
         else:
@@ -2449,10 +2452,6 @@ def read_command_line_arguments():
                              "options to display more informations about the process : in " \
 			     "this case, the --infos will be executed before --select/--add")
 
-    parser.add_argument('-m', '--mute',
-                        action="store_true",
-                        help="# No output to the console; no question asked on the console")
-
     parser.add_argument('-n', '--new',
                         type=str,
                         help="# Create a new target directory")
@@ -2541,6 +2540,14 @@ def read_command_line_arguments():
                         action="store_true",
                         help="# Force the script to prefix filenames by a special string " \
                              "required by the NTFS for long filenames, namely \\\\?\\")
+
+    parser.add_argument('--verbosity',
+                        choices=("none", "normal", "high"),
+                        default='normal',
+                        help="# Console verbosity : " \
+                             "'none'=no output to the console, no question asked on the console; " \
+                             "'normal'=messages to the console and questions asked on the console; "
+                             "'high'=display discarded files")
 
     parser.add_argument('--version',
                         action='version',

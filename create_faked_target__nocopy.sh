@@ -14,8 +14,8 @@ echo "(03) cp -r faked/src faked/src2"
 cp -r faked/src faked/src2
 
 echo
-echo "(04) ./katal/katal.py --new=faked/target --mute"
-./katal/katal.py --new=faked/target --mute
+echo "(04) ./katal/katal.py --new=faked/target --verbosity=none"
+./katal/katal.py --new=faked/target --verbosity=none
 
 echo
 echo "(05) cp faked/katal.ini faked/target/.katal"

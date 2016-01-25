@@ -32,8 +32,8 @@ import os
 import unittest
 
 from katal import katal
-katal.ARGS = namedtuple("ARGS", ("configfile", "mute", "targetpath",))
-katal.ARGS.mute = True
+katal.ARGS = namedtuple("ARGS", ("configfile", "verbosity", "targetpath",))
+katal.ARGS.verbosity = 'none'
 katal.ARGS.targetpath = "tests"
 katal.ARGS.usentfsprefix = None
 

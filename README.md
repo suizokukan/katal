@@ -15,7 +15,7 @@ Katal can also be used to create a "mirror database" from a source, without copy
 Caveats :
 
 * Katal uses sqlite3 databases since sqlite3 is supported out-of-the-box by Python
-* Katal is slow, very slow : you could speed up the execution by reducing the amount of console messages (see the --mute option) but the core is absolutely inefficient.
+* Katal is slow, very slow : you could speed up the execution by reducing the amount of console messages (see the --verbosity option) but the core is absolutely inefficient.
 * Katal isn't immune to unexpected shutdowns/program's stops.
 * please use the `--usentfsprefix` option if you read files from a NTFS volume.
 
@@ -176,11 +176,11 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
 
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-dlcfg {local,home}] [--findtag FINDTAG]
-                    [--infos] [-m] [-n NEW] [--off] [--rebase REBASE] [--reset]
+                    [--infos] [-n NEW] [--off] [--rebase REBASE] [--reset]
                     [--rmnotags] [--rmtags] [-s] [--settagsstr SETTAGSSTR] [-si]
                     [--strictcmp] [--targetpath TARGETPATH] [-ti] [-tk TARGETKILL]
-                    [--to TO] [--usentfsprefix] [--version]
-                    [--whatabout WHATABOUT]
+                    [--to TO] [--usentfsprefix] [--verbosity {none,normal,high}]
+                    [--version] [--whatabout WHATABOUT]
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -214,8 +214,6 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             --select/--add options to display more informations
                             about the process : in this case, the --infos will be
                             executed before --select/--add (default: False)
-      -m, --mute            # No output to the console; no question asked on the
-                            console (default: False)
       -n NEW, --new NEW     # Create a new target directory (default: None)
       --off                 # Don't write anything into the target directory or
                             into the database, except into the current log file.
@@ -272,6 +270,11 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
       --usentfsprefix       # Force the script to prefix filenames by a special
                             string required by the NTFS for long filenames, namely
                             \\?\ (default: False)
+      --verbosity {none,normal,high}
+                            # Console verbosity : 'none'=no output to the console,
+                            no question asked on the console; 'normal'=messages to
+                            the console and questions asked on the
+                            console; 'high'=display discarded files (default: none)
       --version             # Show the version and exit
       --whatabout WHATABOUT
                             # Say if the file[the files in a directory] already in

@@ -21,12 +21,15 @@
 #
 # (4)
 # Maximum number of branch for function / method body
-# max-branches=14 (initially=12)
+# max-branches=15 (initially=12)
 #
 # (5)
 # Maximum number of locals for function / method body
 # max-locals=16
 #
+# (6)
+# Maximum number of nested blocks for function / method body
+# max-nested-blocks=6 (initially=5)
 ################################################################################
 
 [MASTER]
@@ -246,7 +249,7 @@ docstring-min-length=-1
 [ELIF]
 
 # Maximum number of nested blocks for function / method body
-max-nested-blocks=5
+max-nested-blocks=6
 
 
 [FORMAT]
@@ -381,7 +384,7 @@ max-locals=16
 max-returns=6
 
 # Maximum number of branch for function / method body
-max-branches=14
+max-branches=15
 
 # Maximum number of statements in function / method body
 max-statements=50
