@@ -553,11 +553,11 @@ def action__new(_targetname):
                   "into the expected directory ? (y/N) ")
 
         if answer in ("y", "yes"):
-            if action__downloadefaultcfg(_targetname=os.path.join(normpath(_targetname),
-                                                                  CST__KATALSYS_SUBDIR,
-                                                                  CST__DEFAULT_CONFIGFILE_NAME),
-                                         _location="local"):
-            else:
+            res = action__downloadefaultcfg(_targetname=os.path.join(normpath(_targetname),
+                                                                     CST__KATALSYS_SUBDIR,
+                                                                     CST__DEFAULT_CONFIGFILE_NAME),
+                                            _location="local")
+            if not res:
                 msg("  ! A problem occured : " \
                     "the creation of the target directory has been aborted.",
                     _consolecolor="red")
@@ -2148,12 +2148,16 @@ def main_warmup(_timestamp_start):
         msg("    ... config file found and read (ok)")
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
-        msg("  = WARNING : mode=move                                                   =")
-        msg("  =     the files will be moved (NOT copied) in the target directory      =")
+        msg("  = WARNING : mode=move                                                   =",
+            _consolecolor="cyan")
+        msg("  =     the files will be moved (NOT copied) in the target directory      =",
+            _consolecolor="cyan")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        msg("  = WARNING : mode=nocopy                                                 =")
-        msg("  =     the files will NOT be copied or moved in the target directory     =")
+        msg("  = WARNING : mode=nocopy                                                 =",
+            _consolecolor="cyan")
+        msg("  =     the files will NOT be copied or moved in the target directory     =",
+            _consolecolor="cyan")
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
@@ -3254,11 +3258,16 @@ def welcome(_timestamp_start):
                 "let's search a config file...")
 
     if ARGS.off:
-        msg("  = WARNING                                                               =")
-        msg("  = --off option detected :                                               =")
-        msg("  =                no file will be modified, no directory will be created =")
-        msg("  =                but the corresponding messages will be written in the  =")
-        msg("  =                log file.                                              =")
+        msg("  = WARNING                                                               =",
+            _consolecolor="cyan")
+        msg("  = --off option detected :                                               =",
+            _consolecolor="cyan")
+        msg("  =                no file will be modified, no directory will be created =",
+            _consolecolor="cyan")
+        msg("  =                but the corresponding messages will be written in the  =",
+            _consolecolor="cyan")
+        msg("  =                log file.                                              =",
+            _consolecolor="cyan")
 
 #///////////////////////////////////////////////////////////////////////////////
 def welcome_in_logfile(_timestamp_start):
