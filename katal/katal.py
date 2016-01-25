@@ -1740,7 +1740,8 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
     msg("    o checking that there's no anomaly with the selected files...")
 
     # (1) future filename's can't be in conflict with another file in SELECT
-    msg("    ... future filename's can't be in conflict with another file in SELECT...")
+    msg("       ... let's check that future filenames aren't in conflict " \
+        "with another file in SELECT...")
     to_be_discarded = []        # a list of hash.
     for (selectedfile_hash1, selectedfile_hash2) in itertools.combinations(SELECT, 2):
 
@@ -1756,8 +1757,9 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
     if not CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        msg("    ... future filename's can't be in conflict with another file already")
-        msg("        stored in the target path...")
+        msg("       ... let's check that future filenames aren't in conflict " \
+            "with another file already")
+        msg("           stored in the target path...")
         for selectedfile_hash in SELECT:
             if os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                            SELECT[selectedfile_hash].targetname)):
