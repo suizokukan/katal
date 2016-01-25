@@ -77,7 +77,9 @@ Caveats :
                    target database being updated).
     
 ####Take a look at the files stored in the source directory :
-    $ katal --infos
+    $ katal -si
+    or
+    $ katal --sourceinfos
     Some informations are displayed : how many files lie in the source directory, what are
     the extensions, and so on.
     
