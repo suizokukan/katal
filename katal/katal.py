@@ -261,9 +261,9 @@ def action__add():
             if CFG_PARAMETERS["target"]["mode"] == "nocopy":
                 # nothing to do
                 msg("    ... ({0}/{1}) due to the mode=nocopy' option, " \
-                    "\"{2}\" is added in the target database BUT".format(index+1, len_select,
-                                                                         complete_source_filename))
-                msg("        THIS FILE WILL NOT BE COPIED into \"{0}\" .".format(target_name))
+                    "\"{2}\" will be simply added " \
+                    "in the target database.".format(index+1, len_select,
+                                                     complete_source_filename))
 
             elif CFG_PARAMETERS["target"]["mode"] == "copy":
                 # copying the file :
