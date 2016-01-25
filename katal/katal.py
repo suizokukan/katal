@@ -2614,9 +2614,9 @@ def read_parameters_from_cfgfile(_configfile_name):
         # natural "%i" we have to write "%%i" :
         parser["target"]["name of the target files"] = "%%i"
 
-        msg("  *  since 'mode'=='nocopy', the value of \"[target]'name of the target files\" ",
+        msg("  *  since 'mode'=='nocopy', the value of \"[target]name of the target files\" ",
             _consolecolor="cyan")
-        msg("     is neutralized and set to '%i' (i.e. the database index)",
+        msg("     is neutralized and set to '%i' (i.e. the database index : '1', '2', ...)",
             _consolecolor="cyan")
 
     return parser
