@@ -2195,7 +2195,8 @@ def main_warmup(_timestamp_start):
     #...........................................................................
     if ARGS.targetpath == source_path:
         msg("  ! warning : " \
-            "source path and target path have the same value ! (\"{0}\")".format(ARGS.targetpath),
+            "source path and target path have the same value, " \
+            "namely \"{0}\" (path: \"{1}\")".format(ARGS.targetpath, normpath(ARGS.targetpath)),
             _consolecolor="red")
 
     #...........................................................................
