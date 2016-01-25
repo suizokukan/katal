@@ -1605,6 +1605,10 @@ def fill_select(_debug_datatime=None):
     file_index = 0  # number of the current file in the source directory.
     for dirpath, _, filenames in os.walk(normpath(source_path)):
         for filename in filenames:
+
+            # ..................................................................
+            # gathering informations about filename :
+            # ..................................................................
             file_index += 1
             fullname = os.path.join(normpath(dirpath), filename)
             size = os.stat(normpath(fullname)).st_size
@@ -1622,15 +1626,22 @@ def fill_select(_debug_datatime=None):
             if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
 
+            # ..................................................................
+            # what should we do with 'filename' ?
+            # ..................................................................
             if not thefilehastobeadded__filters(filename, size, time):
+                # ... nothing : incompatibility with at least one filter :
                 number_of_discarded_files += 1
 
                 msg("    - {0} discarded \"{1}\" " \
                     ": incompatibility with the filter(s)".format(prefix, fullname))
             else:
+                # 'filename' being compatible with the filters, let's try
+                # to add it in the datase :
                 tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size)
 
                 if tobeadded and hashid in SELECT:
+                    # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
                     # tobeadded is True but hashid is already in SELECT; let's discard <filename> :
                     number_of_discarded_files += 1
 
@@ -1639,6 +1650,7 @@ def fill_select(_debug_datatime=None):
                         " discarded \"{1}\"".format(prefix, fullname))
 
                 elif tobeadded:
+                    # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
                     # ok, let's add <filename> to SELECT...
                     SELECT[hashid] = \
                      SELECTELEMENT(fullname=fullname,
@@ -1677,6 +1689,7 @@ def fill_select(_debug_datatime=None):
                     SELECT_SIZE_IN_BYTES += size
 
                 else:
+                    # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
                     # tobeadded is False : let's discard <filename> :
                     number_of_discarded_files += 1
 
