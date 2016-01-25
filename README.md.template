@@ -115,9 +115,6 @@ Caveats :
     (%%i : database index, like "0", "1", "2"...)
     (%%e : extension, like "jpg")
 
-####Check if everything's is alright :
-    $ katal --infos
-    
 ####Let's see what would happen if the script tried to select the files :
     $ katal --select
     ... and answer 'yes' to the final question if all the details are ok to you.
