@@ -1611,90 +1611,99 @@ def fill_select(_debug_datatime=None):
             # ..................................................................
             file_index += 1
             fullname = os.path.join(normpath(dirpath), filename)
-            size = os.stat(normpath(fullname)).st_size
-            if _debug_datatime is None:
-                time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
-                time = time.replace(second=0, microsecond=0)
-            else:
-                time = datetime.strptime(_debug_datatime[fullname], CST__DTIME_FORMAT)
-
-            fname_no_extens, extension = get_filename_and_extension(normpath(filename))
-
-            # if we know the total amount of files to be selected (see the --infos option),
-	    # we can add the percentage done :
-            prefix = ""
-            if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
-                prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
 
             # ..................................................................
-            # what should we do with 'filename' ?
+            # protection against the FileNotFoundError exception.
+            # This exception would be raised on broken symbolic link on the
+            #   "size = os.stat(normpath(fullname)).st_size" line (see below).
             # ..................................................................
-            if not thefilehastobeadded__filters(filename, size, time):
-                # ... nothing : incompatibility with at least one filter :
-                number_of_discarded_files += 1
-
-                msg("    - {0} discarded \"{1}\" " \
-                    ": incompatibility with the filter(s)".format(prefix, fullname))
-            else:
-                # 'filename' being compatible with the filters, let's try
-                # to add it in the datase :
-                tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size)
-
-                if tobeadded and hashid in SELECT:
-                    # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-                    # tobeadded is True but hashid is already in SELECT; let's discard <filename> :
-                    number_of_discarded_files += 1
-
-                    msg("    - {0} (similar hashid among the files to be copied, " \
-                        "in the source directory) " \
-                        " discarded \"{1}\"".format(prefix, fullname))
-
-                elif tobeadded:
-                    # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-                    # ok, let's add <filename> to SELECT...
-                    SELECT[hashid] = \
-                     SELECTELEMENT(fullname=fullname,
-                                   partialhashid=partialhashid,
-                                   path=dirpath,
-                                   filename_no_extens=fname_no_extens,
-                                   extension=extension,
-                                   size=size,
-                                   date=time.strftime(CST__DTIME_FORMAT),
-                                   targetname= \
-                                        create_target_name(_parameters=CFG_PARAMETERS,
-                                                           _hashid=hashid,
-                                                           _filename_no_extens=fname_no_extens,
-                                                           _path=dirpath,
-                                                           _extension=extension,
-                                                           _size=size,
-                                                           _date=time.strftime(CST__DTIME_FORMAT),
-                                                           _database_index=len(TARGET_DB) + \
-                                                                           len(SELECT)),
-                                   targettags= \
-                                        create_target_tags(_parameters=CFG_PARAMETERS,
-                                                           _hashid=hashid,
-                                                           _filename_no_extens=fname_no_extens,
-                                                           _path=dirpath,
-                                                           _extension=extension,
-                                                           _size=size,
-                                                           _date=time.strftime(CST__DTIME_FORMAT),
-                                                           _database_index=len(TARGET_DB) + \
-                                                                           len(SELECT)))
-
-                    msg("    + {0} selected \"{1}\" (file selected #{2})".format(prefix,
-                                                                                 fullname,
-                                                                                 len(SELECT)))
-                    msg("       size={0}; date={1}".format(size, time.strftime(CST__DTIME_FORMAT)))
-
-                    SELECT_SIZE_IN_BYTES += size
-
+            if os.path.exists(fullname):
+                size = os.stat(normpath(fullname)).st_size
+                if _debug_datatime is None:
+                    time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
+                    time = time.replace(second=0, microsecond=0)
                 else:
-                    # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-                    # tobeadded is False : let's discard <filename> :
+                    time = datetime.strptime(_debug_datatime[fullname], CST__DTIME_FORMAT)
+
+                fname_no_extens, extension = get_filename_and_extension(normpath(filename))
+
+                # if we know the total amount of files to be selected (see the --infos option),
+                # we can add the percentage done :
+                prefix = ""
+                if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
+                    prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
+
+                # ..................................................................
+                # what should we do with 'filename' ?
+                # ..................................................................
+                if not thefilehastobeadded__filters(filename, size, time):
+                    # ... nothing : incompatibility with at least one filter :
                     number_of_discarded_files += 1
 
-                    msg("    - {0} (similar hashid in the database) " \
-                        " discarded \"{1}\"".format(prefix, fullname))
+                    msg("    - {0} discarded \"{1}\" " \
+                        ": incompatibility with the filter(s)".format(prefix, fullname))
+                else:
+                    # 'filename' being compatible with the filters, let's try
+                    # to add it in the datase :
+                    tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size)
+
+                    if tobeadded and hashid in SELECT:
+                        # . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+                        # tobeadded is True but hashid is already in SELECT; let's discard
+                        # <filename> :
+                        number_of_discarded_files += 1
+
+                        msg("    - {0} (similar hashid among the files to be copied, " \
+                            "in the source directory) " \
+                            " discarded \"{1}\"".format(prefix, fullname))
+
+                    elif tobeadded:
+                        # . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+                        # ok, let's add <filename> to SELECT...
+                        SELECT[hashid] = \
+                         SELECTELEMENT(fullname=fullname,
+                                       partialhashid=partialhashid,
+                                       path=dirpath,
+                                       filename_no_extens=fname_no_extens,
+                                       extension=extension,
+                                       size=size,
+                                       date=time.strftime(CST__DTIME_FORMAT),
+                                       targetname= \
+                                          create_target_name(_parameters=CFG_PARAMETERS,
+                                                             _hashid=hashid,
+                                                             _filename_no_extens=fname_no_extens,
+                                                             _path=dirpath,
+                                                             _extension=extension,
+                                                             _size=size,
+                                                             _date=time.strftime(CST__DTIME_FORMAT),
+                                                             _database_index=len(TARGET_DB) + \
+                                                                             len(SELECT)),
+                                       targettags= \
+                                          create_target_tags(_parameters=CFG_PARAMETERS,
+                                                             _hashid=hashid,
+                                                             _filename_no_extens=fname_no_extens,
+                                                             _path=dirpath,
+                                                             _extension=extension,
+                                                             _size=size,
+                                                             _date=time.strftime(CST__DTIME_FORMAT),
+                                                             _database_index=len(TARGET_DB) + \
+                                                                             len(SELECT)))
+
+                        msg("    + {0} selected \"{1}\" (file selected #{2})".format(prefix,
+                                                                                     fullname,
+                                                                                     len(SELECT)))
+                        msg("       size={0}; date={1}".format(size,
+                                                               time.strftime(CST__DTIME_FORMAT)))
+
+                        SELECT_SIZE_IN_BYTES += size
+
+                    else:
+                        # . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+                        # tobeadded is False : let's discard <filename> :
+                        number_of_discarded_files += 1
+
+                        msg("    - {0} (similar hashid in the database) " \
+                            " discarded \"{1}\"".format(prefix, fullname))
 
     return fill_select__checks(_number_of_discarded_files=number_of_discarded_files,
                                _prefix=prefix,
