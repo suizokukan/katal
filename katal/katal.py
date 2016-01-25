@@ -1705,6 +1705,13 @@ def fill_select(_debug_datatime=None):
                         msg("    - {0} (similar hashid in the database) " \
                             " discarded \"{1}\"".format(prefix, fullname))
 
+            else:
+                msg("    ! browsing {0}, an error occured : " \
+                    "can't read the file ".format(source_path),
+                    _consolecolor='red')
+                msg("    \"{0}\"".format(fullname),
+                    _consolecolor='red')
+
     return fill_select__checks(_number_of_discarded_files=number_of_discarded_files,
                                _prefix=prefix,
                                _fullname=fullname)
@@ -2829,6 +2836,12 @@ def show_infos_about_source_path():
                     msg("    ... already {0} files read in the source directory, " \
                         "still processing...".format(files_number_interval))
                     files_number_interval = 0
+            else:
+                msg("    ! browsing {0}, an error occured : " \
+                    "can't read the file ".format(source_path),
+                    _consolecolor='red')
+                msg("    \"{0}\"".format(fullname),
+                    _consolecolor='red')
 
     msg("    o files number : {0} file(s)".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
