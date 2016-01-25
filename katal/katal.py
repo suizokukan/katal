@@ -557,7 +557,6 @@ def action__new(_targetname):
                                                                   CST__KATALSYS_SUBDIR,
                                                                   CST__DEFAULT_CONFIGFILE_NAME),
                                          _location="local"):
-                msg("  ... done.")
             else:
                 msg("  ! A problem occured : " \
                     "the creation of the target directory has been aborted.",
