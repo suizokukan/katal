@@ -15,7 +15,7 @@ Katal can also be used to create a "mirror database" from a source, without copy
 Caveats :
 
 * Katal uses sqlite3 databases since sqlite3 is supported out-of-the-box by Python
-* Katal is slow, very slow : you could speed up the execution by reducing the amount of console messages but the core is absolutely inefficient.
+* Katal is slow, very slow : you could speed up the execution by reducing the amount of console messages (see the --mute option) but the core is absolutely inefficient.
 * Katal isn't immune to unexpected shutdowns/program's stops.
 * please use the `--usentfsprefix` option if you read files from a NTFS volume.
 
