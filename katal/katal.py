@@ -1616,8 +1616,8 @@ def fill_select(_debug_datatime=None):
 
             fname_no_extens, extension = get_filename_and_extension(normpath(filename))
 
-	        # if we know the total amount of files to be selected (see the --infos option),
-	        # we can add the percentage done :
+            # if we know the total amount of files to be selected (see the --infos option),
+	    # we can add the percentage done :
             prefix = ""
             if INFOS_ABOUT_SRC_PATH[1] is not None and INFOS_ABOUT_SRC_PATH[1] != 0:
                 prefix = "[{0:.4f}%]".format(file_index/INFOS_ABOUT_SRC_PATH[1]*100.0)
