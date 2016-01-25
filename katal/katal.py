@@ -2132,15 +2132,18 @@ def main_warmup(_timestamp_start):
     configfile_name, configfile_name__err = where_is_the_configfile()
 
     if configfile_name__err < 0:
+        # ill-formed config file :
         sys.exit(-1)
 
     if configfile_name__err > 0:
+        # see the code's error of the where_is_the_configfile() function.
         return
 
     #...........................................................................
     # let's read the config file :
     CFG_PARAMETERS = read_parameters_from_cfgfile(configfile_name)
     if CFG_PARAMETERS is None:
+        # ill-formed config file :
         sys.exit(-1)
     else:
         msg("    ... config file found and read (ok)")
