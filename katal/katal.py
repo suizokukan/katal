@@ -2182,13 +2182,13 @@ def main_warmup(_timestamp_start):
         msg("    ... config file found and read (ok)")
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
-        msg("  = WARNING : mode=move                                                   =",
+        msg("  = mode=move                                                             =",
             _consolecolor="cyan")
         msg("  =     the files will be moved (NOT copied) in the target directory      =",
             _consolecolor="cyan")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        msg("  = WARNING : mode=nocopy                                                 =",
+        msg("  = mode=nocopy                                                           =",
             _consolecolor="cyan")
         msg("  =     the files will NOT be copied or moved in the target directory     =",
             _consolecolor="cyan")
@@ -3310,8 +3310,6 @@ def welcome(_timestamp_start):
                 "let's search a config file...")
 
     if ARGS.off:
-        msg("  = WARNING                                                               =",
-            _consolecolor="cyan")
         msg("  = --off option detected :                                               =",
             _consolecolor="cyan")
         msg("  =                no file will be modified, no directory will be created =",
