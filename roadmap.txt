@@ -1,3 +1,17 @@
+v 0.3.1 (2016_01_25) : better messages
+
+    o katal.py::show_infos_about_source_path()+fill_select() : added a protection
+      against the FileNotFound exception (e.g. in case of broken links)
+    o in show_infos_about_source_path() and in fill_select(),
+      added a warning message if a file can't be read.
+    o all warnings are now printed in cyan
+    o improved various messages
+    o updated the documentation in katal.ini
+    o updated the documentation (README.md)
+
+    o 6 tests, pylint=10.0 for the four Python scripts
+    o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
 v 0.3 (2016_01_20) : mode defined in the configuration file
 
     o removed the --mode option : the mode is now defined in the configuration file

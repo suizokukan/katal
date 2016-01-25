@@ -65,8 +65,8 @@ import unicodedata
 #
 #===============================================================================
 __projectname__ = "Katal"
-__version__ = "0.3.1a"
-__laststableversion__ = "0.3"
+__version__ = "0.3.1"
+__laststableversion__ = "0.3.1"
 __author__ = "Xavier Faure (suizokukan / 94.23.197.37)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
