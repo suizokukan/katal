@@ -65,8 +65,8 @@ import unicodedata
 #
 #===============================================================================
 __projectname__ = "Katal"
-__version__ = "0.3.1"
-__laststableversion__ = "0.3.1"
+__version__ = "0.3.2a"
+__laststableversion__ = "0.3.1"  # when modifying this line, do not forget to launch fill_README.py
 __author__ = "Xavier Faure (suizokukan / 94.23.197.37)"
 __copyright__ = "Copyright 2015, suizokukan"
 __license__ = "GPL-3.0"
