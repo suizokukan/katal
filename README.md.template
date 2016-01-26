@@ -291,6 +291,10 @@ See the `roadmap.txt` file.
 
 #(8) technical details
 
+##(8.0) structure
+
+see chart.txt
+
 ##(8.1) exit codes
                  0      : success
                 -1      : can't read the parameters from the configuration file
