@@ -31,6 +31,8 @@ Caveats :
     Since katal.py is a stand-alone file, you may place this file in the target directory.
 
     tests :
+    Beware ! Due to the limitations of OSX and Windows systems, these tests are to be runned
+    on Linux systems.
     
     $ python -m unittest tests/tests.py
 
