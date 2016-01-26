@@ -1,4 +1,12 @@
-v 0.3.2 (2016_01_25) : --verbose option
+v 0.3.2 (2016_01_25) : added the --verbosity argument, removed the --mute argument.
+
+    o added the --verbosity argument, removed the --mute argument
+
+    o katal.py : removed from the messages the hideous 'WARNING' word
+    o katal.py::fill_select__checks() : improved message
+
+    o 6 tests, pylint=10.0 for the four Python scripts
+    o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
 
 v 0.3.1 (2016_01_25) : better messages
 
