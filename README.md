@@ -275,8 +275,10 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
       --verbosity {none,normal,high}
                             # Console verbosity : 'none'=no output to the console,
                             no question asked on the console; 'normal'=messages to
-                            the console and questions asked on the
-                            console; 'high'=display discarded files (default: none)
+                            the console and questions asked on the console;
+                            'high'=display discarded files. A question may be
+                            asked only by using the following arguments : --new,
+                            --rebase, --reset and --select (default: normal)
       --version             # Show the version and exit
       --whatabout WHATABOUT
                             # Say if the file[the files in a directory] already in

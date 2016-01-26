@@ -2546,8 +2546,11 @@ def read_command_line_arguments():
                         default='normal',
                         help="# Console verbosity : " \
                              "'none'=no output to the console, no question asked on the console; " \
-                             "'normal'=messages to the console and questions asked on the console; "
-                             "'high'=display discarded files")
+                             "'normal'=messages to the console " \
+                             "and questions asked on the console; " \
+                             "'high'=display discarded files. A question may be asked only by " \
+                             "using the following arguments : " \
+                             "--new, --rebase, --reset and --select")
 
     parser.add_argument('--version',
                         action='version',
