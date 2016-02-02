@@ -177,12 +177,12 @@ CST__MULTIPLES = (("kB", 1000),
 CST__PARTIALHASHID_BYTESNBR = 1000000
 
 # string used to create the database :
-CST__SQL__CREATE_DB = 'CREATE TABLE dbfiles (' \
-                      'hashid varchar(44) PRIMARY KEY UNIQUE, ' \
-                      'partialhashid varchar(44), ' \
-                      'size INTEGER, ' \
-                      'name TEXT UNIQUE, ' \
-                      'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)'
+CST__SQL__CREATE_DB = ('CREATE TABLE dbfiles ('
+                       'hashid varchar(44) PRIMARY KEY UNIQUE, '
+                       'partialhashid varchar(44), '
+                       'size INTEGER, '
+                       'name TEXT UNIQUE, '
+                       'sourcename TEXT, sourcedate INTEGER, tagsstr TEXT)')
 
 CST__TAG_SEPARATOR = ";"  # symbol used in the database between two tags.
 
@@ -260,14 +260,14 @@ def action__add():
         if not ARGS.off:
             if CFG_PARAMETERS["target"]["mode"] == "nocopy":
                 # nothing to do
-                msg("    ... ({0}/{1}) due to the mode=nocopy' option, " \
-                    "\"{2}\" will be simply added " \
+                msg("    ... ({0}/{1}) due to the mode=nocopy' option, "
+                    "\"{2}\" will be simply added "
                     "in the target database.".format(index+1, len_select,
                                                      complete_source_filename))
 
             elif CFG_PARAMETERS["target"]["mode"] == "copy":
                 # copying the file :
-                msg("    ... ({0}/{1}) about to " \
+                msg("    ... ({0}/{1}) about to "
                     "copy \"{2}\" to \"{3}\" .".format(index+1,
                                                        len_select,
                                                        complete_source_filename,
@@ -277,7 +277,7 @@ def action__add():
 
             elif CFG_PARAMETERS["target"]["mode"] == "move":
                 # moving the file :
-                msg("    ... ({0}/{1}) about to " \
+                msg("    ... ({0}/{1}) about to "
                     "move \"{2}\" to \"{3}\" .".format(index+1,
                                                        len_select,
                                                        complete_source_filename,
@@ -305,7 +305,7 @@ def action__add():
         msg("!!! files_to_be_added : ",
             _consolecolor="red")
         for file_to_be_added in files_to_be_added:
-            msg("     ! hashid={0}; partialhashid={1}; size={2}; name={3}; sourcename={4}; " \
+            msg("     ! hashid={0}; partialhashid={1}; size={2}; name={3}; sourcename={4}; "
                 "sourcedate={5}; tagsstr={6}".format(*file_to_be_added),
                 _consolecolor="red")
         raise KatalError("An error occured while writing the database : "+str(exception))
@@ -362,7 +362,7 @@ def action__cleandbrm():
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
         if not os.path.exists(os.path.join(normpath(ARGS.targetpath), db_record["name"])):
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
-            msg("    o about to remove \"{0}\" " \
+            msg("    o about to remove \"{0}\" "
                 "from the database".format(os.path.join(normpath(ARGS.targetpath),
                                                         db_record["name"])))
 
@@ -372,14 +372,14 @@ def action__cleandbrm():
     else:
         for hashid in files_to_be_rmved_from_the_db:
             if not ARGS.off:
-                msg("    o removing \"{0}\" record " \
+                msg("    o removing \"{0}\" record "
                     "from the database".format(hashid))
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
                 db_connection.commit()
 
     db_connection.close()
     if not ARGS.off:
-        msg("    o ... done : removed {0} " \
+        msg("    o ... done : removed {0} "
             "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -413,7 +413,7 @@ def action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME, _locatio
         if _location == 'home':
             newname = os.path.join(possible_paths_to_cfg()[-1],
                                    os.path.basename(_targetname))
-            msg("  * Since you wrote '--downloaddefaultcfg=home', " \
+            msg("  * Since you wrote '--downloaddefaultcfg=home', "
                 "let's move the download file to the user's home directory...")
             msg("    namely {0} -> {1}".format(_targetname, newname))
             shutil.move(_targetname, newname)
@@ -427,7 +427,7 @@ def action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME, _locatio
             _consolecolor="red")
         msg("  ... copy another config file to the target directory ?",
             _consolecolor="red")
-        msg("  ... In a target directory, the config file is " \
+        msg("  ... In a target directory, the config file is "
             "in the \"{0}\" directory.".format(os.path.join(CST__KATALSYS_SUBDIR)),
             _consolecolor="red")
         return False
@@ -527,7 +527,7 @@ def action__new(_targetname):
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("  = about to create a new target directory " \
+    msg("  = about to create a new target directory "
         "named \"{0}\" (path : \"{1}\")".format(_targetname,
                                                 normpath(_targetname)))
     if os.path.exists(normpath(_targetname)):
@@ -549,8 +549,8 @@ def action__new(_targetname):
 
     if ARGS.verbosity != 'none':
         answer = \
-            input("\nDo you want to download the default config file " \
-                  "into the expected directory ? (y/N) ")
+            input(("\nDo you want to download the default config file "
+                   "into the expected directory ? (y/N) "))
 
         if answer in ("y", "yes"):
             res = action__downloadefaultcfg(_targetname=os.path.join(normpath(_targetname),
@@ -558,7 +558,7 @@ def action__new(_targetname):
                                                                      CST__DEFAULT_CONFIGFILE_NAME),
                                             _location="local")
             if not res:
-                msg("  ! A problem occured : " \
+                msg("  ! A problem occured : "
                     "the creation of the target directory has been aborted.",
                     _consolecolor="red")
 
@@ -590,7 +590,7 @@ def action__rebase(_newtargetpath):
     to_configfile = os.path.join(_newtargetpath,
                                  CST__KATALSYS_SUBDIR,
                                  CST__DEFAULT_CONFIGFILE_NAME)
-    msg("    o trying to read dest config file {0} " \
+    msg("    o trying to read dest config file {0} "
         "(path : \"{1}\") .".format(to_configfile,
                                     normpath(to_configfile)))
     dest_params = read_parameters_from_cfgfile(normpath(to_configfile))
@@ -601,9 +601,9 @@ def action__rebase(_newtargetpath):
         return
 
     msg("    o config file found and read (ok)")
-    msg("    o new filenames' format : " \
+    msg("    o new filenames' format : "
         "{0}".format(dest_params["target"]["name of the target files"]))
-    msg("    o tags to be added : " \
+    msg("    o tags to be added : "
         "{0}".format(dest_params["target"]["tags"]))
 
     new_db = os.path.join(normpath(_newtargetpath), CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)
@@ -623,8 +623,8 @@ def action__rebase(_newtargetpath):
     if anomalies_nbr != 0:
         go_on = False
         answer = \
-            input("\nAt least one anomaly detected (see details above) " \
-                  "Are you sure you want to go on ? (y/N) ")
+            input(("\nAt least one anomaly detected (see details above) "
+                   "Are you sure you want to go on ? (y/N) "))
 
         if answer in ("y", "yes"):
             go_on = True
@@ -693,17 +693,18 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
                                                               new_name))
 
         if new_name in filenames:
-            msg("      ! anomaly : ancient file {1} should be renamed as {0} " \
-                "but this name would have been already created in the new target directory ! " \
+            msg("      ! anomaly : ancient file {1} should be renamed as {0} "
+                "but this name would have been already created in the new target directory ! "
                 "".format(new_name, fullname),
                 _consolecolor="red")
-            msg("        Two different files from the ancient target directory " \
+            msg("        Two different files from the ancient target directory "
                 "can't bear the same name in the new target directory !",
                 _consolecolor="red")
             anomalies_nbr += 1
         elif os.path.exists(new_name):
-            msg("      ! anomaly : ancient file {1} should be renamed as {0} " \
-                "but this name already exists in new target directory !".format(new_name, fullname),
+            msg("      ! anomaly : ancient file {1} should be renamed as {0} "
+                "but this name already exists in new target directory !".format(new_name,
+                                                                                fullname),
                 _consolecolor="red")
             anomalies_nbr += 1
         else:
@@ -797,8 +798,8 @@ def action__reset():
 
     if ARGS.verbosity != 'none':
         answer = \
-            input("\nDo you really want to delete (=move to the katal trash directory)" \
-                  "the files in the target directory and the database (y/N) ")
+            input(("\nDo you really want to delete (=move to the katal trash directory)"
+                   "the files in the target directory and the database (y/N) "))
         if answer not in ("y", "yes"):
             return
 
@@ -898,13 +899,12 @@ def action__select():
 
         no PARAMETER, no RETURNED VALUE.
     """
-    msg("  = selecting files according to the instructions " \
-                "in the config file... =")
+    msg("  = selecting files according to the instructions in the config file... =")
 
-    msg("  o the files will be copied in \"{0}\" " \
+    msg("  o the files will be copied in \"{0}\" "
         "(path: \"{1}\")".format(ARGS.targetpath,
                                  normpath(ARGS.targetpath)))
-    msg("  o the files will be renamed according " \
+    msg("  o the files will be renamed according "
         "to the \"{0}\" pattern.".format(CFG_PARAMETERS["target"]["name of the target files"]))
 
     msg("  o filters :")
@@ -920,16 +920,16 @@ def action__select():
     msg("    o size of the selected file(s) : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
 
     if len(SELECT) == 0:
-        msg("    ! no file selected ! " \
+        msg("    ! no file selected ! "
             "You have to modify the config file to get some files selected.",
             _consolecolor="red")
     else:
         ratio = len(SELECT)/(len(SELECT)+number_of_discarded_files)*100.0
-        msg("    o number of selected files " \
-                  "(after discarding {1} file(s)) : {0}, " \
-                  "{2:.2f}% of the source files.".format(len(SELECT),
-                                                         number_of_discarded_files,
-                                                         ratio))
+        msg("    o number of selected files "
+            "(after discarding {1} file(s)) : {0}, "
+            "{2:.2f}% of the source files.".format(len(SELECT),
+                                                   number_of_discarded_files,
+                                                   ratio))
 
     # let's check that the target path has sufficient free space :
     if CFG_PARAMETERS["target"]["mode"] != "nocopy":
@@ -941,7 +941,7 @@ def action__select():
             size_ok = "!!! problem !!!"
             colorconsole = "red"
 
-        msg("    o required space : {0}; " \
+        msg("    o required space : {0}; "
             "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
                                                          size_as_str(available_space),
                                                          size_ok),
@@ -956,7 +956,7 @@ def action__select():
 
             target_name = os.path.join(normpath(ARGS.targetpath), SELECT[hashid].targetname)
 
-            msg("    o e.g. ... \"{0}\" " \
+            msg("    o e.g. ... \"{0}\" "
                 "would be copied as \"{1}\" .".format(complete_source_filename,
                                                       target_name))
 
@@ -1001,7 +1001,7 @@ def action__target_kill(_filename):
                         directory, -2 if the file doesn't exist in the database,
                         -3 if there's no database.
     """
-    msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) " \
+    msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) "
         "and from its database =".format(_filename))
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath), _filename)):
         msg("    ! can't find \"{0}\" file on disk.".format(_filename),
@@ -1318,7 +1318,7 @@ def create_subdirs_in_target_path():
                      ("tasks", os.path.join(normpath(ARGS.targetpath),
                                             CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))):
         if not os.path.exists(normpath(fullpath)):
-            msg("  * Since the {0} path \"{1}\" (path : \"{2}\") " \
+            msg("  * Since the {0} path \"{1}\" (path : \"{2}\") "
                 "doesn't exist, let's create it.".format(name,
                                                          fullpath,
                                                          normpath(fullpath)))
@@ -1535,10 +1535,9 @@ def draw_table(_rows, _data):
         string = "      |"
         for row_index, row_content in enumerate(linedata):
             text = shortstr(row_content, _rows[row_index][1])
-            string += " " + \
-                      text + \
-                      " "*(rows[row_index][1]-len(text)) + \
-                      " " + rows[row_index][2]
+            string += (" " + text + \
+                       " "*(rows[row_index][1]-len(text)) + \
+                       " " + rows[row_index][2])
         msg(string)  # let's write the computed line
 
     draw_line()
@@ -1641,7 +1640,7 @@ def fill_select(_debug_datatime=None):
                     number_of_discarded_files += 1
 
                     if ARGS.verbosity == 'high':
-                        msg("    - {0} discarded \"{1}\" " \
+                        msg("    - {0} discarded \"{1}\" "
                             ": incompatibility with the filter(s)".format(prefix, fullname))
                 else:
                     # 'filename' being compatible with the filters, let's try
@@ -1655,8 +1654,8 @@ def fill_select(_debug_datatime=None):
                         number_of_discarded_files += 1
 
                         if ARGS.verbosity == 'high':
-                            msg("    - {0} (similar hashid among the files to be copied, " \
-                                "in the source directory) " \
+                            msg("    - {0} (similar hashid among the files to be copied, "
+                                "in the source directory) "
                                 " discarded \"{1}\"".format(prefix, fullname))
 
                     elif tobeadded:
@@ -1705,11 +1704,11 @@ def fill_select(_debug_datatime=None):
                         number_of_discarded_files += 1
 
                         if ARGS.verbosity == 'high':
-                            msg("    - {0} (similar hashid in the database) " \
+                            msg("    - {0} (similar hashid in the database) "
                                 " discarded \"{1}\"".format(prefix, fullname))
 
             else:
-                msg("    ! browsing {0}, an error occured : " \
+                msg("    ! browsing {0}, an error occured : "
                     "can't read the file ".format(source_path),
                     _consolecolor='red')
                 msg("    \"{0}\"".format(fullname),
@@ -1743,13 +1742,13 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
     msg("    o checking that there's no anomaly with the selected files...")
 
     # (1) future filename's can't be in conflict with another file in SELECT
-    msg("       ... let's check that future filenames aren't in conflict " \
+    msg("       ... let's check that future filenames aren't in conflict "
         "with another file in SELECT...")
     to_be_discarded = []        # a list of hash.
     for (selectedfile_hash1, selectedfile_hash2) in itertools.combinations(SELECT, 2):
 
         if SELECT[selectedfile_hash1].targetname == SELECT[selectedfile_hash2].targetname:
-            msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" would be used " \
+            msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" would be used "
                 "two times for two different files !".format(_prefix,
                                                              _fullname,
                                                              SELECT[selectedfile_hash2].targetname),
@@ -1760,13 +1759,13 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
     if not CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        msg("       ... let's check that future filenames aren't in conflict " \
+        msg("       ... let's check that future filenames aren't in conflict "
             "with another file already")
         msg("           stored in the target path...")
         for selectedfile_hash in SELECT:
             if os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                            SELECT[selectedfile_hash].targetname)):
-                msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already " \
+                msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already "
                     "exists in the target path !".format(_prefix,
                                                          _fullname,
                                                          SELECT[selectedfile_hash].targetname),
@@ -1782,7 +1781,7 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
             ending = "y"
         else:
             ending = "ies"
-        msg("    !  beware : {0} anomal{1} detected. " \
+        msg("    !  beware : {0} anomal{1} detected. "
             "See details above.".format(len(to_be_discarded),
                                         ending),
             _consolecolor="red")
@@ -1894,7 +1893,7 @@ def goodbye(_timestamp_start):
 
         no RETURNED VALUE
     """
-    msg("=== exit (Katal stopped at {0}; " \
+    msg("=== exit (Katal stopped at {0}; "
         "total duration time : {1}) ===".format(datetime.now().strftime(CST__DTIME_FORMAT),
                                                 datetime.now() - _timestamp_start))
 
@@ -2072,8 +2071,8 @@ def main_actions():
 
         if ARGS.verbosity != 'none' and len(SELECT) > 0:
             answer = \
-                input("\nDo you want to update the target database and to {0} the selected " \
-                      "files into the target directory " \
+                input("\nDo you want to update the target database and to {0} the selected "
+                      "files into the target directory "
                       "(\"{1}\") ? (y/N) ".format(CFG_PARAMETERS["target"]["mode"],
                                                   ARGS.targetpath))
 
@@ -2206,8 +2205,8 @@ def main_warmup(_timestamp_start):
 
     #...........................................................................
     if ARGS.targetpath == source_path:
-        msg("  ! warning : " \
-            "source path and target path have the same value, " \
+        msg("  ! warning : "
+            "source path and target path have the same value, "
             "namely \"{0}\" (path: \"{1}\")".format(ARGS.targetpath, normpath(ARGS.targetpath)),
             _consolecolor="red")
 
@@ -2282,8 +2281,8 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
                     db_connection.execute(sqlorder, (_tag, hashid))
 
                 elif _mode == "append":
-                    sqlorder = 'UPDATE dbfiles SET tagsstr = tagsstr || \"{0}{1}\" ' \
-                               'WHERE hashid=\"{2}\"'.format(CST__TAG_SEPARATOR, _tag, hashid)
+                    sqlorder = ('UPDATE dbfiles SET tagsstr = tagsstr || \"{0}{1}\" '
+                                'WHERE hashid=\"{2}\"').format(CST__TAG_SEPARATOR, _tag, hashid)
                     db_connection.executescript(sqlorder)
 
                 else:
@@ -2397,8 +2396,8 @@ def read_command_line_arguments():
     """
     parser = \
       argparse.ArgumentParser(description="{0} v. {1}".format(__projectname__, __version__),
-                              epilog="{0} v. {1} ({2}), " \
-                                     "a project by {3} " \
+                              epilog="{0} v. {1} ({2}), "
+                                     "a project by {3} "
                                      "({4})".format(__projectname__,
                                                     __version__,
                                                     __license__,
@@ -2408,16 +2407,16 @@ def read_command_line_arguments():
 
     parser.add_argument('--add',
                         action="store_true",
-                        help="# Select files according to what is described " \
-                             "in the configuration file " \
-                             "then add them to the target directory. " \
-                             "This option can't be used with the --select one." \
-                             "If you want more informations about the process, please " \
+                        help="# Select files according to what is described "
+                             "in the configuration file "
+                             "then add them to the target directory. "
+                             "This option can't be used with the --select one."
+                             "If you want more informations about the process, please "
                              "use this option in combination with --infos .")
 
     parser.add_argument('--addtag',
                         type=str,
-                        help="# Add a tag to some file(s) in combination " \
+                        help="# Add a tag to some file(s) in combination "
                              "with the --to option. ")
 
     parser.add_argument('-cfg', '--configfile',
@@ -2430,27 +2429,27 @@ def read_command_line_arguments():
 
     parser.add_argument('--copyto',
                         type=str,
-                        help="# To be used with the --findtag parameter. Copy the found files " \
-                              "into an export directory.")
+                        help="# To be used with the --findtag parameter. Copy the found files "
+                             "into an export directory.")
 
     parser.add_argument('-dlcfg', '--downloaddefaultcfg',
                         choices=("local", "home",),
-                        help="# Download the default config file and overwrite the file having " \
-                             "the same name. This is done before the script reads the parameters " \
-                             "in the config file. Use 'local' to download in the current " \
+                        help="# Download the default config file and overwrite the file having "
+                             "the same name. This is done before the script reads the parameters "
+                             "in the config file. Use 'local' to download in the current "
                              "directory, 'home' to download in the user's HOME directory.")
 
     parser.add_argument('--findtag',
                         type=str,
-                        help="# Find the files in the target directory with the given tag. " \
+                        help="# Find the files in the target directory with the given tag. "
                              "The tag is a simple string, not a regex.")
 
     parser.add_argument('--infos',
                         action="store_true",
-                        help="# Display informations about the source directory " \
-                             "given in the configuration file. Help the --select/--add " \
-                             "options to display more informations about the process : in " \
-			     "this case, the --infos will be executed before --select/--add")
+                        help="# Display informations about the source directory "
+                             "given in the configuration file. Help the --select/--add "
+                             "options to display more informations about the process : in "
+                             "this case, the --infos will be executed before --select/--add")
 
     parser.add_argument('-n', '--new',
                         type=str,
@@ -2458,18 +2457,18 @@ def read_command_line_arguments():
 
     parser.add_argument('--off',
                         action="store_true",
-                        help="# Don't write anything into the target directory or into " \
-                             "the database, except into the current log file. " \
-                             "Use this option to simulate an operation : you get the messages " \
+                        help="# Don't write anything into the target directory or into "
+                             "the database, except into the current log file. "
+                             "Use this option to simulate an operation : you get the messages "
                              "but no file is modified on disk, no directory is created.")
 
     parser.add_argument('--rebase',
                         type=str,
-                        help="# Copy the current target directory into a new one : you " \
-                             "rename the files in the target directory and in the database. " \
-                             "First, use the --new option to create a new target directory, " \
-                             "modify the .ini file of the new target directory " \
-                             "(modify [target]name of the target files), " \
+                        help="# Copy the current target directory into a new one : you "
+                             "rename the files in the target directory and in the database. "
+                             "First, use the --new option to create a new target directory, "
+                             "modify the .ini file of the new target directory "
+                             "(modify [target]name of the target files), "
                              "then use --rebase with the name of the new target directory")
 
     parser.add_argument('--reset',
@@ -2482,25 +2481,25 @@ def read_command_line_arguments():
 
     parser.add_argument('--rmtags',
                         action="store_true",
-                        help="# Remove all the tags of some file(s) in combination " \
+                        help="# Remove all the tags of some file(s) in combination "
                              "with the --to option. ")
 
     parser.add_argument('-s', '--select',
                         action="store_true",
-                        help="# Select files according to what is described " \
-                             "in the configuration file " \
-                             "without adding them to the target directory. " \
-                             "This option can't be used with the --add one." \
-                             "If you want more informations about the process, please " \
+                        help="# Select files according to what is described "
+                             "in the configuration file "
+                             "without adding them to the target directory. "
+                             "This option can't be used with the --add one."
+                             "If you want more informations about the process, please "
                              "use this option in combination with --infos .")
 
     parser.add_argument('--settagsstr',
                         type=str,
-                        help="# Give the tag to some file(s) in combination " \
-                             "with the --to option. " \
-                             "Overwrite the ancient tag string. " \
-                             "If you want to empty the tags' string, please use a space, " \
-                             "not an empty string : otherwise the parameter given " \
+                        help="# Give the tag to some file(s) in combination "
+                             "with the --to option. "
+                             "Overwrite the ancient tag string. "
+                             "If you want to empty the tags' string, please use a space, "
+                             "not an empty string : otherwise the parameter given "
                              "to the script wouldn't be taken in account by the shell")
 
     parser.add_argument('-si', '--sourceinfos',
@@ -2509,14 +2508,14 @@ def read_command_line_arguments():
 
     parser.add_argument('--strictcmp',
                         action="store_true",
-                        help="# To be used with --add or --select. Force a bit-to-bit comparision" \
+                        help="# To be used with --add or --select. Force a bit-to-bit comparision"
                              "between files whose hashid-s is equal.")
 
     parser.add_argument('--targetpath',
                         type=str,
                         default=".",
-                        help="# Target path, usually '.' . If you set path to . (=dot character)" \
-                             ", it means that the source path is the current directory" \
+                        help="# Target path, usually '.' . If you set path to . (=dot character)"
+                             ", it means that the source path is the current directory"
                              " (=the directory where the script katal.py has been launched)")
 
     parser.add_argument('-ti', '--targetinfos',
@@ -2525,31 +2524,31 @@ def read_command_line_arguments():
 
     parser.add_argument('-tk', '--targetkill',
                         type=str,
-                        help="# Kill (=move to the trash directory) one file from " \
-                             "the target directory." \
-                             "DO NOT GIVE A PATH, just the file's name, " \
+                        help="# Kill (=move to the trash directory) one file from "
+                             "the target directory."
+                             "DO NOT GIVE A PATH, just the file's name, "
                              "without the path to the target directory")
 
     parser.add_argument('--to',
                         type=str,
-                        help="# Give the name of the file(s) concerned by --settagsstr. " \
-                        "wildcards accepted; e.g. to select all .py files, use '*.py' . " \
+                        help="# Give the name of the file(s) concerned by --settagsstr. "
+                        "wildcards accepted; e.g. to select all .py files, use '*.py' . "
                         "Please DON'T ADD the path to the target directory, only the filenames")
 
     parser.add_argument('--usentfsprefix',
                         action="store_true",
-                        help="# Force the script to prefix filenames by a special string " \
+                        help="# Force the script to prefix filenames by a special string "
                              "required by the NTFS for long filenames, namely \\\\?\\")
 
     parser.add_argument('--verbosity',
                         choices=("none", "normal", "high"),
                         default='normal',
-                        help="# Console verbosity : " \
-                             "'none'=no output to the console, no question asked on the console; " \
-                             "'normal'=messages to the console " \
-                             "and questions asked on the console; " \
-                             "'high'=display discarded files. A question may be asked only by " \
-                             "using the following arguments : " \
+                        help="# Console verbosity : "
+                             "'none'=no output to the console, no question asked on the console; "
+                             "'normal'=messages to the console "
+                             "and questions asked on the console; "
+                             "'high'=display discarded files. A question may be asked only by "
+                             "using the following arguments : "
                              "--new, --rebase, --reset and --select")
 
     parser.add_argument('--version',
@@ -2559,8 +2558,8 @@ def read_command_line_arguments():
 
     parser.add_argument('--whatabout',
                         type=str,
-                        help="# Say if the file[the files in a directory] already in the " \
-                             "given as a parameter is in the target directory " \
+                        help="# Say if the file[the files in a directory] already in the "
+                             "given as a parameter is in the target directory "
                              "notwithstanding its name.")
 
     return parser.parse_args()
@@ -2637,17 +2636,17 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["display"]["source filename.max length on console"]
         _ = parser["source"]["path"]
     except KeyError as exception:
-        msg("  ! An error occured while reading " \
+        msg("  ! An error occured while reading "
             "the config file \"{0}\".".format(_configfile_name),
             _consolecolor="red")
         msg("  ! Your configuration file lacks a specific value : \"{0}\".".format(exception),
             _consolecolor="red")
-        msg("  ... you should download a new default config file : " \
+        msg("  ... you should download a new default config file : "
             "see -dlcfg/--downloaddefaultcfg option",
             _consolecolor="red")
         return None
     except BaseException as exception:
-        msg("  ! An error occured while reading " \
+        msg("  ! An error occured while reading "
             "the config file \"{0}\".".format(_configfile_name),
             _consolecolor="red")
         msg("  ! Python message : \"{0}\"".format(exception),
@@ -2791,7 +2790,7 @@ def show_infos_about_source_path():
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
-    msg("  = informations about the \"{0}\" " \
+    msg("  = informations about the \"{0}\" "
         "(path: \"{1}\") source directory =".format(source_path,
                                                     normpath(source_path)))
 
@@ -2845,11 +2844,11 @@ def show_infos_about_source_path():
 
                 files_number_interval += 1
                 if files_number_interval == 100000:
-                    msg("    ... already {0} files read in the source directory, " \
+                    msg("    ... already {0} files read in the source directory, "
                         "still processing...".format(files_number_interval))
                     files_number_interval = 0
             else:
-                msg("    ! browsing {0}, an error occured : " \
+                msg("    ! browsing {0}, an error occured : "
                     "can't read the file ".format(source_path),
                     _consolecolor='red')
                 msg("    \"{0}\"".format(fullname),
@@ -2880,7 +2879,7 @@ def show_infos_about_target_path():
                 (int) 0 if ok, -1 if an error occured
     """
     #...........................................................................
-    msg("  = informations about the \"{0}\" " \
+    msg("  = informations about the \"{0}\" "
         "(path: \"{1}\") target directory =".format(ARGS.targetpath,
                                                     normpath(ARGS.targetpath)))
 
@@ -3138,22 +3137,22 @@ def thefilehastobeadded__filters(_filename, _size, _date):
         # eval() IS a dangerous function : see the note about CST__AUTHORIZED_EVALCHARS.
         for char in evalstr:
             if char not in CST__AUTHORIZED_EVALCHARS:
-                raise KatalError("Error in configuration file : " \
-                                   "trying to compute the \"{0}\" string; " \
-                                   "wrong character '{1}'({2}) " \
-                                   "used in the string to be evaluated. " \
-                                   "Authorized " \
-                                   "characters are " \
-                                   "{3}".format(evalstr,
-                                                char,
-                                                unicodedata.name(char),
-                                                "|"+"|".join(CST__AUTHORIZED_EVALCHARS)))
+                raise KatalError("Error in configuration file : "
+                                 "trying to compute the \"{0}\" string; "
+                                 "wrong character '{1}'({2}) "
+                                 "used in the string to be evaluated. "
+                                 "Authorized "
+                                 "characters are "
+                                 "{3}".format(evalstr,
+                                              char,
+                                              unicodedata.name(char),
+                                              "|"+"|".join(CST__AUTHORIZED_EVALCHARS)))
         return eval(evalstr)
 
     except BaseException as exception:
-        raise KatalError("The eval formula in the config file (\"{0}\")" \
-                           "contains an error. Python message : \"{1}\"".format(evalstr,
-                                                                                exception))
+        raise KatalError("The eval formula in the config file (\"{0}\")"
+                         "contains an error. Python message : \"{1}\"".format(evalstr,
+                                                                              exception))
 
 #///////////////////////////////////////////////////////////////////////////////
 def thefilehastobeadded__filt_date(_filter, _date):
@@ -3236,7 +3235,7 @@ def thefilehastobeadded__filt_size(_filter, _size):
             break
 
     if multiple == 1 and not filter_size[-1].isdigit():
-        raise KatalError("Can't analyse {0} in the filter. " \
+        raise KatalError("Can't analyse {0} in the filter. "
                          "Available multiples are : {1}".format(filter_size,
                                                                 CST__MULTIPLES))
 
@@ -3284,10 +3283,10 @@ def welcome(_timestamp_start):
         sys.exit(-1) if the config file doesn't exist.
     """
     # first welcome message :
-    strmsg = "=== {0} v.{1} " \
-             "(launched at {2}) ===".format(__projectname__,
-                                            __version__,
-                                            _timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
+    strmsg = ("=== {0} v.{1} "
+              "(launched at {2}) ===").format(__projectname__,
+                                              __version__,
+                                              _timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
     msg("="*len(strmsg),
         _consolecolor="white")
     msg(strmsg,
@@ -3300,16 +3299,16 @@ def welcome(_timestamp_start):
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
-        msg("  = target directory given as parameter : \"{0}\" " \
+        msg("  = target directory given as parameter : \"{0}\" "
             "(path : \"{1}\")".format(ARGS.targetpath,
                                       normpath(ARGS.targetpath)))
 
         if ARGS.configfile is not None:
-            msg("  = expected config file : \"{0}\" " \
+            msg("  = expected config file : \"{0}\" "
                 "(path : \"{1}\")".format(ARGS.configfile,
                                           normpath(ARGS.configfile)))
         else:
-            msg("  * no config file specified on the command line : " \
+            msg("  * no config file specified on the command line : "
                 "let's search a config file...")
 
     if ARGS.off:
@@ -3344,7 +3343,7 @@ def welcome_in_logfile(_timestamp_start):
 
         no RETURNED VALUE
     """
-    msg(_msg="=== {0} v.{1} " \
+    msg(_msg="=== {0} v.{1} "
         "(launched at {2}) ===".format(__projectname__,
                                        __version__,
                                        _timestamp_start.strftime("%Y-%m-%d %H:%M:%S")),
@@ -3355,7 +3354,7 @@ def welcome_in_logfile(_timestamp_start):
         _for_logfile=True,
         _for_console=False)
 
-    msg("  = target directory given as parameter : \"{0}\" " \
+    msg("  = target directory given as parameter : \"{0}\" "
         "(path : \"{1}\")".format(ARGS.targetpath,
                                   normpath(ARGS.targetpath)),
         _for_logfile=True,
@@ -3392,8 +3391,8 @@ def where_is_the_configfile():
     configfile_name = ""
 
     msg_please_use_dlcfg = \
-     "    ! error : can't find any config file !\n" \
-     "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file."
+     ("    ! error : can't find any config file !\n"
+      "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file.")
 
     if ARGS.configfile is None:
         # no config file given as a parameter, let's guess where it is :
@@ -3417,7 +3416,7 @@ def where_is_the_configfile():
                     _consolecolor="red")
                 return ("", -1)
             else:
-                msg("  ! Can't find any configuration file, but you used the " \
+                msg("  ! Can't find any configuration file, but you used the "
                     "--downloaddefaultcfg option.")
                 return ("", 1)
 
@@ -3425,12 +3424,12 @@ def where_is_the_configfile():
         # A config file has been given as a parameter :
         configfile_name = ARGS.configfile
 
-        msg("  * config file given as a parameter : \"{0}\" " \
+        msg("  * config file given as a parameter : \"{0}\" "
             "(path : \"{1}\"".format(configfile_name,
                                      normpath(configfile_name)))
 
         if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
-            msg("  ! The config file \"{0}\" (path : \"{1}\") " \
+            msg("  ! The config file \"{0}\" (path : \"{1}\") "
                 "doesn't exist. ".format(configfile_name,
                                          normpath(configfile_name)),
                 _consolecolor="red")
