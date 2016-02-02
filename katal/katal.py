@@ -46,6 +46,8 @@ from datetime import datetime
 import filecmp
 import fnmatch
 import itertools
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 import platform
 import re
@@ -91,13 +93,58 @@ INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_sou
 
 TARGET_DB = dict()      # see documentation:database; initialized by read_target_db()
 
-USE_LOGFILE = False     # (bool) initialized from the configuration file
 LOGFILE = None          # the file descriptor, initialized by logfile_opening()
 LOGFILE_SIZE = 0        # size of the current logfile.
 
 SELECT = {}               # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
 FILTERS = {}              # see documentation:selection; initialized by read_filters()
+
+#===============================================================================
+# loggers
+#===============================================================================
+def extra_Logger(custom_parameters):
+    """"
+        extraLogger(custom_parameters)
+        ________________________________________________________________________
+        Mainly for syntax sugar.
+        R
+        It let to write logger.info(msg, color='blue') rather than
+        logger.info(msg, extra={'color': 'blue'})
+        ________________________________________________________________________
+        PARAMETER
+                o custom_parameters : (list) extra parameters added to a Logger
+        RETURN
+                A Logger class which can take custom_parameters as extra parameters
+                and pass them to the extra argument of Logger
+
+                Example:
+                    extraLogger(['color']).info(msg, color='blue') is equivalent to
+                    Logger.info(msg, extra={'color': 'blue'})
+        """
+
+    class CustomLogger(logging.Logger):
+        """
+            A custom Logger class
+        """
+        def _log(self, *args, **kwargs):
+            extra = kwargs.get('extra', {})
+            for parameter in custom_parameters:
+                extra[parameter] = kwargs.get(parameter, None)
+                kwargs.pop(parameter, None)
+            kwargs['extra'] = extra
+
+            return super()._log(*args, **kwargs)
+
+    return CustomLogger
+
+logging.setLoggerClass(extra_Logger(['color']))
+
+USE_LOGFILE = False     # (bool) initialized from the configuration file
+LOGGER = logging.getLogger('katal')      # base logger, will log everywhere
+FILE_LOGGER = logging.getLogger('file')  # will log only in file
+LOGFILE_SIZE = 0                         # size of the current logfile.
+USE_COLOR = True
 
 #===============================================================================
 # type(s)
@@ -192,7 +239,7 @@ CST__TRASH_SUBSUBDIR = "trash"
 
 # foreground colors :
 # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
-CST__LINUXCONSOLECOLORS = {
+CST_V_LINUXCONSOLECOLORS = {
     "default"       : "\033[0m",
     "red"           : "\033[0;31;1m",
     "cyan"          : "\033[0;36;1m",
@@ -218,6 +265,25 @@ class KatalError(BaseException):
         return repr(self.value)
 
 #///////////////////////////////////////////////////////////////////////////////
+class ColorFormatter(logging.Formatter):
+    # foreground colors :
+    # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
+    default =  "\033[0m"
+    red     =  "\033[0;31;1m"
+    cyan    =  "\033[0;36;1m"
+    white   =  "\033[0;37;1m"
+
+    def format(self, record):
+        color = record.color
+        if color and CST__PLATFORM != 'Windows':
+            record.color_start = getattr(self, color)
+            record.color_end = self.default
+        else:
+            record.color_start = ''
+            record.color_end = ''
+
+        return super().format(record)
+
 def action__add():
     """
         action__add()
@@ -2021,6 +2087,7 @@ def main():
     try:
         ARGS = read_command_line_arguments()
         check_args()
+        main_loggers()
 
         welcome(timestamp_start)
         main_warmup(timestamp_start)
@@ -2126,6 +2193,43 @@ def main_actions_tags():
         action__rmtags(ARGS.to)
 
 #///////////////////////////////////////////////////////////////////////////////
+def main_loggers():
+    """
+        main_loggers()
+        ________________________________________________________________________
+        Initializations:
+            Configure loggers to write to the correct files and display well
+    """
+    #...........................................................................
+    if USE_LOGFILE:
+        handler = RotatingFileHandler(get_logfile_fullname(),
+                                      maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
+                                      backupCount=1) #TODO: add config key
+
+        LOGGER.addHandler(handler)
+        FILE_LOGGER.addHandler(handler)
+
+    #...........................................................................
+    if USE_COLOR: #TODO: add config key to change this
+        formatter = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
+    else:
+        formatter = logging.Formatter('%(message)s')
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    LOGGER.addHandler(handler)
+
+    if ARGS.verbosity == 'none':
+        LOGGER.setLevel(logging.ERROR)
+        FILE_LOGGER.setLevel(logging.INFO) # To keep a record of what is done
+    elif ARGS.verbosity == 'default':
+        LOGGER.setLevel(logging.INFO)
+        FILE_LOGGER.setLevel(logging.INFO)
+    elif ARGS.verbosity == 'high':
+        LOGGER.setLevel(logging.DEBUG)
+        FILE_LOGGER.setLevel(logging.DEBUG)
+
+#///////////////////////////////////////////////////////////////////////////////
 def main_warmup(_timestamp_start):
     """
         main_warmup()
@@ -2153,7 +2257,7 @@ def main_warmup(_timestamp_start):
 
         o  sys.exit(-1) is called if the expected config file is ill-formed or missing.
     """
-    global CFG_PARAMETERS, LOGFILE
+    global CFG_PARAMETERS
 
     #...........................................................................
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
@@ -2198,11 +2302,6 @@ def main_warmup(_timestamp_start):
     #...........................................................................
     # list of the expected directories : if one directory is missing, let's create it.
     create_subdirs_in_target_path()
-
-    #...........................................................................
-    if USE_LOGFILE:
-        LOGFILE = logfile_opening()
-        welcome_in_logfile(_timestamp_start)
 
     #...........................................................................
     if ARGS.targetpath == source_path:
@@ -2314,37 +2413,11 @@ def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
 
         no RETURNED VALUE
     """
-    global LOGFILE, LOGFILE_SIZE
-
-    final_msg = _msg + "\n"
-
-    # first to the console : otherwise, if an error occurs by writing to the log
-    # file, it would'nt possible to read the message.
-    if ARGS.verbosity != 'none' and _for_console:
-        if _consolecolor is None or CST__PLATFORM == 'Windows':
-            sys.stdout.write(_msg+"\n")
-        else:
-            sys.stdout.write(CST__LINUXCONSOLECOLORS[_consolecolor])
-            sys.stdout.write(_msg+"\n")
-            sys.stdout.write(CST__LINUXCONSOLECOLORS["default"])
-
-    # secondly, to the logfile :
-    if USE_LOGFILE and _for_logfile and LOGFILE is not None:
-        if LOGFILE_SIZE + len(final_msg) > int(CFG_PARAMETERS["log file"]["maximal size"]):
-            # let's force writing on disk...
-            LOGFILE.flush()
-            os.fsync(LOGFILE)
-            # ... before closing :
-            LOGFILE.close()
-            # let's backup the current log file :
-            backup_logfile(get_logfile_fullname())
-            # let's remove the current log file's content :
-            os.remove(get_logfile_fullname())
-            # let's open a new log file :
-            LOGFILE = logfile_opening()
-
-        LOGFILE.write(final_msg)
-        LOGFILE_SIZE += len(final_msg)
+    if _for_console:
+        LOGGER.info(_msg, color=_consolecolor)
+    else:
+        print('not console')
+        FILE_LOGGER.info(_msg)
 
 #///////////////////////////////////////////////////////////////////////////////
 def normpath(_path):
