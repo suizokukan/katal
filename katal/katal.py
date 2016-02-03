@@ -239,7 +239,7 @@ def action__add():
 
     if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
         msg("    ! Not enough space on disk. Stopping the program.",
-            _consolecolor="red")
+            consolecolor="red")
         # returned value : -1 = error
         return -1
 
@@ -301,13 +301,13 @@ def action__add():
 
     except sqlite3.IntegrityError as exception:
         msg("!!! An error occured while writing the database : "+str(exception),
-            _consolecolor="red")
+            consolecolor="red")
         msg("!!! files_to_be_added : ",
-            _consolecolor="red")
+            consolecolor="red")
         for file_to_be_added in files_to_be_added:
             msg("     ! hashid={0}; partialhashid={1}; size={2}; name={3}; sourcename={4}; "
                 "sourcedate={5}; tagsstr={6}".format(*file_to_be_added),
-                _consolecolor="red")
+                consolecolor="red")
         raise KatalError("An error occured while writing the database : "+str(exception))
 
     db_connection.commit()
@@ -333,7 +333,7 @@ def action__addtag(tag, dest):
                                  concerned
     """
     msg("  = let's add the tag string \"{0}\" to {1}".format(tag, dest))
-    modify_the_tag_of_some_files(tag=tag, dest=dest, _mode="append")
+    modify_the_tag_of_some_files(tag=tag, dest=dest, mode="append")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__cleandbrm():
@@ -351,7 +351,7 @@ def action__cleandbrm():
 
     if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.",
-            _consolecolor="red")
+            consolecolor="red")
         return
 
     db_connection = sqlite3.connect(get_database_fullname())
@@ -368,7 +368,7 @@ def action__cleandbrm():
 
     if len(files_to_be_rmved_from_the_db) == 0:
         msg("    * no file to be removed : the database is ok.",
-            _consolecolor="red")
+            consolecolor="red")
     else:
         for hashid in files_to_be_rmved_from_the_db:
             if not ARGS.off:
@@ -422,14 +422,14 @@ def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location=
 
     except urllib.error.URLError as exception:
         msg("  ! An error occured : "+str(exception),
-            _consolecolor="red")
+            consolecolor="red")
         msg("  ... if you can't download the default config file, what about simply",
-            _consolecolor="red")
+            consolecolor="red")
         msg("  ... copy another config file to the target directory ?",
-            _consolecolor="red")
+            consolecolor="red")
         msg("  ... In a target directory, the config file is "
             "in the \"{0}\" directory.".format(os.path.join(CST__KATALSYS_SUBDIR)),
-            _consolecolor="red")
+            consolecolor="red")
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -454,7 +454,7 @@ def action__findtag(tag):
 
     if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.",
-            _consolecolor="red")
+            consolecolor="red")
         return
 
     db_connection = sqlite3.connect(get_database_fullname())
@@ -532,7 +532,7 @@ def action__new(targetname):
                                                 normpath(targetname)))
     if os.path.exists(normpath(targetname)):
         msg("  ! can't go further : the directory already exists.",
-            _consolecolor="red")
+            consolecolor="red")
         return
 
     if not ARGS.off:
@@ -560,7 +560,7 @@ def action__new(targetname):
             if not res:
                 msg("  ! A problem occured : "
                     "the creation of the target directory has been aborted.",
-                    _consolecolor="red")
+                    consolecolor="red")
 
     msg("  ... done with the creation of \"{0}\" as a new target directory.".format(targetname))
 
@@ -597,7 +597,7 @@ def action__rebase(newtargetpath):
 
     if dest_params is None:
         msg("    ! can't read the dest config file !",
-            _consolecolor="red")
+            consolecolor="red")
         return
 
     msg("    o config file found and read (ok)")
@@ -651,7 +651,7 @@ def action__rebase__files(olddb_cursor, dest_params, newtargetpath):
         PARAMETER :
                 o olddb_cursor         : cursor to the source database
                 o dest_params          : an object returned by read_parameters_from_cfgfile(),
-                                          like CFG_PARAMETERS
+                                         like CFG_PARAMETERS
                 o newtargetpath        : (str) path to the new target directory.
 
         RETURNED VALUE :
@@ -696,16 +696,16 @@ def action__rebase__files(olddb_cursor, dest_params, newtargetpath):
             msg("      ! anomaly : ancient file {1} should be renamed as {0} "
                 "but this name would have been already created in the new target directory ! "
                 "".format(new_name, fullname),
-                _consolecolor="red")
+                consolecolor="red")
             msg("        Two different files from the ancient target directory "
                 "can't bear the same name in the new target directory !",
-                _consolecolor="red")
+                consolecolor="red")
             anomalies_nbr += 1
         elif os.path.exists(new_name):
             msg("      ! anomaly : ancient file {1} should be renamed as {0} "
                 "but this name already exists in new target directory !".format(new_name,
                                                                                 fullname),
-                _consolecolor="red")
+                consolecolor="red")
             anomalies_nbr += 1
         else:
             files[olddb_record["hashid"]] = (fullname, new_name, date, tagsstr)
@@ -799,7 +799,7 @@ def action__reset():
 
     if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found, nothing to do .",
-            _consolecolor="red")
+            consolecolor="red")
         return
 
     if ARGS.verbosity != 'none':
@@ -849,7 +849,7 @@ def action__rmnotags():
 
     if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.",
-            _consolecolor="red")
+            consolecolor="red")
     else:
         db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
@@ -862,7 +862,7 @@ def action__rmnotags():
 
         if len(files_to_be_removed) == 0:
             msg("   ! no files to be removed.",
-                _consolecolor="red")
+                consolecolor="red")
         else:
             for hashid, name in files_to_be_removed:
                 msg("   o removing {0} from the database and from the target path".format(name))
@@ -883,12 +883,13 @@ def action__rmtags(dest):
         action__rmtags()
         ________________________________________________________________________
 
-        Remove the tags' string(s) in the target directory, overwriting ancient tags.
+        Remove the tags' string(s) in the target directory, overwriting ancient
+        tags.
         ________________________________________________________________________
 
         PARAMETERS
                 o dest           : (str) a regex string describing what files are
-                                  concerned
+                                   concerned
     """
     msg("  = let's remove the tags' string(s) in {0}".format(dest))
     action__settagsstr(tagsstr="", dest=dest)
@@ -928,7 +929,7 @@ def action__select():
     if len(SELECT) == 0:
         msg("    ! no file selected ! "
             "You have to modify the config file to get some files selected.",
-            _consolecolor="red")
+            consolecolor="red")
     else:
         ratio = len(SELECT)/(len(SELECT)+number_of_discarded_files)*100.0
         msg("    o number of selected files "
@@ -951,7 +952,7 @@ def action__select():
             "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
                                                          size_as_str(available_space),
                                                          size_ok),
-            _consolecolor=colorconsole)
+            consolecolor=colorconsole)
 
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add and CFG_PARAMETERS["target"]["mode"] != "nocopy":
@@ -982,11 +983,11 @@ def action__settagsstr(tagsstr, dest):
 
         PARAMETERS
                 o tagsstr      : (str) the new tags' strings
-                o dest           : (str) a regex string describing what files are
-                                  concerned
+                o dest         : (str) a regex string describing what files are
+                                 concerned
     """
     msg("  = let's apply the tag string\"{0}\" to {1}".format(tagsstr, dest))
-    modify_the_tag_of_some_files(tag=tagsstr, dest=dest, _mode="set")
+    modify_the_tag_of_some_files(tag=tagsstr, dest=dest, mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__target_kill(filename):
@@ -1011,12 +1012,12 @@ def action__target_kill(filename):
         "and from its database =".format(filename))
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath), filename)):
         msg("    ! can't find \"{0}\" file on disk.".format(filename),
-            _consolecolor="red")
+            consolecolor="red")
         return -1
 
     if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.",
-            _consolecolor="red")
+            consolecolor="red")
         return -3
     else:
         db_connection = sqlite3.connect(get_database_fullname())
@@ -1030,7 +1031,7 @@ def action__target_kill(filename):
 
         if filename_hashid is None:
             msg("    ! can't find \"{0}\" file in the database.".format(filename),
-                _consolecolor="red")
+                consolecolor="red")
             res = -2
         else:
             if not ARGS.off:
@@ -1099,7 +1100,7 @@ def action__whatabout(src):
     normsrc = normpath(src)
     if not os.path.exists(normsrc):
         msg("  ! error : can't find source file \"{0}\" .".format(normsrc),
-            _consolecolor="red")
+            consolecolor="red")
         return False
 
     # (2) is src a file or a directory ?
@@ -1107,7 +1108,7 @@ def action__whatabout(src):
         # informations about the source directory :
         if normpath(ARGS.targetpath) in normsrc:
             msg("  ! error : the given directory is inside the target directory.",
-                _consolecolor="red")
+                consolecolor="red")
             return False
 
         for dirpath, _, filenames in os.walk(normpath(src)):
@@ -1156,9 +1157,9 @@ def add_keywords_in_targetstr(srcstring,
         add_keywords_in_targetstr()
         ________________________________________________________________________
 
-        The function replaces some keywords in the string by the parameters given
+          The function replaces some keywords in the string by the parameters given
         to this function.
-        The function returned a string which may be used to create target files.
+          The function returned a string which may be used to create target files.
 
         see the available keywords in the documentation.
             (see documentation:configuration file)
@@ -1276,26 +1277,26 @@ def check_args():
         raise KatalError("--copyto can only be used in combination with --findtag .")
 
 #///////////////////////////////////////////////////////////////////////////////
-def create_empty_db(_db_name):
+def create_empty_db(db_name):
     """
         create_empty_db()
         ________________________________________________________________________
 
-        Create an empty database named _db_name .
+        Create an empty database named db_name .
         ________________________________________________________________________
 
         PARAMETER :
-            o _db_name : name of the file to be created .
+            o db_name : name of the file to be created .
                          Please use a normpath'd parameter : the normpath function
                          will not be called by create_empty_db() !
 
         no RETURNED VALUE
     """
-    msg("  ... creating an empty database named \"{0}\"...".format(_db_name))
+    msg("  ... creating an empty database named \"{0}\"...".format(db_name))
 
     if not ARGS.off:
 
-        db_connection = sqlite3.connect(_db_name)
+        db_connection = sqlite3.connect(db_name)
         db_cursor = db_connection.cursor()
 
         db_cursor.execute(CST__SQL__CREATE_DB)
@@ -1369,9 +1370,15 @@ def create_target_name(parameters,
                 o filename_no_extens           : (str)
                 o path                         : (str
                 o extension                    : (str)
-                o _size                         : (int)
+                o _size                        : (int)
                 o date                         : (str) see CST__DTIME_FORMAT
                 o database_index               : (int)
+
+        About the underscore before "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 (str)name
@@ -1414,15 +1421,21 @@ def create_target_name_and_tags(parameters,
 
         PARAMETERS
                 o parameters                   : an object returned by
-                                                  read_parameters_from_cfgfile(),
-                                                  like CFG_PARAMETERS
+                                                 read_parameters_from_cfgfile(),
+                                                 like CFG_PARAMETERS
                 o hashid                       : (str)
                 o filename_no_extens           : (str)
                 o path                         : (str
                 o extension                    : (str)
-                o _size                         : (int)
+                o _size                        : (int)
                 o date                         : (str) see CST__DTIME_FORMAT
                 o database_index               : (int)
+
+        About the underscore before "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 ( (str)name, (str)tags )
@@ -1474,15 +1487,21 @@ def create_target_tags(parameters,
 
         PARAMETERS
                 o parameters                   : an object returned by
-                                                  read_parameters_from_cfgfile(),
-                                                  like CFG_PARAMETERS
+                                                 read_parameters_from_cfgfile(),
+                                                 like CFG_PARAMETERS
                 o hashid                       : (str)
                 o filename_no_extens           : (str)
                 o path                         : (str
                 o extension                    : (str)
-                o _size                         : (int)
+                o _size                        : (int)
                 o date                         : (str) see CST__DTIME_FORMAT
                 o database_index               : (int)
+
+        About the underscore before "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 (str)name
@@ -1497,20 +1516,25 @@ def create_target_tags(parameters,
                                      database_index=database_index))
 
 #///////////////////////////////////////////////////////////////////////////////
-def draw_table(_rows, _data):
+def draw_table(rows, data):
     """
         draw_table()
         ________________________________________________________________________
 
-        Draw a table with some <_rows> and fill it with _data. The output is
+        Draw a table with some <rows> and fill it with data. The output is
         created by calling the msg() function.
         ________________________________________________________________________
 
         PARAMETERS :
-            o rows= ( ((str)row_name, (int)max length for this row), (str)separator)
+            o rows : list of ( (str)row_name, 
+                               (int)max length for this row,
+                               (str)separator,
+                             )
+
                    e.g. :
                    rows= ( ("hashid", HASHID_MAXLENGTH, "|"), )
-            o  _data : ( (str)row_content1, (str)row_content2, ...)
+
+            o  data : ( (str)row_content1, (str)row_content2, ...)
 
         no RETURNED VALUE
     """
@@ -1524,36 +1548,36 @@ def draw_table(_rows, _data):
         msg(string)
 
     # real rows' widths : it may happen that a row's width is greater than
-    # the maximal value given in _rows since the row name is longer than
+    # the maximal value given in rows since the row name is longer than
     # this maximal value.
-    rows = []
-    for row_name, row_maxlength, row_separator in _rows:
-        rows.append((row_name, max(len(row_name), row_maxlength), row_separator))
+    _rows = []
+    for row_name, row_maxlength, row_separator in rows:
+        _rows.append((row_name, max(len(row_name), row_maxlength), row_separator))
 
     # header :
     draw_line()
 
     string = " "*6 + "|"
-    for row_name, row_maxlength, row_separator in rows:
+    for row_name, row_maxlength, row_separator in _rows:
         string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + row_separator
     msg(string)
 
     draw_line()
 
     # data :
-    for linedata in _data:
+    for linedata in data:
         string = "      |"
         for row_index, row_content in enumerate(linedata):
-            text = shortstr(row_content, _rows[row_index][1])
+            text = shortstr(row_content, rows[row_index][1])
             string += (" " + text + \
-                       " "*(rows[row_index][1]-len(text)) + \
-                       " " + rows[row_index][2])
+                       " "*(_rows[row_index][1]-len(text)) + \
+                       " " + _rows[row_index][2])
         msg(string)  # let's write the computed line
 
     draw_line()
 
 #///////////////////////////////////////////////////////////////////////////////
-def eval_filter_for_a_file(_filter, _filename, _size, date):
+def eval_filter_for_a_file(_filter, filename, _size, date):
     """
         eval_filter_for_a_file()
         ________________________________________________________________________
@@ -1564,9 +1588,9 @@ def eval_filter_for_a_file(_filter, _filename, _size, date):
 
         PARAMETERS
                 o _filter        : a dict, see documentation:select
-                o _filename     : (str) file's name
-                o _size         : (int) file's size, in bytes.
-                o date         : (str)file's date
+                o filename       : (str) file's name
+                o _size          : (int) file's size, in bytes.
+                o date           : (str)file's date
 
         About the underscore before "_filter" and "_size" :
         confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
@@ -1580,7 +1604,7 @@ def eval_filter_for_a_file(_filter, _filename, _size, date):
     res = True
 
     if res and "name" in _filter:
-        res = thefilehastobeadded__filt_name(_filter, _filename)
+        res = thefilehastobeadded__filt_name(_filter, filename)
     if res and "size" in _filter:
         res = thefilehastobeadded__filt_size(_filter, _size)
     if res and "date" in _filter:
@@ -1589,7 +1613,7 @@ def eval_filter_for_a_file(_filter, _filename, _size, date):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def fill_select(_debug_datatime=None):
+def fill_select(debug_datatime=None):
     """
         fill_select()
         ________________________________________________________________________
@@ -1599,8 +1623,8 @@ def fill_select(_debug_datatime=None):
         ________________________________________________________________________
 
         PARAMETERS
-                o  _debug_datatime : None (normal value) or a dict of CST__DTIME_FORMAT
-                                     strings if in debug/test mode.
+                o debug_datatime : None (normal value) or a dict of CST__DTIME_FORMAT
+                                   strings if in debug/test mode.
 
         RETURNED VALUE
                 (int) the number of discarded files
@@ -1634,11 +1658,11 @@ def fill_select(_debug_datatime=None):
             # ..................................................................
             if os.path.exists(fullname):
                 size = os.stat(normpath(fullname)).st_size
-                if _debug_datatime is None:
+                if debug_datatime is None:
                     time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
                     time = time.replace(second=0, microsecond=0)
                 else:
-                    time = datetime.strptime(_debug_datatime[fullname], CST__DTIME_FORMAT)
+                    time = datetime.strptime(debug_datatime[fullname], CST__DTIME_FORMAT)
 
                 fname_no_extens, extension = get_filename_and_extension(normpath(filename))
 
@@ -1726,16 +1750,16 @@ def fill_select(_debug_datatime=None):
             else:
                 msg("    ! browsing {0}, an error occured : "
                     "can't read the file ".format(source_path),
-                    _consolecolor='red')
+                    consolecolor='red')
                 msg("    \"{0}\"".format(fullname),
-                    _consolecolor='red')
+                    consolecolor='red')
 
-    return fill_select__checks(_number_of_discarded_files=number_of_discarded_files,
-                               _prefix=prefix,
-                               _fullname=fullname)
+    return fill_select__checks(number_of_discarded_files=number_of_discarded_files,
+                               prefix=prefix,
+                               fullname=fullname)
 
 #///////////////////////////////////////////////////////////////////////////////
-def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
+def fill_select__checks(number_of_discarded_files, prefix, fullname):
     """
         fill_select__checks()
         ________________________________________________________________________
@@ -1748,9 +1772,9 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
         ________________________________________________________________________
 
         PARAMETERS :
-                o _number_of_discarded_files    : (int) see fill_select()
-                o _prefix                       : (str) see fill_select()
-                o _fullname                     : (str) see fill_select()
+                o number_of_discarded_files    : (int) see fill_select()
+                o prefix                       : (str) see fill_select()
+                o fullname                     : (str) see fill_select()
 
         RETURNED VALUE
                 (int) the number of discarded files
@@ -1765,10 +1789,10 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
 
         if SELECT[selectedfile_hash1].targetname == SELECT[selectedfile_hash2].targetname:
             msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" would be used "
-                "two times for two different files !".format(_prefix,
-                                                             _fullname,
+                "two times for two different files !".format(prefix,
+                                                             fullname,
                                                              SELECT[selectedfile_hash2].targetname),
-                _consolecolor="red")
+                consolecolor="red")
 
             to_be_discarded.append(selectedfile_hash2)
 
@@ -1782,10 +1806,10 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
             if os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                            SELECT[selectedfile_hash].targetname)):
                 msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already "
-                    "exists in the target path !".format(_prefix,
-                                                         _fullname,
+                    "exists in the target path !".format(prefix,
+                                                         fullname,
                                                          SELECT[selectedfile_hash].targetname),
-                    _consolecolor="red")
+                    consolecolor="red")
 
                 to_be_discarded.append(selectedfile_hash)
 
@@ -1800,16 +1824,16 @@ def fill_select__checks(_number_of_discarded_files, _prefix, _fullname):
         msg("    !  beware : {0} anomal{1} detected. "
             "See details above.".format(len(to_be_discarded),
                                         ending),
-            _consolecolor="red")
+            consolecolor="red")
 
         for _hash in to_be_discarded:
             # e.g. , _hash may have discarded two times (same target name + file
             # already present on disk), hence the following condition :
             if _hash in SELECT:
                 del SELECT[_hash]
-                _number_of_discarded_files += 1
+                number_of_discarded_files += 1
 
-    return _number_of_discarded_files
+    return number_of_discarded_files
 
 #///////////////////////////////////////////////////////////////////////////////
 def get_database_fullname():
@@ -2162,7 +2186,7 @@ def main_warmup(timestamp_start):
         ________________________________________________________________________
 
         PARAMETER :
-                o  timestamp_start : a datetime.datetime object
+                o timestamp_start : a datetime.datetime object
 
         no RETURNED VALUE
 
@@ -2198,15 +2222,15 @@ def main_warmup(timestamp_start):
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
         msg("  = mode=move                                                             =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
         msg("  =     the files will be moved (NOT copied) in the target directory      =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
         msg("  = mode=nocopy                                                           =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
         msg("  =     the files will NOT be copied or moved in the target directory     =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
@@ -2224,7 +2248,7 @@ def main_warmup(timestamp_start):
         msg("  ! warning : "
             "source path and target path have the same value, "
             "namely \"{0}\" (path: \"{1}\")".format(ARGS.targetpath, normpath(ARGS.targetpath)),
-            _consolecolor="red")
+            consolecolor="red")
 
     #...........................................................................
     # we show the following informations :
@@ -2253,7 +2277,7 @@ def main_warmup(timestamp_start):
         show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
-def modify_the_tag_of_some_files(tag, dest, _mode):
+def modify_the_tag_of_some_files(tag, dest, mode):
     """
         modify_the_tag_of_some_files()
         ________________________________________________________________________
@@ -2263,14 +2287,14 @@ def modify_the_tag_of_some_files(tag, dest, _mode):
 
         PARAMETERS
                 o tag          : (str) new tag(s)
-                o dest           : (str) a string (wildcards accepted) describing
-                                   what files are concerned
-                o _mode         : (str) "append" to add "tag" to the other tags
-                                        "set" to replace old tag(s) by a new one
+                o dest         : (str) a string (wildcards accepted) describing
+                                  what files are concerned
+                o mode         : (str) "append" to add "tag" to the other tags
+                                       "set" to replace old tag(s) by a new one
     """
     if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.",
-            _consolecolor="red")
+            consolecolor="red")
     else:
         db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
@@ -2292,24 +2316,24 @@ def modify_the_tag_of_some_files(tag, dest, _mode):
                 if ARGS.off:
                     pass
 
-                elif _mode == "set":
+                elif mode == "set":
                     sqlorder = 'UPDATE dbfiles SET tagsstr=? WHERE hashid=?'
                     db_connection.execute(sqlorder, (tag, hashid))
 
-                elif _mode == "append":
+                elif mode == "append":
                     sqlorder = ('UPDATE dbfiles SET tagsstr = tagsstr || \"{0}{1}\" '
                                 'WHERE hashid=\"{2}\"').format(CST__TAG_SEPARATOR, tag, hashid)
                     db_connection.executescript(sqlorder)
 
                 else:
-                    raise KatalError("_mode argument \"{0}\" isn't known".format(_mode))
+                    raise KatalError("mode argument \"{0}\" isn't known".format(mode))
 
             db_connection.commit()
 
         db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
+def msg(_msg, for_console=True, for_logfile=True, consolecolor=None):
     """
         msg()
         ________________________________________________________________________
@@ -2321,9 +2345,9 @@ def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
 
         PARAMETERS
                 o _msg          : (str) the message to be written
-                o _for_console  : (bool) authorization to write on console
-                o _for_logfile  : (bool) authorization to write in the log file
-                o _consolecolor : (None/str) see CST__LINUXCONSOLECOLORS
+                o for_console  : (bool) authorization to write on console
+                o for_logfile  : (bool) authorization to write in the log file
+                o consolecolor : (None/str) see CST__LINUXCONSOLECOLORS
                                   The color will be displayed on console, not
                                   in the log file.
 
@@ -2335,16 +2359,16 @@ def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
 
     # first to the console : otherwise, if an error occurs by writing to the log
     # file, it would'nt possible to read the message.
-    if ARGS.verbosity != 'none' and _for_console:
-        if _consolecolor is None or CST__PLATFORM == 'Windows':
+    if ARGS.verbosity != 'none' and for_console:
+        if consolecolor is None or CST__PLATFORM == 'Windows':
             sys.stdout.write(_msg+"\n")
         else:
-            sys.stdout.write(CST__LINUXCONSOLECOLORS[_consolecolor])
+            sys.stdout.write(CST__LINUXCONSOLECOLORS[consolecolor])
             sys.stdout.write(_msg+"\n")
             sys.stdout.write(CST__LINUXCONSOLECOLORS["default"])
 
     # secondly, to the logfile :
-    if USE_LOGFILE and _for_logfile and LOGFILE is not None:
+    if USE_LOGFILE and for_logfile and LOGFILE is not None:
         if LOGFILE_SIZE + len(final_msg) > int(CFG_PARAMETERS["log file"]["maximal size"]):
             # let's force writing on disk...
             LOGFILE.flush()
@@ -2615,7 +2639,7 @@ def possible_paths_to_cfg():
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def read_parameters_from_cfgfile(_configfile_name):
+def read_parameters_from_cfgfile(configfile_name):
     """
         read_parameters_from_cfgfile()
         ________________________________________________________________________
@@ -2627,7 +2651,7 @@ def read_parameters_from_cfgfile(_configfile_name):
         ________________________________________________________________________
 
         PARAMETER
-                o _configfile_name       : (str) config file name (e.g. katal.ini)
+                o configfile_name       : (str) config file name (e.g. katal.ini)
 
         RETURNED VALUE
                 None if an error occured while reading the configuration file
@@ -2638,7 +2662,7 @@ def read_parameters_from_cfgfile(_configfile_name):
     parser = configparser.ConfigParser()
 
     try:
-        parser.read(_configfile_name)
+        parser.read(configfile_name)
         USE_LOGFILE = parser["log file"]["use log file"] == "True"
         # just to check the existence of the following values in the configuration file :
         _ = parser["log file"]["maximal size"]
@@ -2653,20 +2677,20 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["source"]["path"]
     except KeyError as exception:
         msg("  ! An error occured while reading "
-            "the config file \"{0}\".".format(_configfile_name),
-            _consolecolor="red")
+            "the config file \"{0}\".".format(configfile_name),
+            consolecolor="red")
         msg("  ! Your configuration file lacks a specific value : \"{0}\".".format(exception),
-            _consolecolor="red")
+            consolecolor="red")
         msg("  ... you should download a new default config file : "
             "see -dlcfg/--downloaddefaultcfg option",
-            _consolecolor="red")
+            consolecolor="red")
         return None
     except BaseException as exception:
         msg("  ! An error occured while reading "
-            "the config file \"{0}\".".format(_configfile_name),
-            _consolecolor="red")
+            "the config file \"{0}\".".format(configfile_name),
+            consolecolor="red")
         msg("  ! Python message : \"{0}\"".format(exception),
-            _consolecolor="red")
+            consolecolor="red")
         return None
 
     if parser["target"]["mode"] == 'nocopy':
@@ -2676,9 +2700,9 @@ def read_parameters_from_cfgfile(_configfile_name):
         parser["target"]["name of the target files"] = "%%i"
 
         msg("  *  since 'mode'=='nocopy', the value of \"[target]name of the target files\" ",
-            _consolecolor="cyan")
+            consolecolor="cyan")
         msg("     is neutralized and set to '%i' (i.e. the database index : '1', '2', ...)",
-            _consolecolor="cyan")
+            consolecolor="cyan")
 
     return parser
 
@@ -2750,7 +2774,7 @@ def read_target_db():
     db_connection.close()
 
 #/////////////////////////////////////////////////////////////////////////////////////////
-def remove_illegal_characters(_src):
+def remove_illegal_characters(src):
     """
         remove_illegal_characters()
         ________________________________________________________________________
@@ -2760,12 +2784,12 @@ def remove_illegal_characters(_src):
         ________________________________________________________________________
 
         PARAMETER
-                o _src   : (str) the source string
+                o src   : (str) the source string
 
         RETURNED VALUE
-                the expected string, i.e. <_src> without illegal characters.
+                the expected string, i.e. <src> without illegal characters.
     """
-    res = _src
+    res = src
     for char in ("*", "/", "\\", ".", "[", "]", ":", ";", "|", "=", ",", "?", "<", ">", "-", " "):
         res = res.replace(char, "_")
     return res
@@ -2812,24 +2836,24 @@ def show_infos_about_source_path():
 
     if not os.path.exists(normpath(source_path)):
         msg("    ! can't find source path \"{0}\" .".format(source_path),
-            _consolecolor="red")
+            consolecolor="red")
         return
     if not os.path.isdir(normpath(source_path)):
         msg("    ! source path \"{0}\" isn't a directory .".format(source_path),
-            _consolecolor="red")
+            consolecolor="red")
         return
 
     if is_ntfs_prefix_mandatory(source_path):
         msg("    ! the source path should be used with the NTFS prefix for long filenames.",
-            _consolecolor="red")
+            consolecolor="red")
 
         if not ARGS.usentfsprefix:
             msg("    ! ... but the --usentfsprefix argument wasn't given !",
-                _consolecolor="red")
+                consolecolor="red")
             msg("    ! You may encounter an IOError, or a FileNotFound error.",
-                _consolecolor="red")
+                consolecolor="red")
             msg("    ! If so, please use the --usentfsprefix argument.",
-                _consolecolor="red")
+                consolecolor="red")
             msg("")
 
     total_size = 0
@@ -2866,9 +2890,9 @@ def show_infos_about_source_path():
             else:
                 msg("    ! browsing {0}, an error occured : "
                     "can't read the file ".format(source_path),
-                    _consolecolor='red')
+                    consolecolor='red')
                 msg("    \"{0}\"".format(fullname),
-                    _consolecolor='red')
+                    consolecolor='red')
 
     msg("    o files number : {0} file(s)".format(files_number))
     msg("    o total size : {0}".format(size_as_str(total_size)))
@@ -2902,15 +2926,15 @@ def show_infos_about_target_path():
     #...........................................................................
     if is_ntfs_prefix_mandatory(ARGS.targetpath):
         msg("    ! the target path should be used with the NTFS prefix for long filenames.",
-            _consolecolor="red")
+            consolecolor="red")
 
         if not ARGS.usentfsprefix:
             msg("    ! ... but the --usentfsprefix argument wasn't given !",
-                _consolecolor="red")
+                consolecolor="red")
             msg("    ! You may encounter an IOError, or a FileNotFound error.",
-                _consolecolor="red")
+                consolecolor="red")
             msg("    ! If so, please use the --usentfsprefix argument.",
-                _consolecolor="red")
+                consolecolor="red")
             msg("")
 
     #...........................................................................
@@ -2956,7 +2980,7 @@ def show_infos_about_target_path():
 
     if row_index == 0:
         msg("    ! (empty database)",
-            _consolecolor="red")
+            consolecolor="red")
         return 0
 
     msg("    o {0} file(s) in the database :".format(row_index))
@@ -2973,18 +2997,18 @@ def show_infos_about_target_path():
     # beware : characters like "║" are forbidden (think to the cp1252 encoding
     # required by Windows terminal)
     if CFG_PARAMETERS["target"]["mode"] != 'nocopy':
-        draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
-                          ("name", targetname_maxlength, "|"),
-                          ("tags", tagsstr_maxlength, "|"),
-                          ("source name", sourcename_maxlength, "|"),
-                          ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
-                   _data=rows_data)
+        draw_table(rows=(("hashid/base64", hashid_maxlength, "|"),
+                         ("name", targetname_maxlength, "|"),
+                         ("tags", tagsstr_maxlength, "|"),
+                         ("source name", sourcename_maxlength, "|"),
+                         ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
+                   data=rows_data)
     else:
-        draw_table(_rows=(("hashid/base64", hashid_maxlength, "|"),
-                          ("tags", tagsstr_maxlength, "|"),
-                          ("source name", sourcename_maxlength, "|"),
-                          ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
-                   _data=rows_data)
+        draw_table(rows=(("hashid/base64", hashid_maxlength, "|"),
+                         ("tags", tagsstr_maxlength, "|"),
+                         ("source name", sourcename_maxlength, "|"),
+                         ("source date", CST__DTIME_FORMAT_LENGTH, "|")),
+                   data=rows_data)
 
     db_connection.close()
 
@@ -3001,6 +3025,12 @@ def size_as_str(_size):
 
         PARAMETER
                 o _size         : (int) size in bytes
+
+        About the underscore before "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 a str(ing)
@@ -3189,6 +3219,12 @@ def thefilehastobeadded__filt_date(_filter, date):
                 o _filter        : a dict object; see documentation:selection
                 o date         : (str) file's datestamp (object datetime.datetime)
 
+        About the underscore before "_filter" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
+
         RETURNED VALUE
                 the expected boolean
     """
@@ -3321,11 +3357,11 @@ def welcome(timestamp_start):
                                               __version__,
                                               timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
     msg("="*len(strmsg),
-        _consolecolor="white")
+        consolecolor="white")
     msg(strmsg,
-        _consolecolor="white")
+        consolecolor="white")
     msg("="*len(strmsg),
-        _consolecolor="white")
+        consolecolor="white")
 
     # command line arguments :
     msg("  = command line arguments : {0}".format(sys.argv))
@@ -3346,13 +3382,13 @@ def welcome(timestamp_start):
 
     if ARGS.off:
         msg("  = --off option detected :                                               =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
         msg("  =                no file will be modified, no directory will be created =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
         msg("  =                but the corresponding messages will be written in the  =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
         msg("  =                log file.                                              =",
-            _consolecolor="cyan")
+            consolecolor="cyan")
 
 #///////////////////////////////////////////////////////////////////////////////
 def welcome_in_logfile(timestamp_start):
@@ -3380,18 +3416,18 @@ def welcome_in_logfile(timestamp_start):
         "(launched at {2}) ===".format(__projectname__,
                                        __version__,
                                        timestamp_start.strftime("%Y-%m-%d %H:%M:%S")),
-        _for_logfile=True,
-        _for_console=False)
+        for_logfile=True,
+        for_console=False)
 
     msg("  = command line arguments : {0}".format(sys.argv),
-        _for_logfile=True,
-        _for_console=False)
+        for_logfile=True,
+        for_console=False)
 
     msg("  = target directory given as parameter : \"{0}\" "
         "(path : \"{1}\")".format(ARGS.targetpath,
                                   normpath(ARGS.targetpath)),
-        _for_logfile=True,
-        _for_console=False)
+        for_logfile=True,
+        for_console=False)
 
 #///////////////////////////////////////////////////////////////////////////////
 def where_is_the_configfile():
@@ -3446,7 +3482,7 @@ def where_is_the_configfile():
 
             if ARGS.downloaddefaultcfg is None:
                 msg(msg_please_use_dlcfg,
-                    _consolecolor="red")
+                    consolecolor="red")
                 return ("", -1)
             else:
                 msg("  ! Can't find any configuration file, but you used the "
@@ -3465,11 +3501,11 @@ def where_is_the_configfile():
             msg("  ! The config file \"{0}\" (path : \"{1}\") "
                 "doesn't exist. ".format(configfile_name,
                                          normpath(configfile_name)),
-                _consolecolor="red")
+                consolecolor="red")
 
             if ARGS.downloaddefaultcfg is None:
                 msg(msg_please_use_dlcfg,
-                    _consolecolor="red")
+                    consolecolor="red")
 
             return ("", -2)
 
