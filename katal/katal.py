@@ -319,21 +319,21 @@ def action__add():
     return 0
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__addtag(_tag, _to):
+def action__addtag(tag, dest):
     """
         action__addtag()
         ________________________________________________________________________
 
-        Add a tag to the files given by the _to parameter.
+        Add a tag dest the files given by the "dest" parameter.
         ________________________________________________________________________
 
         PARAMETERS
-                o _tag          : (str) new tag to be added
-                o _to           : (str) a regex string describing what files are
-                                  concerned
+                o tag          : (str) new tag to be added
+                o dest         : (str) a regex string describing what files are
+                                 concerned
     """
-    msg("  = let's add the tag string \"{0}\" to {1}".format(_tag, _to))
-    modify_the_tag_of_some_files(_tag=_tag, _to=_to, _mode="append")
+    msg("  = let's add the tag string \"{0}\" to {1}".format(tag, dest))
+    modify_the_tag_of_some_files(tag=tag, dest=dest, _mode="append")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__cleandbrm():
@@ -383,40 +383,40 @@ def action__cleandbrm():
             "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME, _location="local"):
+def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location="local"):
     """
         action__downloadefaultcfg()
         ________________________________________________________________________
 
         Download the default configuration file; save it in the current directory
-        (_location='local') or in the user's HOME directory (_location='home').
+        (location='local') or in the user's HOME directory (location='home').
         ________________________________________________________________________
 
         PARAMETERS :
-            o (str) _targetname : the new name of the downloaded file
-            o (str) _location : "local" or "home"
+            o (str) targetname : the new name of the downloaded file
+            o (str) location : "local" or "home"
 
         RETURNED VALUE :
             (bool) success
     """
     msg("  = downloading the default configuration file =")
-    msg("    ... trying to download {0} from {1}".format(_targetname, CST__DEFAULTCFGFILE_URL))
+    msg("    ... trying to download {0} from {1}".format(targetname, CST__DEFAULTCFGFILE_URL))
 
     try:
         if not ARGS.off:
             with urllib.request.urlopen(CST__DEFAULTCFGFILE_URL) as response, \
-                 open(_targetname, 'wb') as out_file:
+                 open(targetname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
-        msg("  * download completed : \"{0}\" (path : \"{1}\")".format(_targetname,
-                                                                       normpath(_targetname)))
+        msg("  * download completed : \"{0}\" (path : \"{1}\")".format(targetname,
+                                                                       normpath(targetname)))
 
-        if _location == 'home':
+        if location == 'home':
             newname = os.path.join(possible_paths_to_cfg()[-1],
-                                   os.path.basename(_targetname))
+                                   os.path.basename(targetname))
             msg("  * Since you wrote '--downloaddefaultcfg=home', "
                 "let's move the download file to the user's home directory...")
-            msg("    namely {0} -> {1}".format(_targetname, newname))
-            shutil.move(_targetname, newname)
+            msg("    namely {0} -> {1}".format(targetname, newname))
+            shutil.move(targetname, newname)
 
         return True
 
@@ -433,24 +433,24 @@ def action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME, _locatio
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__findtag(_tag):
+def action__findtag(tag):
     """
         action__findtag()
         ________________________________________________________________________
 
-        Display the files tagged with _tag. _tag is a simple string, not a
-        regex. The function searches a substring _tag in the tags' string.
+        Display the files tagged with a tag. "tag" is a simple string, not a
+        regex. The function searches a substring "tag" in the tags' string.
 
         With --copyto, copy the selected files into the directory whose name
         is given by ARGS.copyto .
         ________________________________________________________________________
 
         PARAMETER
-            o _tag : (str)the searched tag
+            o tag : (str)the searched tag
 
         no RETURNED VALUE
     """
-    msg("  = searching the files with the tag \"{0}\" =".format(_tag))
+    msg("  = searching the files with the tag \"{0}\" =".format(tag))
 
     if not os.path.exists(normpath(get_database_fullname())):
         msg("    ! no database found.",
@@ -463,7 +463,7 @@ def action__findtag(_tag):
 
     res = []
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-        if _tag in db_record["tagsstr"]:
+        if tag in db_record["tagsstr"]:
 
             res.append(db_record["name"])
             msg("    o \"{0}\" : \"{1}\"".format(db_record["name"],
@@ -471,11 +471,11 @@ def action__findtag(_tag):
 
     len_res = len(res)
     if len_res == 0:
-        msg("    o no file matches the tag \"{0}\" .".format(_tag))
+        msg("    o no file matches the tag \"{0}\" .".format(tag))
     elif len_res == 1:
-        msg("    o one file matches the tag \"{0}\" .".format(_tag))
+        msg("    o one file matches the tag \"{0}\" .".format(tag))
     else:
-        msg("    o {0} files match the tag \"{1}\" .".format(len_res, _tag))
+        msg("    o {0} files match the tag \"{1}\" .".format(len_res, tag))
 
     db_connection.commit()
     db_connection.close()
@@ -517,7 +517,7 @@ def action__infos():
     return show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__new(_targetname):
+def action__new(targetname):
     """
         action__new()
         ________________________________________________________________________
@@ -528,22 +528,22 @@ def action__new(_targetname):
         no PARAMETER, no RETURNED VALUE
     """
     msg("  = about to create a new target directory "
-        "named \"{0}\" (path : \"{1}\")".format(_targetname,
-                                                normpath(_targetname)))
-    if os.path.exists(normpath(_targetname)):
+        "named \"{0}\" (path : \"{1}\")".format(targetname,
+                                                normpath(targetname)))
+    if os.path.exists(normpath(targetname)):
         msg("  ! can't go further : the directory already exists.",
             _consolecolor="red")
         return
 
     if not ARGS.off:
         msg("  ... creating the target directory with its sub-directories...")
-        os.mkdir(normpath(_targetname))
-        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR))
-        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR))
-        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))
-        os.mkdir(os.path.join(normpath(_targetname), CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR))
+        os.mkdir(normpath(targetname))
+        os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR))
+        os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))
+        os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR))
 
-        create_empty_db(os.path.join(normpath(_targetname),
+        create_empty_db(os.path.join(normpath(targetname),
                                      CST__KATALSYS_SUBDIR,
                                      CST__DATABASE_NAME))
 
@@ -553,19 +553,19 @@ def action__new(_targetname):
                    "into the expected directory ? (y/N) "))
 
         if answer in ("y", "yes"):
-            res = action__downloadefaultcfg(_targetname=os.path.join(normpath(_targetname),
-                                                                     CST__KATALSYS_SUBDIR,
-                                                                     CST__DEFAULT_CONFIGFILE_NAME),
-                                            _location="local")
+            res = action__downloadefaultcfg(targetname=os.path.join(normpath(targetname),
+                                                                    CST__KATALSYS_SUBDIR,
+                                                                    CST__DEFAULT_CONFIGFILE_NAME),
+                                            location="local")
             if not res:
                 msg("  ! A problem occured : "
                     "the creation of the target directory has been aborted.",
                     _consolecolor="red")
 
-    msg("  ... done with the creation of \"{0}\" as a new target directory.".format(_targetname))
+    msg("  ... done with the creation of \"{0}\" as a new target directory.".format(targetname))
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__rebase(_newtargetpath):
+def action__rebase(newtargetpath):
     """
         action__rebase()
         ________________________________________________________________________
@@ -574,7 +574,7 @@ def action__rebase(_newtargetpath):
         ________________________________________________________________________
 
         PARAMETER :
-                o _newtargetpath        : (str) path to the new target directory.
+                o newtargetpath        : (str) path to the new target directory.
 
         no RETURNED VALUE
     """
@@ -584,10 +584,10 @@ def action__rebase(_newtargetpath):
     msg("    o from {0} (path : \"{1}\")".format(source_path,
                                                  normpath(source_path)))
 
-    msg("    o to   {0} (path : \"{1}\")".format(_newtargetpath,
-                                                 normpath(_newtargetpath)))
+    msg("    o to   {0} (path : \"{1}\")".format(newtargetpath,
+                                                 normpath(newtargetpath)))
 
-    to_configfile = os.path.join(_newtargetpath,
+    to_configfile = os.path.join(newtargetpath,
                                  CST__KATALSYS_SUBDIR,
                                  CST__DEFAULT_CONFIGFILE_NAME)
     msg("    o trying to read dest config file {0} "
@@ -606,7 +606,7 @@ def action__rebase(_newtargetpath):
     msg("    o tags to be added : "
         "{0}".format(dest_params["target"]["tags"]))
 
-    new_db = os.path.join(normpath(_newtargetpath), CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)
+    new_db = os.path.join(normpath(newtargetpath), CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)
     if not ARGS.off:
         if os.path.exists(new_db):
             # let's delete the previous new database :
@@ -617,7 +617,7 @@ def action__rebase(_newtargetpath):
     olddb_connection.row_factory = sqlite3.Row
     olddb_cursor = olddb_connection.cursor()
 
-    files, anomalies_nbr = action__rebase__files(olddb_cursor, dest_params, _newtargetpath)
+    files, anomalies_nbr = action__rebase__files(olddb_cursor, dest_params, newtargetpath)
 
     go_on = True
     if anomalies_nbr != 0:
@@ -637,7 +637,7 @@ def action__rebase(_newtargetpath):
         olddb_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
+def action__rebase__files(olddb_cursor, dest_params, newtargetpath):
     """
         action__rebase__files()
         ________________________________________________________________________
@@ -649,10 +649,10 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
         ________________________________________________________________________
 
         PARAMETER :
-                o _olddb_cursor         : cursor to the source database
-                o _dest_params          : an object returned by read_parameters_from_cfgfile(),
+                o olddb_cursor         : cursor to the source database
+                o dest_params          : an object returned by read_parameters_from_cfgfile(),
                                           like CFG_PARAMETERS
-                o _newtargetpath        : (str) path to the new target directory.
+                o newtargetpath        : (str) path to the new target directory.
 
         RETURNED VALUE :
                 (files, (int)number of anomalies)
@@ -670,22 +670,22 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
     filenames = set()   # to be used to avoid duplicates.
 
     anomalies_nbr = 0
-    for index, olddb_record in enumerate(_olddb_cursor.execute('SELECT * FROM dbfiles')):
+    for index, olddb_record in enumerate(olddb_cursor.execute('SELECT * FROM dbfiles')):
         fullname = normpath(os.path.join(source_path, olddb_record["name"]))
         filename_no_extens, extension = get_filename_and_extension(fullname)
 
         size = olddb_record["size"]
         date = olddb_record["sourcedate"]
         new_name = \
-            create_target_name(_parameters=_dest_params,
-                               _hashid=olddb_record["hashid"],
-                               _filename_no_extens=filename_no_extens,
-                               _path=olddb_record["sourcename"],
-                               _extension=extension,
+            create_target_name(parameters=dest_params,
+                               hashid=olddb_record["hashid"],
+                               filename_no_extens=filename_no_extens,
+                               path=olddb_record["sourcename"],
+                               extension=extension,
                                _size=size,
-                               _date=datetime.utcfromtimestamp(date).strftime(CST__DTIME_FORMAT),
-                               _database_index=index)
-        new_name = normpath(os.path.join(_newtargetpath, new_name))
+                               date=datetime.utcfromtimestamp(date).strftime(CST__DTIME_FORMAT),
+                               database_index=index)
+        new_name = normpath(os.path.join(newtargetpath, new_name))
         tagsstr = olddb_record["tagsstr"]
 
         msg("      o {0} : {1} would be copied as {2}".format(olddb_record["hashid"],
@@ -714,22 +714,28 @@ def action__rebase__files(_olddb_cursor, _dest_params, _newtargetpath):
     return files, anomalies_nbr
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__rebase__write(_new_db, _files):
+def action__rebase__write(new_db, _files):
     """
         action__rebase__write()
         ________________________________________________________________________
 
-        Write the files described by _files in the new target directory.
+        Write the files described by "_files" in the new target directory.
         ________________________________________________________________________
 
         PARAMETER :
-                o _new_db               : (str) new database's name
+                o new_db                : (str) new database's name
                 o _files                : (dict) see action__rebase__files()
+
+        About the underscore before "_files" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         no RETURNED VALUE
     """
     # let's write the new database :
-    newdb_connection = sqlite3.connect(_new_db)
+    newdb_connection = sqlite3.connect(new_db)
     newdb_connection.row_factory = sqlite3.Row
     newdb_cursor = newdb_connection.cursor()
 
@@ -872,7 +878,7 @@ def action__rmnotags():
         db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__rmtags(_to):
+def action__rmtags(dest):
     """
         action__rmtags()
         ________________________________________________________________________
@@ -881,11 +887,11 @@ def action__rmtags(_to):
         ________________________________________________________________________
 
         PARAMETERS
-                o _to           : (str) a regex string describing what files are
+                o dest           : (str) a regex string describing what files are
                                   concerned
     """
-    msg("  = let's remove the tags' string(s) in {0}".format(_to))
-    action__settagsstr(_tagsstr="", _to=_to)
+    msg("  = let's remove the tags' string(s) in {0}".format(dest))
+    action__settagsstr(tagsstr="", dest=dest)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__select():
@@ -966,7 +972,7 @@ def action__select():
                 break
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__settagsstr(_tagsstr, _to):
+def action__settagsstr(tagsstr, dest):
     """
         action__settagsstr()
         ________________________________________________________________________
@@ -975,24 +981,24 @@ def action__settagsstr(_tagsstr, _to):
         ________________________________________________________________________
 
         PARAMETERS
-                o _tagsstr      : (str) the new tags' strings
-                o _to           : (str) a regex string describing what files are
+                o tagsstr      : (str) the new tags' strings
+                o dest           : (str) a regex string describing what files are
                                   concerned
     """
-    msg("  = let's apply the tag string\"{0}\" to {1}".format(_tagsstr, _to))
-    modify_the_tag_of_some_files(_tag=_tagsstr, _to=_to, _mode="set")
+    msg("  = let's apply the tag string\"{0}\" to {1}".format(tagsstr, dest))
+    modify_the_tag_of_some_files(tag=tagsstr, dest=dest, _mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__target_kill(_filename):
+def action__target_kill(filename):
     """
         action__target_kill()
         ________________________________________________________________________
 
-        Delete _filename from the target directory and from the database.
+        Delete "filename" from the target directory and from the database.
         ________________________________________________________________________
 
         PARAMETER
-                o  _filename    : (str) file's name to be deleted.
+                o  filename    : (str) file's name to be deleted.
                                   DO NOT GIVE A PATH, just the file's name,
                                   without the path to the target directory
 
@@ -1002,9 +1008,9 @@ def action__target_kill(_filename):
                         -3 if there's no database.
     """
     msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) "
-        "and from its database =".format(_filename))
-    if not os.path.exists(os.path.join(normpath(ARGS.targetpath), _filename)):
-        msg("    ! can't find \"{0}\" file on disk.".format(_filename),
+        "and from its database =".format(filename))
+    if not os.path.exists(os.path.join(normpath(ARGS.targetpath), filename)):
+        msg("    ! can't find \"{0}\" file on disk.".format(filename),
             _consolecolor="red")
         return -1
 
@@ -1019,21 +1025,21 @@ def action__target_kill(_filename):
 
         filename_hashid = None
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            if db_record["name"] == os.path.join(normpath(ARGS.targetpath), _filename):
+            if db_record["name"] == os.path.join(normpath(ARGS.targetpath), filename):
                 filename_hashid = db_record["hashid"]
 
         if filename_hashid is None:
-            msg("    ! can't find \"{0}\" file in the database.".format(_filename),
+            msg("    ! can't find \"{0}\" file in the database.".format(filename),
                 _consolecolor="red")
             res = -2
         else:
             if not ARGS.off:
-                # let's remove _filename from the target directory :
-                shutil.move(os.path.join(normpath(ARGS.targetpath), _filename),
+                # let's remove filename from the target directory :
+                shutil.move(os.path.join(normpath(ARGS.targetpath), filename),
                             os.path.join(normpath(ARGS.targetpath),
-                                         CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR, _filename))
+                                         CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR, filename))
 
-                # let's remove _filename from the database :
+                # let's remove filename from the database :
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (filename_hashid,))
 
             res = 0  # success.
@@ -1045,37 +1051,37 @@ def action__target_kill(_filename):
         return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def action__whatabout(_src):
+def action__whatabout(src):
     """
         action__whatabout()
         ________________________________________________________________________
 
-        Take a look at the _src file/directory and answer the following question :
+        Take a look at the "src" file/directory and answer the following question :
         is this file/(are these files) already in the target directory ?
         ________________________________________________________________________
 
         PARAMETER
-            o _src : (str) the source file's name
+            o src : (str) the source file's name
 
         RETURNED VALUE : (bool)is everything ok (=no error) ?
     """
     #. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-    def show_infos_about_a_srcfile(_srcfile_name):
+    def show_infos_about_a_srcfile(srcfile_name):
         """
-                Display the expected informations about a file named _srcfile_name .
+                Display the expected informations about a file named srcfile_name .
         """
-        msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(_src, _srcfile_name))
-        size = os.stat(_srcfile_name).st_size
+        msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(src, srcfile_name))
+        size = os.stat(srcfile_name).st_size
         msg("    = size : {0}".format(size_as_str(size)))
 
-        sourcedate = datetime.utcfromtimestamp(os.path.getmtime(_srcfile_name))
+        sourcedate = datetime.utcfromtimestamp(os.path.getmtime(srcfile_name))
         sourcedate = sourcedate.replace(second=0, microsecond=0)
         sourcedate2 = sourcedate
         sourcedate2 -= datetime(1970, 1, 1)
         sourcedate2 = sourcedate2.total_seconds()
         msg("    = mtime : {0} (epoch value : {1})".format(sourcedate, sourcedate2))
 
-        srchash = hashfile64(_srcfile_name)
+        srchash = hashfile64(srcfile_name)
         msg("    = hash : {0}".format(srchash))
 
         # is the hash in the database ?
@@ -1089,14 +1095,14 @@ def action__whatabout(_src):
         else:
             msg("    = the file isn't present in the database.")
 
-    # (1) does _src exist ?
-    normsrc = normpath(_src)
+    # (1) does src exist ?
+    normsrc = normpath(src)
     if not os.path.exists(normsrc):
         msg("  ! error : can't find source file \"{0}\" .".format(normsrc),
             _consolecolor="red")
         return False
 
-    # (2) is _src a file or a directory ?
+    # (2) is src a file or a directory ?
     if os.path.isdir(normsrc):
         # informations about the source directory :
         if normpath(ARGS.targetpath) in normsrc:
@@ -1104,16 +1110,16 @@ def action__whatabout(_src):
                 _consolecolor="red")
             return False
 
-        for dirpath, _, filenames in os.walk(normpath(_src)):
+        for dirpath, _, filenames in os.walk(normpath(src)):
             for filename in filenames:
                 fullname = os.path.join(normpath(dirpath), filename)
                 show_infos_about_a_srcfile(fullname)
 
     else:
         # informations about the source file :
-        if normpath(ARGS.targetpath) in normpath(_src):
+        if normpath(ARGS.targetpath) in normpath(src):
             # special case : the file is inside the target directory :
-            msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(_src, normsrc))
+            msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(src, normsrc))
             msg("    This file is inside the target directory.")
             srchash = hashfile64(normsrc)
             msg("    = hash : {0}".format(srchash))
@@ -1133,19 +1139,19 @@ def action__whatabout(_src):
 
         else:
             # normal case : the file is outside the target directory :
-            show_infos_about_a_srcfile(normpath(_src))
+            show_infos_about_a_srcfile(normpath(src))
 
     return True
 
 #///////////////////////////////////////////////////////////////////////////////
-def add_keywords_in_targetstr(_srcstring,
-                              _hashid,
-                              _filename_no_extens,
-                              _path,
-                              _extension,
+def add_keywords_in_targetstr(srcstring,
+                              hashid,
+                              filename_no_extens,
+                              path,
+                              extension,
                               _size,
-                              _date,
-                              _database_index):
+                              date,
+                              database_index):
     """
         add_keywords_in_targetstr()
         ________________________________________________________________________
@@ -1163,48 +1169,52 @@ def add_keywords_in_targetstr(_srcstring,
         ________________________________________________________________________
 
         PARAMETERS
-                o _parameters                   : an object returned by
-                                                  read_parameters_from_cfgfile(),
-                                                  like CFG_PARAMETERS
-                o _hashid                       : (str)
-                o _filename_no_extens           : (str)
-                o _path                         : (str
-                o _extension                    : (str)
-                o _size                         : (int)
-                o _date                         : (str) see CST__DTIME_FORMAT
-                o _database_index               : (int)
+                o srcstring                    : (str)
+                o hashid                       : (str)
+                o filename_no_extens           : (str)
+                o path                         : (str
+                o extension                    : (str)
+                o _size                        : (int)
+                o date                         : (str) see CST__DTIME_FORMAT
+                o database_index               : (int)
+
+        About the underscore before "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 (str)the expected string
     """
-    res = _srcstring
+    res = srcstring
 
     # beware : order matters !
     res = res.replace("%ht",
-                      hex(int(datetime.strptime(_date,
+                      hex(int(datetime.strptime(date,
                                                 CST__DTIME_FORMAT).timestamp()))[2:])
 
-    res = res.replace("%h", _hashid)
+    res = res.replace("%h", hashid)
 
-    res = res.replace("%ff", remove_illegal_characters(_filename_no_extens))
-    res = res.replace("%f", _filename_no_extens)
+    res = res.replace("%ff", remove_illegal_characters(filename_no_extens))
+    res = res.replace("%f", filename_no_extens)
 
-    res = res.replace("%pp", remove_illegal_characters(_path))
-    res = res.replace("%p", _path)
+    res = res.replace("%pp", remove_illegal_characters(path))
+    res = res.replace("%p", path)
 
-    res = res.replace("%ee", remove_illegal_characters(_extension))
-    res = res.replace("%e", _extension)
+    res = res.replace("%ee", remove_illegal_characters(extension))
+    res = res.replace("%e", extension)
 
     res = res.replace("%s", str(_size))
 
-    res = res.replace("%dd", remove_illegal_characters(_date))
+    res = res.replace("%dd", remove_illegal_characters(date))
 
     res = res.replace("%t",
-                      str(int(datetime.strptime(_date,
+                      str(int(datetime.strptime(date,
                                                 CST__DTIME_FORMAT).timestamp())))
 
     res = res.replace("%i",
-                      remove_illegal_characters(str(_database_index)))
+                      remove_illegal_characters(str(database_index)))
 
     return res
 
@@ -1326,21 +1336,21 @@ def create_subdirs_in_target_path():
                 os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
-def create_target_name(_parameters,
-                       _hashid,
-                       _filename_no_extens,
-                       _path,
-                       _extension,
+def create_target_name(parameters,
+                       hashid,
+                       filename_no_extens,
+                       path,
+                       extension,
                        _size,
-                       _date,
-                       _database_index):
+                       date,
+                       database_index):
     """
         create_target_name()
         ________________________________________________________________________
 
         Create the name of a file (a target file) from various informations
         given by the parameters. The function reads the string stored in
-        _parameters["target"]["name of the target files"] and replaces some
+        parameters["target"]["name of the target files"] and replaces some
         keywords in the string by the parameters given to this function.
 
         see the available keywords in the documentation.
@@ -1352,46 +1362,46 @@ def create_target_name(_parameters,
         ________________________________________________________________________
 
         PARAMETERS
-                o _parameters                   : an object returned by
+                o parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
                                                   like CFG_PARAMETERS
-                o _hashid                       : (str)
-                o _filename_no_extens           : (str)
-                o _path                         : (str
-                o _extension                    : (str)
+                o hashid                       : (str)
+                o filename_no_extens           : (str)
+                o path                         : (str
+                o extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see CST__DTIME_FORMAT
-                o _database_index               : (int)
+                o date                         : (str) see CST__DTIME_FORMAT
+                o database_index               : (int)
 
         RETURNED VALUE
                 (str)name
     """
-    return(add_keywords_in_targetstr(_srcstring=_parameters["target"]["name of the target files"],
-                                     _hashid=_hashid,
-                                     _filename_no_extens=_filename_no_extens,
-                                     _path=_path,
-                                     _extension=_extension,
+    return(add_keywords_in_targetstr(srcstring=parameters["target"]["name of the target files"],
+                                     hashid=hashid,
+                                     filename_no_extens=filename_no_extens,
+                                     path=path,
+                                     extension=extension,
                                      _size=_size,
-                                     _date=_date,
-                                     _database_index=_database_index))
+                                     date=date,
+                                     database_index=database_index))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
-def create_target_name_and_tags(_parameters,
-                                _hashid,
-                                _filename_no_extens,
-                                _path,
-                                _extension,
+def create_target_name_and_tags(parameters,
+                                hashid,
+                                filename_no_extens,
+                                path,
+                                extension,
                                 _size,
-                                _date,
-                                _database_index):
+                                date,
+                                database_index):
     """
         create_target_name_and_tags()
         ________________________________________________________________________
 
         Create the name of a file (a target file) from various informations
         given by the parameters. The function reads the string stored in
-        _parameters["target"]["name of the target files"] and in
-        _parameters["target"]["tags"] and replaces some
+        parameters["target"]["name of the target files"] and in
+        parameters["target"]["tags"] and replaces some
         keywords in the string by the parameters given to this function.
 
         see the available keywords in the documentation.
@@ -1403,55 +1413,55 @@ def create_target_name_and_tags(_parameters,
         ________________________________________________________________________
 
         PARAMETERS
-                o _parameters                   : an object returned by
+                o parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
                                                   like CFG_PARAMETERS
-                o _hashid                       : (str)
-                o _filename_no_extens           : (str)
-                o _path                         : (str
-                o _extension                    : (str)
+                o hashid                       : (str)
+                o filename_no_extens           : (str)
+                o path                         : (str
+                o extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see CST__DTIME_FORMAT
-                o _database_index               : (int)
+                o date                         : (str) see CST__DTIME_FORMAT
+                o database_index               : (int)
 
         RETURNED VALUE
                 ( (str)name, (str)tags )
     """
-    name = create_target_name(_parameters,
-                              _hashid,
-                              _filename_no_extens,
-                              _path,
-                              _extension,
+    name = create_target_name(parameters,
+                              hashid,
+                              filename_no_extens,
+                              path,
+                              extension,
                               _size,
-                              _date,
-                              _database_index)
+                              date,
+                              database_index)
 
-    tags = create_target_name(_parameters,
-                              _hashid,
-                              _filename_no_extens,
-                              _path,
-                              _extension,
+    tags = create_target_name(parameters,
+                              hashid,
+                              filename_no_extens,
+                              path,
+                              extension,
                               _size,
-                              _date,
-                              _database_index)
+                              date,
+                              database_index)
     return (name, tags)
 
 #/////////////////////////////////////////////////////////////////////////////////////////
-def create_target_tags(_parameters,
-                       _hashid,
-                       _filename_no_extens,
-                       _path,
-                       _extension,
+def create_target_tags(parameters,
+                       hashid,
+                       filename_no_extens,
+                       path,
+                       extension,
                        _size,
-                       _date,
-                       _database_index):
+                       date,
+                       database_index):
     """
         create_target_tags()
         ________________________________________________________________________
 
         Create the tags of a file (a target file) from various informations
         given by the parameters. The function reads the string stored in
-        _parameters["target"]["tags"] and replaces some
+        parameters["target"]["tags"] and replaces some
         keywords in the string by the parameters given to this function.
 
         see the available keywords in the documentation.
@@ -1463,28 +1473,28 @@ def create_target_tags(_parameters,
         ________________________________________________________________________
 
         PARAMETERS
-                o _parameters                   : an object returned by
+                o parameters                   : an object returned by
                                                   read_parameters_from_cfgfile(),
                                                   like CFG_PARAMETERS
-                o _hashid                       : (str)
-                o _filename_no_extens           : (str)
-                o _path                         : (str
-                o _extension                    : (str)
+                o hashid                       : (str)
+                o filename_no_extens           : (str)
+                o path                         : (str
+                o extension                    : (str)
                 o _size                         : (int)
-                o _date                         : (str) see CST__DTIME_FORMAT
-                o _database_index               : (int)
+                o date                         : (str) see CST__DTIME_FORMAT
+                o database_index               : (int)
 
         RETURNED VALUE
                 (str)name
     """
-    return(add_keywords_in_targetstr(_srcstring=_parameters["target"]["tags"],
-                                     _hashid=_hashid,
-                                     _filename_no_extens=_filename_no_extens,
-                                     _path=_path,
-                                     _extension=_extension,
+    return(add_keywords_in_targetstr(srcstring=parameters["target"]["tags"],
+                                     hashid=hashid,
+                                     filename_no_extens=filename_no_extens,
+                                     path=path,
+                                     extension=extension,
                                      _size=_size,
-                                     _date=_date,
-                                     _database_index=_database_index))
+                                     date=date,
+                                     database_index=database_index))
 
 #///////////////////////////////////////////////////////////////////////////////
 def draw_table(_rows, _data):
@@ -1543,7 +1553,7 @@ def draw_table(_rows, _data):
     draw_line()
 
 #///////////////////////////////////////////////////////////////////////////////
-def eval_filter_for_a_file(_filter, _filename, _size, _date):
+def eval_filter_for_a_file(_filter, _filename, _size, date):
     """
         eval_filter_for_a_file()
         ________________________________________________________________________
@@ -1556,7 +1566,13 @@ def eval_filter_for_a_file(_filter, _filename, _size, _date):
                 o _filter        : a dict, see documentation:select
                 o _filename     : (str) file's name
                 o _size         : (int) file's size, in bytes.
-                o _date         : (str)file's date
+                o date         : (str)file's date
+
+        About the underscore before "_filter" and "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 a boolean, giving the expected answer
@@ -1568,7 +1584,7 @@ def eval_filter_for_a_file(_filter, _filename, _size, _date):
     if res and "size" in _filter:
         res = thefilehastobeadded__filt_size(_filter, _size)
     if res and "date" in _filter:
-        res = thefilehastobeadded__filt_date(_filter, _date)
+        res = thefilehastobeadded__filt_date(_filter, date)
 
     return res
 
@@ -1670,24 +1686,24 @@ def fill_select(_debug_datatime=None):
                                        size=size,
                                        date=time.strftime(CST__DTIME_FORMAT),
                                        targetname= \
-                                          create_target_name(_parameters=CFG_PARAMETERS,
-                                                             _hashid=hashid,
-                                                             _filename_no_extens=fname_no_extens,
-                                                             _path=dirpath,
-                                                             _extension=extension,
+                                          create_target_name(parameters=CFG_PARAMETERS,
+                                                             hashid=hashid,
+                                                             filename_no_extens=fname_no_extens,
+                                                             path=dirpath,
+                                                             extension=extension,
                                                              _size=size,
-                                                             _date=time.strftime(CST__DTIME_FORMAT),
-                                                             _database_index=len(TARGET_DB) + \
+                                                             date=time.strftime(CST__DTIME_FORMAT),
+                                                             database_index=len(TARGET_DB) + \
                                                                              len(SELECT)),
                                        targettags= \
-                                          create_target_tags(_parameters=CFG_PARAMETERS,
-                                                             _hashid=hashid,
-                                                             _filename_no_extens=fname_no_extens,
-                                                             _path=dirpath,
-                                                             _extension=extension,
+                                          create_target_tags(parameters=CFG_PARAMETERS,
+                                                             hashid=hashid,
+                                                             filename_no_extens=fname_no_extens,
+                                                             path=dirpath,
+                                                             extension=extension,
                                                              _size=size,
-                                                             _date=time.strftime(CST__DTIME_FORMAT),
-                                                             _database_index=len(TARGET_DB) + \
+                                                             date=time.strftime(CST__DTIME_FORMAT),
+                                                             database_index=len(TARGET_DB) + \
                                                                              len(SELECT)))
 
                         msg("    + {0} selected \"{1}\" (file selected #{2})".format(prefix,
@@ -1813,7 +1829,7 @@ def get_database_fullname():
     return os.path.join(normpath(ARGS.targetpath), CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)
 
 #///////////////////////////////////////////////////////////////////////////////
-def get_disk_free_space(_path):
+def get_disk_free_space(path):
     """
         get_disk_free_space()
         ________________________________________________________________________
@@ -1823,7 +1839,7 @@ def get_disk_free_space(_path):
         ________________________________________________________________________
 
         PARAMETER
-                o _path : (str) the source path belonging to the disk to be
+                o path : (str) the source path belonging to the disk to be
                           analysed.
 
         RETURNED VALUE
@@ -1831,15 +1847,15 @@ def get_disk_free_space(_path):
     """
     if CST__PLATFORM == 'Windows':
         free_bytes = ctypes.c_ulonglong(0)
-        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(_path),
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(path),
                                                    None, None, ctypes.pointer(free_bytes))
         return free_bytes.value
     else:
-        stat = os.statvfs(normpath(_path))
+        stat = os.statvfs(normpath(path))
         return stat.f_bavail * stat.f_frsize
 
 #///////////////////////////////////////////////////////////////////////////////
-def get_filename_and_extension(_path):
+def get_filename_and_extension(path):
     """
         get_filename_and_extension()
         ________________________________________________________________________
@@ -1848,13 +1864,13 @@ def get_filename_and_extension(_path):
         ________________________________________________________________________
 
         PARAMETERS
-                o  _path        : (str) the source path
+                o  path        : (str) the source path
 
         RETURNED VALUE
                 (str)filename without extension, (str)the extension without the
                 initial dot.
     """
-    fname_no_extens, extension = os.path.splitext(_path)
+    fname_no_extens, extension = os.path.splitext(path)
 
     # the extension can't begin with a dot.
     if extension.startswith("."):
@@ -1880,7 +1896,7 @@ def get_logfile_fullname():
                         CFG_PARAMETERS["log file"]["name"])
 
 #///////////////////////////////////////////////////////////////////////////////
-def goodbye(_timestamp_start):
+def goodbye(timestamp_start):
     """
         goodbye()
         ________________________________________________________________________
@@ -1889,29 +1905,29 @@ def goodbye(_timestamp_start):
         ________________________________________________________________________
 
         PARAMETER :
-                o  _timestamp_start : a datetime.datetime object
+                o  timestamp_start : a datetime.datetime object
 
         no RETURNED VALUE
     """
     msg("=== exit (Katal stopped at {0}; "
         "total duration time : {1}) ===".format(datetime.now().strftime(CST__DTIME_FORMAT),
-                                                datetime.now() - _timestamp_start))
+                                                datetime.now() - timestamp_start))
 
 #///////////////////////////////////////////////////////////////////////////////
-def hashfile64(_filename, _stop_after=None):
+def hashfile64(filename, stop_after=None):
     """
         hashfile64()
         ________________________________________________________________________
 
-        return the footprint of a file, encoded with the base 64. If _stop_after
+        return the footprint of a file, encoded with the base 64. If stop_after
         is set to an integer, only the beginning of the file will be used to
         compute the hash (see CST__PARTIALHASHID_BYTESNBR constant).
         ________________________________________________________________________
 
         PARAMETER
-                o _filename : (str) file's name
-                o _stop_after:(None/int) if None, the file will be entirely read,
-                              otherwise, only the first _stop_after bytes will
+                o filename : (str) file's name
+                o stop_after:(None/int) if None, the file will be entirely read,
+                              otherwise, only the first stop_after bytes will
                               be read.
         RETURNED VALUE
                 the expected string. If you use sha256 as a hasher, the
@@ -1922,12 +1938,12 @@ def hashfile64(_filename, _stop_after=None):
     hasher = hashlib.sha256()
 
     nbr_of_bytes_read = 0
-    with open(_filename, "rb") as afile:
+    with open(filename, "rb") as afile:
         # a buffer of 65536 bytes is an optimized buffer.
         buf = afile.read(65536)
         while len(buf) > 0:
             nbr_of_bytes_read += 65536
-            if _stop_after is not None and nbr_of_bytes_read >= _stop_after:
+            if stop_after is not None and nbr_of_bytes_read >= stop_after:
                 break
 
             hasher.update(buf)
@@ -1936,22 +1952,22 @@ def hashfile64(_filename, _stop_after=None):
     return b64encode(hasher.digest()).decode()
 
 #///////////////////////////////////////////////////////////////////////////////
-def is_ntfs_prefix_mandatory(_path):
+def is_ntfs_prefix_mandatory(path):
     """
         is_ntfs_prefix_mandatory()
         ________________________________________________________________________
 
-        Return True if the _path is a path in a systemfile requiring the NTFS
+        Return True if the path is a path in a systemfile requiring the NTFS
         prefix for long filenames.
         ________________________________________________________________________
 
         PARAMETER
-            _path : (str)the path to be tested
+            path : (str)the path to be tested
 
         RETURNED VALUE
             a boolean
     """
-    longpath1 = os.path.join(_path, "a"*250)
+    longpath1 = os.path.join(path, "a"*250)
     longpath1 = os.path.normpath(os.path.abspath(os.path.expanduser(longpath1)))
 
     longpath2 = os.path.join(longpath1, "b"*250)
@@ -2097,8 +2113,8 @@ def main_actions():
         action__findtag(ARGS.findtag)
 
     if ARGS.downloaddefaultcfg is not None:
-        action__downloadefaultcfg(_targetname=CST__DEFAULT_CONFIGFILE_NAME,
-                                  _location=ARGS.downloaddefaultcfg)
+        action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME,
+                                  location=ARGS.downloaddefaultcfg)
 
 #///////////////////////////////////////////////////////////////////////////////
 def main_actions_tags():
@@ -2125,7 +2141,7 @@ def main_actions_tags():
         action__rmtags(ARGS.to)
 
 #///////////////////////////////////////////////////////////////////////////////
-def main_warmup(_timestamp_start):
+def main_warmup(timestamp_start):
     """
         main_warmup()
         ________________________________________________________________________
@@ -2146,7 +2162,7 @@ def main_warmup(_timestamp_start):
         ________________________________________________________________________
 
         PARAMETER :
-                o  _timestamp_start : a datetime.datetime object
+                o  timestamp_start : a datetime.datetime object
 
         no RETURNED VALUE
 
@@ -2201,7 +2217,7 @@ def main_warmup(_timestamp_start):
     #...........................................................................
     if USE_LOGFILE:
         LOGFILE = logfile_opening()
-        welcome_in_logfile(_timestamp_start)
+        welcome_in_logfile(timestamp_start)
 
     #...........................................................................
     if ARGS.targetpath == source_path:
@@ -2237,7 +2253,7 @@ def main_warmup(_timestamp_start):
         show_infos_about_target_path()
 
 #///////////////////////////////////////////////////////////////////////////////
-def modify_the_tag_of_some_files(_tag, _to, _mode):
+def modify_the_tag_of_some_files(tag, dest, _mode):
     """
         modify_the_tag_of_some_files()
         ________________________________________________________________________
@@ -2246,10 +2262,10 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
         ________________________________________________________________________
 
         PARAMETERS
-                o _tag          : (str) new tag(s)
-                o _to           : (str) a string (wildcards accepted) describing
+                o tag          : (str) new tag(s)
+                o dest           : (str) a string (wildcards accepted) describing
                                    what files are concerned
-                o _mode         : (str) "append" to add _tag to the other tags
+                o _mode         : (str) "append" to add "tag" to the other tags
                                         "set" to replace old tag(s) by a new one
     """
     if not os.path.exists(normpath(get_database_fullname())):
@@ -2262,7 +2278,7 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
 
         files_to_be_modified = []       # a list of (hashids, name)
         for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
-            if fnmatch.fnmatch(db_record["name"], _to):
+            if fnmatch.fnmatch(db_record["name"], dest):
                 files_to_be_modified.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_modified) == 0:
@@ -2271,18 +2287,18 @@ def modify_the_tag_of_some_files(_tag, _to, _mode):
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
 
-                msg("    o applying the tag string \"{0}\" to {1}.".format(_tag, filename))
+                msg("    o applying the tag string \"{0}\" to {1}.".format(tag, filename))
 
                 if ARGS.off:
                     pass
 
                 elif _mode == "set":
                     sqlorder = 'UPDATE dbfiles SET tagsstr=? WHERE hashid=?'
-                    db_connection.execute(sqlorder, (_tag, hashid))
+                    db_connection.execute(sqlorder, (tag, hashid))
 
                 elif _mode == "append":
                     sqlorder = ('UPDATE dbfiles SET tagsstr = tagsstr || \"{0}{1}\" '
-                                'WHERE hashid=\"{2}\"').format(CST__TAG_SEPARATOR, _tag, hashid)
+                                'WHERE hashid=\"{2}\"').format(CST__TAG_SEPARATOR, tag, hashid)
                     db_connection.executescript(sqlorder)
 
                 else:
@@ -2346,7 +2362,7 @@ def msg(_msg, _for_console=True, _for_logfile=True, _consolecolor=None):
         LOGFILE_SIZE += len(final_msg)
 
 #///////////////////////////////////////////////////////////////////////////////
-def normpath(_path):
+def normpath(path):
     """
         normpath()
         ________________________________________________________________________
@@ -2363,11 +2379,11 @@ def normpath(_path):
         260 characters.
         ________________________________________________________________________
 
-        PARAMETER : (str)_path
+        PARAMETER : (str)path
 
         RETURNED VALUE : the expected string
     """
-    res = os.path.normpath(os.path.abspath(os.path.expanduser(_path)))
+    res = os.path.normpath(os.path.abspath(os.path.expanduser(path)))
 
     if ARGS.usentfsprefix:
         res = res.replace("\\\\?\\", "")
@@ -2755,7 +2771,7 @@ def remove_illegal_characters(_src):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def shortstr(_str, _max_length):
+def shortstr(string, max_length):
     """
         shortstr()
         ________________________________________________________________________
@@ -2764,15 +2780,15 @@ def shortstr(_str, _max_length):
         ________________________________________________________________________
 
         PARAMETER
-                o _str          : (src) the source string
-                o _max_length   : (int) the maximal length of the string
+                o string          : (src) the source string
+                o max_length   : (int) the maximal length of the string
 
         RETURNED VALUE
                 the expected string
     """
-    if len(_str) > _max_length:
-        return "[...]"+_str[-(_max_length-5):]
-    return _str
+    if len(string) > max_length:
+        return "[...]"+string[-(max_length-5):]
+    return string
 
 #///////////////////////////////////////////////////////////////////////////////
 def show_infos_about_source_path():
@@ -3011,7 +3027,7 @@ def size_as_str(_size):
     return res
 
 #//////////////////////////////////////////////////////////////////////////////
-def tagsstr_repr(_tagsstr):
+def tagsstr_repr(tagsstr):
     """
         tagsstr_repr()
         ________________________________________________________________________
@@ -3020,20 +3036,19 @@ def tagsstr_repr(_tagsstr):
         ________________________________________________________________________
 
         PARAMETER
-            _tagsstr : the raw tags' string
+            tagsstr : the raw tags' string
 
         RETURNED VALUE
             the expected (str)string
     """
-    # let's remove the first tag separator :
-    tagsstr = _tagsstr
     if tagsstr.startswith(CST__TAG_SEPARATOR):
-        tagsstr = tagsstr[1:]
-
-    return tagsstr
+        # let's remove the first tag separator :
+        return tagsstr[1:]
+    else:
+        return tagsstr
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__db(_filename, _size):
+def thefilehastobeadded__db(filename, _size):
     """
         thefilehastobeadded__db()
         ________________________________________________________________________
@@ -3042,8 +3057,14 @@ def thefilehastobeadded__db(_filename, _size):
         ________________________________________________________________________
 
         PARAMETERS
-                o _filename     : (str) file's name
+                o filename     : (str) file's name
                 o _size         : (int) file's size, in bytes.
+
+        About the underscore before "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 either (False, None, None)
@@ -3060,15 +3081,15 @@ def thefilehastobeadded__db(_filename, _size):
 
     if len(res) == 0:
         return (True,
-                hashfile64(_filename=_filename,
-                           _stop_after=CST__PARTIALHASHID_BYTESNBR),
-                hashfile64(_filename=_filename))
+                hashfile64(filename=filename,
+                           stop_after=CST__PARTIALHASHID_BYTESNBR),
+                hashfile64(filename=filename))
 
     # (2) how many file(s) among those in <res> have a partial hashid equal
-    # to the partial hashid of _filename ?
+    # to the partial hashid of filename ?
     new_res = []
-    src_partialhashid = hashfile64(_filename=_filename,
-                                   _stop_after=CST__PARTIALHASHID_BYTESNBR)
+    src_partialhashid = hashfile64(filename=filename,
+                                   stop_after=CST__PARTIALHASHID_BYTESNBR)
     for hashid in res:
         target_partialhashid, _, _ = TARGET_DB[hashid]
         if target_partialhashid == src_partialhashid:
@@ -3078,12 +3099,12 @@ def thefilehastobeadded__db(_filename, _size):
     if len(res) == 0:
         return (True,
                 src_partialhashid,
-                hashfile64(_filename=_filename))
+                hashfile64(filename=filename))
 
     # (3) how many file(s) among those in <res> have an hashid equal to the
-    # hashid of _filename ?
+    # hashid of filename ?
     new_res = []
-    src_hashid = hashfile64(_filename=_filename)
+    src_hashid = hashfile64(filename=filename)
     for hashid in res:
         target_hashid, _, _ = TARGET_DB[hashid]
         if target_hashid == src_hashid:
@@ -3100,7 +3121,7 @@ def thefilehastobeadded__db(_filename, _size):
 
     # (4) bit-to-bit comparision :
     for hashid in res:
-        if not filecmp.cmp(_filename, TARGET_DB[hashid][2], shallow=False):
+        if not filecmp.cmp(filename, TARGET_DB[hashid][2], shallow=False):
             return (True,
                     src_partialhashid,
                     src_hashid)
@@ -3108,19 +3129,19 @@ def thefilehastobeadded__db(_filename, _size):
     return (False, None, None)
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__filters(_filename, _size, _date):
+def thefilehastobeadded__filters(filename, _size, date):
     """
         thefilehastobeadded__filters()
         ________________________________________________________________________
 
-        Return True if a file (_filename, _size) can be choosed and added to
+        Return True if a file (filename, _size) can be choosed and added to
         the target directory, according to the filters (stored in FILTERS).
         ________________________________________________________________________
 
         PARAMETERS
-                o _filename     : (str) file's name
+                o filename     : (str) file's name
                 o _size         : (int) file's size, in bytes.
-                o _date         : (str) file's date
+                o date         : (str) file's date
 
         RETURNED VALUE
                 a boolean, giving the expected answer
@@ -3131,7 +3152,7 @@ def thefilehastobeadded__filters(_filename, _size, _date):
         _filter = FILTERS[filter_index]
 
         evalstr = evalstr.replace("filter"+str(filter_index),
-                                  str(eval_filter_for_a_file(_filter, _filename, _size, _date)))
+                                  str(eval_filter_for_a_file(_filter, filename, _size, date)))
 
     try:
         # eval() IS a dangerous function : see the note about CST__AUTHORIZED_EVALCHARS.
@@ -3155,7 +3176,7 @@ def thefilehastobeadded__filters(_filename, _size, _date):
                                                                               exception))
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__filt_date(_filter, _date):
+def thefilehastobeadded__filt_date(_filter, date):
     """
         thefilehastobeadded__filt_date()
         ________________________________________________________________________
@@ -3166,27 +3187,27 @@ def thefilehastobeadded__filt_date(_filter, _date):
 
         PARAMETERS
                 o _filter        : a dict object; see documentation:selection
-                o _date         : (str) file's datestamp (object datetime.datetime)
+                o date         : (str) file's datestamp (object datetime.datetime)
 
         RETURNED VALUE
                 the expected boolean
     """
     # beware ! the order matters (<= before <, >= before >)
     if _filter["date"].startswith("="):
-        return _date == datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
+        return date == datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith(">="):
-        return _date >= datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
+        return date >= datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith(">"):
-        return _date > datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
+        return date > datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith("<="):
-        return _date < datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
+        return date < datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
     elif _filter["date"].startswith("<"):
-        return _date < datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
+        return date < datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
     else:
         raise KatalError("Can't analyse a 'date' field : "+_filter["date"])
 
 #///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__filt_name(_filter, _filename):
+def thefilehastobeadded__filt_name(_filter, filename):
     """
         thefilehastobeadded__filt_name()
         ________________________________________________________________________
@@ -3197,14 +3218,20 @@ def thefilehastobeadded__filt_name(_filter, _filename):
 
         PARAMETERS
                 o _filter           : a dict object; see documentation:selection
-                o _filename         : (str) file's name
+                o filename         : (str) file's name
+
+        About the underscore before "_filter" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 the expected boolean
     """
     # nb : _filter["name"] can either be a case sensitive regex, either
     #      a case insensitive regex. See the read_filters() function.
-    return re.match(_filter["name"], _filename) is not None
+    return re.match(_filter["name"], filename) is not None
 
 #///////////////////////////////////////////////////////////////////////////////
 def thefilehastobeadded__filt_size(_filter, _size):
@@ -3219,6 +3246,12 @@ def thefilehastobeadded__filt_size(_filter, _size):
         PARAMETERS
                 o _filter        : a dict object; see documentation:selection
                 o _size         : (int) file's size
+
+        About the underscore before "_filter" and "_size" :
+        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+          " If a function argument's name clashes with a reserved keyword, it is generally
+          " better to append a single trailing underscore rather than use an abbreviation
+          " or spelling corruption.
 
         RETURNED VALUE
                 the expected boolean
@@ -3261,7 +3294,7 @@ def thefilehastobeadded__filt_size(_filter, _size):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def welcome(_timestamp_start):
+def welcome(timestamp_start):
     """
         welcome()
         ________________________________________________________________________
@@ -3276,7 +3309,7 @@ def welcome(_timestamp_start):
         ________________________________________________________________________
 
         PARAMETER :
-                o  _timestamp_start : a datetime.datetime object
+                o  timestamp_start : a datetime.datetime object
 
         no RETURNED VALUE
 
@@ -3286,7 +3319,7 @@ def welcome(_timestamp_start):
     strmsg = ("=== {0} v.{1} "
               "(launched at {2}) ===").format(__projectname__,
                                               __version__,
-                                              _timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
+                                              timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
     msg("="*len(strmsg),
         _consolecolor="white")
     msg(strmsg,
@@ -3322,7 +3355,7 @@ def welcome(_timestamp_start):
             _consolecolor="cyan")
 
 #///////////////////////////////////////////////////////////////////////////////
-def welcome_in_logfile(_timestamp_start):
+def welcome_in_logfile(timestamp_start):
     """
         welcome_in_logfile()
         ________________________________________________________________________
@@ -3339,14 +3372,14 @@ def welcome_in_logfile(_timestamp_start):
         ________________________________________________________________________
 
         PARAMETER :
-                o  _timestamp_start : a datetime.datetime object
+                o  timestamp_start : a datetime.datetime object
 
         no RETURNED VALUE
     """
     msg(_msg="=== {0} v.{1} "
         "(launched at {2}) ===".format(__projectname__,
                                        __version__,
-                                       _timestamp_start.strftime("%Y-%m-%d %H:%M:%S")),
+                                       timestamp_start.strftime("%Y-%m-%d %H:%M:%S")),
         _for_logfile=True,
         _for_console=False)
 
