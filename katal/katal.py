@@ -93,8 +93,6 @@ INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_sou
 
 TARGET_DB = dict()      # see documentation:database; initialized by read_target_db()
 
-LOGFILE_SIZE = 0        # size of the current logfile.
-
 SELECT = {}               # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
 FILTERS = {}              # see documentation:selection; initialized by read_filters()
@@ -248,8 +246,15 @@ CST_V_LINUXCONSOLECOLORS = {
 # 'Linux', 'Windows', 'Java' according to https://docs.python.org/3.5/library/platform.html
 CST__PLATFORM = platform.system()
 
+try:
+    from xdg.BaseDirectory import load_first_config
+except ImportError:
+    CST__XDG_CONFIG = ''
+else:
+    CST__XDG_CONFIG = load_first_config(__projectname__)
+
 ################################################################################
-class KatalError(BaseException):
+class KatalError(Exception):
     """
         KatalError class
 
@@ -257,11 +262,19 @@ class KatalError(BaseException):
     """
     #///////////////////////////////////////////////////////////////////////////
     def __init__(self, value):
-        BaseException.__init__(self)
+        Exception.__init__(self)
         self.value = value
     #///////////////////////////////////////////////////////////////////////////
     def __str__(self):
         return repr(self.value)
+
+#///////////////////////////////////////////////////////////////////////////////
+class ConfigFileNotFoundError(FileNotFoundError):
+        pass
+
+#///////////////////////////////////////////////////////////////////////////////
+class ConfigError(Exception):
+    pass
 
 #///////////////////////////////////////////////////////////////////////////////
 class ColorFormatter(logging.Formatter):
@@ -2249,20 +2262,24 @@ def main_warmup(timestamp_start):
 
     #...........................................................................
     # let's find a config file to be read :
-    configfile_name, configfile_name__err = where_is_the_configfile()
+    try:
+        configfile_name = where_is_the_configfile()
 
-    if configfile_name__err < 0:
-        # ill-formed config file :
-        sys.exit(-1)
+    except ConfigFileNotFoundError:
+        if ARGS.downloaddefaultcfg is None:
+            LOGGER.warning(msg_please_use_dlcfg, color="red")
+            sys.exit(-1)
+        else:
+            LOGGER.info("  ! Can't find any configuration file, but you used the "
+                "--downloaddefaultcfg option.")
+            return
 
-    if configfile_name__err > 0:
-        # see the code's error of the where_is_the_configfile() function.
-        return
 
     #...........................................................................
     # let's read the config file :
-    CFG_PARAMETERS = read_parameters_from_cfgfile(configfile_name)
-    if CFG_PARAMETERS is None:
+    try:
+        CFG_PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+    except ConfigError:
         # ill-formed config file :
         sys.exit(-1)
     else:
@@ -2613,6 +2630,7 @@ def possible_paths_to_cfg():
     """
     res = []
 
+    res.append(normpath(ARGS.targetpath))
     res.append(os.path.join(normpath(ARGS.targetpath),
                             CST__KATALSYS_SUBDIR))
 
@@ -2621,6 +2639,8 @@ def possible_paths_to_cfg():
                                 "Local Settings",
                                 "Application Data",
                                 "katal"))
+
+    res.append(CST__XDG_CONFIG)
 
     res.append(os.path.join(normpath("~"),
                             ".katal"))
@@ -2633,7 +2653,8 @@ def read_parameters_from_cfgfile(_configfile_name):
         read_parameters_from_cfgfile()
         ________________________________________________________________________
 
-        Read the configfile and return the parser or None if an error occured.
+        Read the configfile and return the parser. If an error occured, a
+        ConfigError is raised.
 
         If the mode is set to 'nocopy', parser["target"]["name of the target files"]
         is set to "%i" .
@@ -2643,27 +2664,29 @@ def read_parameters_from_cfgfile(_configfile_name):
                 o _configfile_name       : (str) config file name (e.g. katal.ini)
 
         RETURNED VALUE
-                None if an error occured while reading the configuration file
-                or the expected configparser.ConfigParser object=.
+                The expected configparser.ConfigParser object=.
+        EXCEPTION
+                A ConfigError if an error occured while reading the configuration file
+
     """
     global USE_LOGFILE
 
-    parser = configparser.ConfigParser()
+    parser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 
     try:
         parser.read(_configfile_name)
-        USE_LOGFILE = parser["log file"]["use log file"] == "True"
+        USE_LOGFILE = parser["log file"].getboolean("use log file")
         # just to check the existence of the following values in the configuration file :
-        _ = parser["log file"]["maximal size"]
-        _ = parser["log file"]["name"]
-        _ = parser["target"]["name of the target files"]
-        _ = parser["target"]["mode"]
-        _ = parser["source"]["eval"]
-        _ = parser["display"]["target filename.max length on console"]
-        _ = parser["display"]["hashid.max length on console"]
-        _ = parser["display"]["tag.max length on console"]
-        _ = parser["display"]["source filename.max length on console"]
-        _ = parser["source"]["path"]
+        parser["log file"]["maximal size"]
+        parser["log file"]["name"]
+        parser["target"]["name of the target files"]
+        parser["target"]["mode"]
+        parser["source"]["eval"]
+        parser["display"]["target filename.max length on console"]
+        parser["display"]["hashid.max length on console"]
+        parser["display"]["tag.max length on console"]
+        parser["display"]["source filename.max length on console"]
+        parser["source"]["path"]
     except KeyError as exception:
         LOGGER.error("  ! An error occured while reading "
                        "the config file \"%s\".", _configfile_name,
@@ -2673,18 +2696,15 @@ def read_parameters_from_cfgfile(_configfile_name):
         LOGGER.warning("  ... you should download a new default config file : "
                        "see -dlcfg/--downloaddefaultcfg option",
                        color="red")
-        return None
-    except BaseException as exception:
+        raise ConfigError
+    except Exception as exception:
         LOGGER.exception("  ! An error occured while reading "
             "the config file \"%s\".", _configfile_name,
             color="red", exc_info=True)
-        return None
+        raise ConfigError
 
     if parser["target"]["mode"] == 'nocopy':
-        #   configparser.ConfigParser objects have to be initialized with strings
-        # exactly equal to the strings read in an .ini file : so instead of the
-        # natural "%i" we have to write "%%i" :
-        parser["target"]["name of the target files"] = "%%i"
+        parser["target"]["name of the target files"] = "%i"
 
         LOGGER.info("  *  since 'mode'=='nocopy', the value of \"[target]name of the target files\" ",
                     color="cyan")
@@ -3175,7 +3195,7 @@ def thefilehastobeadded__filters(filename, _size, date):
                                               "|"+"|".join(CST__AUTHORIZED_EVALCHARS)))
         return eval(evalstr)
 
-    except BaseException as exception:
+    except Exception as exception:
         raise KatalError("The eval formula in the config file (\"{0}\")"
                          "contains an error. Python message : \"{1}\"".format(evalstr,
                                                                               exception))
@@ -3393,56 +3413,36 @@ def where_is_the_configfile():
 
         Return the config file name from ARGS.configfile or from the paths
         returned by possible_paths_to_cfg() .
+        If not config file path has be found, a ConfigFileNotFoundError
+        is raised.
         ________________________________________________________________________
 
         no PARAMETER
 
-        RETURNED VALUE : ( str(filename), (int)error )
+        RETURNED VALUE : str(filename)
 
-                        +-------------+------------------------------------------
-                        | error value | meaning                                 |
-                        +-------------+-----------------------------------------+
-                        |      0      | no error : a config file has been found.|
-                        +-------------+-----------------------------------------+
-                        |      1      | information : can't find a config file  |
-                        |             | but the --downloaddefaultcfg was set.   |
-                        +-------------+-----------------------------------------+
-                        |     -1      | error : can't find a config file and the|
-                        |             | --downloaddefaultcfg option was NOT set |
-                        +-------------+-----------------------------------------+
-                        |     -2      | error : ARGS.configfile doesn't exist.  |
-                        +-------------+-----------------------------------------+
+        EXCEPTION: ConfigFileNotFoundError if no file found
     """
-    configfile_name = ""
-
     msg_please_use_dlcfg = \
      ("    ! error : can't find any config file !\n"
       "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file.")
 
-    if ARGS.configfile is None:
+    if not ARGS.configfile:
         # no config file given as a parameter, let's guess where it is :
 
         for cfg_path in possible_paths_to_cfg():
             LOGGER.info("  * trying to find a config file in \"%s\"...", cfg_path)
 
-            if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
+            path = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
+            if os.path.exists(path):
+                configfile_name = path
                 LOGGER.info("   ... ok a config file has been found, let's try to read it...")
-                configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
+                LOGGER.info("  * config file name : \"%s\" (path : \"%s\")",
+                            configfile_name, normpath(configfile_name))
                 break
 
-        if configfile_name != "":
-            LOGGER.info("  * config file name : \"%s\" (path : \"%s\")",
-                        configfile_name, normpath(configfile_name))
-
         else:
-
-            if ARGS.downloaddefaultcfg is None:
-                LOGGER.warning(msg_please_use_dlcfg, color="red")
-                return ("", -1)
-            else:
-                LOGGER.info("  ! Can't find any configuration file, but you used the "
-                    "--downloaddefaultcfg option.")
-                return ("", 1)
+            raise ConfigFileNotFoundError
 
     else:
         # A config file has been given as a parameter :
@@ -3456,12 +3456,13 @@ def where_is_the_configfile():
                            "doesn't exist. ", configfile_name, normpath(configfile_name),
                            color="red")
 
-            if ARGS.downloaddefaultcfg is None:
+            if not ARGS.downloaddefaultcfg:
                 LOGGER.warning(msg_please_use_dlcfg, color="red")
 
-            return ("", -2)
+            raise ConfigFileNotFoundError
 
-    return (configfile_name, 0)
+
+    return configfile_name
 
 #///////////////////////////////////////////////////////////////////////////////
 #/////////////////////////////// STARTING POINT ////////////////////////////////
