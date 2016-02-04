@@ -1526,7 +1526,7 @@ def draw_table(rows, data):
         ________________________________________________________________________
 
         PARAMETERS :
-            o rows : list of ( (str)row_name, 
+            o rows : list of ( (str)row_name,
                                (int)max length for this row,
                                (str)separator,
                              )
@@ -3031,6 +3031,8 @@ def size_as_str(_size):
           " If a function argument's name clashes with a reserved keyword, it is generally
           " better to append a single trailing underscore rather than use an abbreviation
           " or spelling corruption.
+
+        About the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte .
 
         RETURNED VALUE
                 a str(ing)
