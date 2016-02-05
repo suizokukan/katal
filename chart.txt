@@ -1,4 +1,6 @@
 main()
+    | logging.setLoggerClass(extra_logger(['color']))
+    |
     | ARGS = read_command_line_arguments()
     |
     | check_args()

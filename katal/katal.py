@@ -99,46 +99,6 @@ SELECT = {}               # see documentation:selection; initialized by action__
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
 FILTERS = {}              # see documentation:selection; initialized by read_filters()
 
-#===============================================================================
-# loggers
-#===============================================================================
-def extra_logger(custom_parameters):
-    """"
-        extraLogger(custom_parameters)
-        ________________________________________________________________________
-        Mainly for syntax sugar.
-        R
-        It let to write logger.info(msg, color='blue') rather than
-        logger.info(msg, extra={'color': 'blue'})
-        ________________________________________________________________________
-        PARAMETER
-                o custom_parameters : (list) extra parameters added to a Logger
-        RETURN
-                A Logger class which can take custom_parameters as extra parameters
-                and pass them to the extra argument of Logger
-
-                Example:
-                    extraLogger(['color']).info(msg, color='blue') is equivalent to
-                    Logger.info(msg, extra={'color': 'blue'})
-        """
-
-    class CustomLogger(logging.Logger):
-        """
-            A custom Logger class
-        """
-        def _log(self, *args, **kwargs):
-            extra = kwargs.get('extra', {})
-            for parameter in custom_parameters:
-                extra[parameter] = kwargs.get(parameter, None)
-                kwargs.pop(parameter, None)
-            kwargs['extra'] = extra
-
-            return super()._log(*args, **kwargs)
-
-    return CustomLogger
-
-logging.setLoggerClass(extra_logger(['color']))
-
 USE_LOGFILE = False     # (bool) initialized from the configuration file
 LOGGER = logging.getLogger('katal')      # base logger, will log everywhere
 FILE_LOGGER = logging.getLogger('file')  # will log only in file
@@ -276,7 +236,7 @@ class ColorFormatter(logging.Formatter):
     # default colors for the different logging level
     # they will be overrided if a color parameter is given
     debug = default
-    info = default
+    info = white
     warning = red
 
     def format(self, record):
@@ -295,6 +255,8 @@ class ColorFormatter(logging.Formatter):
                     record.color_end = ''
                 elif record.levelno <= logging.INFO:
                     record.color_start = self.white
+                elif record.levelno <= logging.WARNING:
+                    record.color_start = self.cyan
                 else:
                     record.color_start = self.red
 
@@ -302,6 +264,7 @@ class ColorFormatter(logging.Formatter):
         record.color_end = self.default
         return super().format(record)
 
+#///////////////////////////////////////////////////////////////////////////////
 def action__add():
     """
         action__add()
@@ -1661,6 +1624,47 @@ def eval_filter_for_a_file(_filter, filename, _size, date):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
+def extra_logger(custom_parameters):
+    """"
+        extra_logger()
+        ________________________________________________________________________
+
+        Mainly for syntax sugar.
+
+        It let to write logger.info(msg, color='blue') rather than
+        logger.info(msg, extra={'color': 'blue'})
+        ________________________________________________________________________
+
+        PARAMETER
+                o custom_parameters : (list) extra parameters added to a Logger
+
+        RETURNED VALUE
+                A Logger class which can take custom_parameters as extra parameters
+                and pass them to the extra argument of Logger
+
+        Example:
+                extra_logger(['color']).info(msg, color='blue') is equivalent to
+                Logger.info(msg, extra={'color': 'blue'})
+        """
+
+    ############################################################################
+    class CustomLogger(logging.Logger):
+        """
+                A custom Logger class
+                See https://docs.python.org/3.5/library/logging.html .
+        """
+        def _log(self, *args, **kwargs):
+            extra = kwargs.get('extra', {})
+            for parameter in custom_parameters:
+                extra[parameter] = kwargs.get(parameter, None)
+                kwargs.pop(parameter, None)
+            kwargs['extra'] = extra
+
+            return super()._log(*args, **kwargs)
+
+    return CustomLogger
+
+#///////////////////////////////////////////////////////////////////////////////
 def fill_select(debug_datatime=None):
     """
         fill_select()
@@ -2097,6 +2101,8 @@ def main():
     timestamp_start = datetime.now()
 
     try:
+        logging.setLoggerClass(extra_logger(['color']))
+
         ARGS = read_command_line_arguments()
         check_args()
 
