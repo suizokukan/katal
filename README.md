@@ -471,7 +471,6 @@ trash name is defined in the configuration file.
                                               from various information (filename, ...)
     o  draw_table()                         : draw a table with some <_rows> and fill it with _data.
     o  eval_filter_for_a_file()             : evaluate a file according to a filter
-    o  extra_logger()                       : function used to easily set the logging .
     o  fill_select()                        : fill SELECT and SELECT_SIZE_IN_BYTES from
                                               the files stored in SOURCE_PATH.
     o  fill_select__checks()                : final checks at the end of fill_select()
