@@ -1,3 +1,20 @@
+v 0.3.3 (2016_02_05) : added the PKGBUILD file, improved code readibilty
+
+    o Merge pull request #57 from ytterbium/PKGBUILD
+      Created a PKGBUILD to easily build package and install kital in ArchLinux based distribution.
+
+    o Merge branch 'ytterbium-stringsize'
+      changed the big numbers in size_as_str in 10-power floats
+    o removed all initial underscore from fonctions' arguments.
+      (based on a suggestion from ytterbium)
+    o removed removed all \ useless characters at the end of the strings.
+      (based a suggestion from ytterbium (issue #58))
+    o in pylintrc, max-locals=17 and max-args=8
+    o various improvements in the code's documentation.
+
+    o 6 tests, pylint=10.0 for the four Python scripts
+    o version packaged and sent to Pypi (https://pypi.python.org/pypi/Katal)
+
 v 0.3.2 (2016_01_25) : added the --verbosity argument, removed the --mute argument.
 
     o added the --verbosity argument, removed the --mute argument
