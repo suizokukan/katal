@@ -25,11 +25,15 @@
 #
 # (5)
 # Maximum number of locals for function / method body
-# max-locals=16
+# max-locals=17
 #
 # (6)
 # Maximum number of nested blocks for function / method body
 # max-nested-blocks=6 (initially=5)
+#
+# (7)
+# Maximum number of arguments for function / method
+# max-args=8 (initially=5)
 ################################################################################
 
 [MASTER]
@@ -371,14 +375,14 @@ exclude-protected=_asdict,_fields,_replace,_source,_make
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=5
+max-args=8
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore
 ignored-argument-names=_.*
 
 # Maximum number of locals for function / method body
-max-locals=16
+max-locals=17
 
 # Maximum number of return / yield for function / method body
 max-returns=6
