@@ -46,6 +46,8 @@ from datetime import datetime
 import filecmp
 import fnmatch
 import itertools
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 import platform
 import re
@@ -91,13 +93,56 @@ INFOS_ABOUT_SRC_PATH = (None, None, None)  # initialized by show_infos_about_sou
 
 TARGET_DB = dict()      # see documentation:database; initialized by read_target_db()
 
-USE_LOGFILE = False     # (bool) initialized from the configuration file
-LOGFILE = None          # the file descriptor, initialized by logfile_opening()
 LOGFILE_SIZE = 0        # size of the current logfile.
 
 SELECT = {}               # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
 FILTERS = {}              # see documentation:selection; initialized by read_filters()
+
+#===============================================================================
+# loggers
+#===============================================================================
+def extra_logger(custom_parameters):
+    """"
+        extraLogger(custom_parameters)
+        ________________________________________________________________________
+        Mainly for syntax sugar.
+        R
+        It let to write logger.info(msg, color='blue') rather than
+        logger.info(msg, extra={'color': 'blue'})
+        ________________________________________________________________________
+        PARAMETER
+                o custom_parameters : (list) extra parameters added to a Logger
+        RETURN
+                A Logger class which can take custom_parameters as extra parameters
+                and pass them to the extra argument of Logger
+
+                Example:
+                    extraLogger(['color']).info(msg, color='blue') is equivalent to
+                    Logger.info(msg, extra={'color': 'blue'})
+        """
+
+    class CustomLogger(logging.Logger):
+        """
+            A custom Logger class
+        """
+        def _log(self, *args, **kwargs):
+            extra = kwargs.get('extra', {})
+            for parameter in custom_parameters:
+                extra[parameter] = kwargs.get(parameter, None)
+                kwargs.pop(parameter, None)
+            kwargs['extra'] = extra
+
+            return super()._log(*args, **kwargs)
+
+    return CustomLogger
+
+logging.setLoggerClass(extra_logger(['color']))
+
+USE_LOGFILE = False     # (bool) initialized from the configuration file
+LOGGER = logging.getLogger('katal')      # base logger, will log everywhere
+FILE_LOGGER = logging.getLogger('file')  # will log only in file
+LOGFILE_SIZE = 0                         # size of the current logfile.
 
 #===============================================================================
 # type(s)
@@ -190,15 +235,6 @@ CST__TASKS_SUBSUBDIR = "tasks"
 
 CST__TRASH_SUBSUBDIR = "trash"
 
-# foreground colors :
-# (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
-CST__LINUXCONSOLECOLORS = {
-    "default"       : "\033[0m",
-    "red"           : "\033[0;31;1m",
-    "cyan"          : "\033[0;36;1m",
-    "white"         : "\033[0;37;1m",
-}
-
 # 'Linux', 'Windows', 'Java' according to https://docs.python.org/3.5/library/platform.html
 CST__PLATFORM = platform.system()
 
@@ -218,6 +254,54 @@ class KatalError(BaseException):
         return repr(self.value)
 
 #///////////////////////////////////////////////////////////////////////////////
+class ColorFormatter(logging.Formatter):
+    """
+        A custom formatter class used to display color in stream output.
+
+        Color is determined by default value depending of the log level (eg. by
+        default, warnings will be red), but this can be overrided by providing
+        a color value in the log function
+
+        Posistions of color codes in the formatting string are determined by
+        the keys color_start and color_end.
+    """
+
+    # foreground colors :
+    # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
+    default = "\033[0m"
+    red = "\033[0;31;1m"
+    cyan = "\033[0;36;1m"
+    white = "\033[0;37;1m"
+
+    # default colors for the different logging level
+    # they will be overrided if a color parameter is given
+    debug = default
+    info = default
+    warning = red
+
+    def format(self, record):
+        color = record.color
+        if CST__PLATFORM == 'Windows' or \
+                not CFG_PARAMETERS.getboolean('log file', 'use color'):
+
+            record.color_start = ''
+            record.color_end = ''
+        else:
+            if color:
+                record.color_start = getattr(self, color)
+            else:
+                if record.levelno <= logging.DEBUG:
+                    record.color_start = ''
+                    record.color_end = ''
+                elif record.levelno <= logging.INFO:
+                    record.color_start = self.white
+                else:
+                    record.color_start = self.red
+
+
+        record.color_end = self.default
+        return super().format(record)
+
 def action__add():
     """
         action__add()
@@ -232,14 +316,13 @@ def action__add():
         RETURNED VALUE
                 (int) 0 if success, -1 if an error occured.
     """
-    msg("  = copying data =")
+    LOGGER.info("  = copying data =")
 
     db_connection = sqlite3.connect(get_database_fullname())
     db_cursor = db_connection.cursor()
 
     if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
-        msg("    ! Not enough space on disk. Stopping the program.",
-            consolecolor="red")
+        LOGGER.info("    ! Not enough space on disk. Stopping the program.")
         # returned value : -1 = error
         return -1
 
@@ -260,28 +343,22 @@ def action__add():
         if not ARGS.off:
             if CFG_PARAMETERS["target"]["mode"] == "nocopy":
                 # nothing to do
-                msg("    ... ({0}/{1}) due to the mode=nocopy' option, "
-                    "\"{2}\" will be simply added "
-                    "in the target database.".format(index+1, len_select,
-                                                     complete_source_filename))
+                LOGGER.info("    ... (%s/%s) due to the mode=nocopy' option, "
+                            "\"%s\" will be simply added "
+                            "in the target database.", index+1, len_select,
+                            complete_source_filename)
 
             elif CFG_PARAMETERS["target"]["mode"] == "copy":
                 # copying the file :
-                msg("    ... ({0}/{1}) about to "
-                    "copy \"{2}\" to \"{3}\" .".format(index+1,
-                                                       len_select,
-                                                       complete_source_filename,
-                                                       target_name))
+                LOGGER.info("    ... (%s/%s) about to " "copy \"%s\" to \"%s\" .",
+                            index+1, len_select, complete_source_filename, target_name)
                 shutil.copyfile(complete_source_filename, target_name)
                 os.utime(target_name, (sourcedate, sourcedate))
 
             elif CFG_PARAMETERS["target"]["mode"] == "move":
                 # moving the file :
-                msg("    ... ({0}/{1}) about to "
-                    "move \"{2}\" to \"{3}\" .".format(index+1,
-                                                       len_select,
-                                                       complete_source_filename,
-                                                       target_name))
+                LOGGER.info("    ... (%s/%s) about to " "move \"%s\" to \"%s\" .",
+                            index+1, len_select, complete_source_filename, target_name)
                 shutil.move(complete_source_filename, target_name)
                 os.utime(target_name, (sourcedate, sourcedate))
 
@@ -293,27 +370,24 @@ def action__add():
                                   sourcedate,
                                   SELECT[hashid].targettags))
 
-    msg("    = all files have been copied, let's update the database... =")
+    LOGGER.info("    = all files have been copied, let's update the database... =")
 
     try:
         if not ARGS.off:
             db_cursor.executemany('INSERT INTO dbfiles VALUES (?,?,?,?,?,?,?)', files_to_be_added)
 
     except sqlite3.IntegrityError as exception:
-        msg("!!! An error occured while writing the database : "+str(exception),
-            consolecolor="red")
-        msg("!!! files_to_be_added : ",
-            consolecolor="red")
+        LOGGER.error("!!! An error occured while writing the database : %s\n"
+                     "!!! files to be added", str(exception))
         for file_to_be_added in files_to_be_added:
-            msg("     ! hashid={0}; partialhashid={1}; size={2}; name={3}; sourcename={4}; "
-                "sourcedate={5}; tagsstr={6}".format(*file_to_be_added),
-                consolecolor="red")
+            LOGGER.error("     ! hashid=%s; partialhashid=%s; size=%s; name=%s; sourcename=%s; "
+                         "sourcedate=%s; tagsstr=%s", *file_to_be_added)
         raise KatalError("An error occured while writing the database : "+str(exception))
 
     db_connection.commit()
     db_connection.close()
 
-    msg("    = ... database updated =")
+    LOGGER.info("    = ... database updated =")
 
     # returned value : 0 = success
     return 0
@@ -332,7 +406,7 @@ def action__addtag(tag, dest):
                 o dest         : (str) a regex string describing what files are
                                  concerned
     """
-    msg("  = let's add the tag string \"{0}\" to {1}".format(tag, dest))
+    LOGGER.info("  = let's add the tag string \"%s\" to %s", tag, dest)
     modify_the_tag_of_some_files(tag=tag, dest=dest, mode="append")
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -347,11 +421,10 @@ def action__cleandbrm():
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("  = clean the database : remove missing files from the target directory =")
+    LOGGER.info("  = clean the database : remove missing files from the target directory =")
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.",
-            consolecolor="red")
+        LOGGER.warning("    ! no database found.")
         return
 
     db_connection = sqlite3.connect(get_database_fullname())
@@ -362,25 +435,24 @@ def action__cleandbrm():
     for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
         if not os.path.exists(os.path.join(normpath(ARGS.targetpath), db_record["name"])):
             files_to_be_rmved_from_the_db.append(db_record["hashid"])
-            msg("    o about to remove \"{0}\" "
-                "from the database".format(os.path.join(normpath(ARGS.targetpath),
-                                                        db_record["name"])))
+            LOGGER.info("    o about to remove \"%s\" "
+                        "from the database", os.path.join(normpath(ARGS.targetpath),
+                                                          db_record["name"]))
 
     if len(files_to_be_rmved_from_the_db) == 0:
-        msg("    * no file to be removed : the database is ok.",
-            consolecolor="red")
+        LOGGER.info("    * no file to be removed : the database is ok.")
     else:
         for hashid in files_to_be_rmved_from_the_db:
             if not ARGS.off:
-                msg("    o removing \"{0}\" record "
-                    "from the database".format(hashid))
+                LOGGER.info("    o removing \"%s\" record "
+                            "from the database", hashid)
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
                 db_connection.commit()
 
     db_connection.close()
     if not ARGS.off:
-        msg("    o ... done : removed {0} "
-            "file(s) from the database".format(len(files_to_be_rmved_from_the_db)))
+        LOGGER.info("    o ... done : removed %s "
+                    "file(s) from the database", len(files_to_be_rmved_from_the_db))
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location="local"):
@@ -399,37 +471,34 @@ def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location=
         RETURNED VALUE :
             (bool) success
     """
-    msg("  = downloading the default configuration file =")
-    msg("    ... trying to download {0} from {1}".format(targetname, CST__DEFAULTCFGFILE_URL))
+    LOGGER.info("  = downloading the default configuration file =")
+    LOGGER.info("    ... trying to download %s from %s", targetname, CST__DEFAULTCFGFILE_URL)
 
     try:
         if not ARGS.off:
             with urllib.request.urlopen(CST__DEFAULTCFGFILE_URL) as response, \
                  open(targetname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
-        msg("  * download completed : \"{0}\" (path : \"{1}\")".format(targetname,
-                                                                       normpath(targetname)))
+        LOGGER.info("  * download completed : \"%s\" (path : \"%s\")", targetname,
+                    normpath(targetname))
 
         if location == 'home':
             newname = os.path.join(possible_paths_to_cfg()[-1],
                                    os.path.basename(targetname))
-            msg("  * Since you wrote '--downloaddefaultcfg=home', "
-                "let's move the download file to the user's home directory...")
-            msg("    namely {0} -> {1}".format(targetname, newname))
+            LOGGER.info("  * Since you wrote '--downloaddefaultcfg=home', "
+                        "let's move the download file to the user's home directory...")
+            LOGGER.info("    namely %s -> %s", targetname, newname)
             shutil.move(targetname, newname)
 
         return True
 
     except urllib.error.URLError as exception:
-        msg("  ! An error occured : "+str(exception),
-            consolecolor="red")
-        msg("  ... if you can't download the default config file, what about simply",
-            consolecolor="red")
-        msg("  ... copy another config file to the target directory ?",
-            consolecolor="red")
-        msg("  ... In a target directory, the config file is "
-            "in the \"{0}\" directory.".format(os.path.join(CST__KATALSYS_SUBDIR)),
-            consolecolor="red")
+        LOGGER.exception("  ! An error occured : %s\n"
+                         "  ... if you can't download the default config file, what about simply\n"
+                         "  ... copy another config file to the target directory ?\n"
+                         "  ... In a target directory, the config file is \n"
+                         "in the \"%s\" directory.",
+                         str(exception), os.path.join(CST__KATALSYS_SUBDIR))
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -450,11 +519,10 @@ def action__findtag(tag):
 
         no RETURNED VALUE
     """
-    msg("  = searching the files with the tag \"{0}\" =".format(tag))
+    LOGGER.info("  = searching the files with the tag \"%s\" =", tag)
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.",
-            consolecolor="red")
+        LOGGER.warning("    ! no database found.")
         return
 
     db_connection = sqlite3.connect(get_database_fullname())
@@ -466,35 +534,36 @@ def action__findtag(tag):
         if tag in db_record["tagsstr"]:
 
             res.append(db_record["name"])
-            msg("    o \"{0}\" : \"{1}\"".format(db_record["name"],
-                                                 tagsstr_repr(db_record["tagsstr"])))
+            LOGGER.info("    o \"%s\" : \"%s\"",
+                        db_record["name"], tagsstr_repr(db_record["tagsstr"]))
 
     len_res = len(res)
     if len_res == 0:
-        msg("    o no file matches the tag \"{0}\" .".format(tag))
+        LOGGER.info("    o no file matches the tag \"%s\" .", tag)
     elif len_res == 1:
-        msg("    o one file matches the tag \"{0}\" .".format(tag))
+        LOGGER.info("    o one file matches the tag \"%s\" .", tag)
     else:
-        msg("    o {0} files match the tag \"{1}\" .".format(len_res, tag))
+        LOGGER.info("    o %s files match the tag \"%s\" .", len_res, tag)
 
     db_connection.commit()
     db_connection.close()
 
     # --copyto argument :
     if ARGS.copyto:
-        msg("    o copying the files into \"{0}\" (path: \"{1}\")".format(ARGS.copyto,
-                                                                          normpath(ARGS.copyto)))
+        LOGGER.info("    o copying the files into \"%s\" (path: \"%s\")",
+                    ARGS.copyto, normpath(ARGS.copyto))
 
         if not os.path.exists(normpath(ARGS.copyto)):
-            msg("    * let's create \"{0}\" (path: \"{1}\"".format(ARGS.copyto,
-                                                                   normpath(ARGS.copyto)))
+            LOGGER.info("    * let's create \"%s\" (path: \"%s\"",
+                        ARGS.copyto, normpath(ARGS.copyto))
             if not ARGS.off:
                 os.mkdir(normpath(ARGS.copyto))
 
         for i, filename in enumerate(res):
             src = os.path.join(normpath(ARGS.targetpath), filename)
             dest = os.path.join(normpath(ARGS.copyto), filename)
-            msg("    o ({0}/{1}) copying \"{2}\" as \"{3}\"...".format(i+1, len_res, src, dest))
+            LOGGER.info("    o (%s/%s) copying \"%s\" as \"%s\"...",
+                        i+1, len_res, src, dest)
             if not ARGS.off:
                 shutil.copy(src, dest)
 
@@ -512,7 +581,7 @@ def action__infos():
         RETURNED VALUE
                 (int) 0 if ok, -1 if an error occured
     """
-    msg("  = informations =")
+    LOGGER.info("  = informations =")
     show_infos_about_source_path()
     return show_infos_about_target_path()
 
@@ -527,16 +596,14 @@ def action__new(targetname):
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("  = about to create a new target directory "
-        "named \"{0}\" (path : \"{1}\")".format(targetname,
-                                                normpath(targetname)))
+    LOGGER.info("  = about to create a new target directory "
+                "named \"%s\" (path : \"%s\")", targetname, normpath(targetname))
     if os.path.exists(normpath(targetname)):
-        msg("  ! can't go further : the directory already exists.",
-            consolecolor="red")
+        LOGGER.warning("  ! can't go further : the directory already exists.")
         return
 
     if not ARGS.off:
-        msg("  ... creating the target directory with its sub-directories...")
+        LOGGER.info("  ... creating the target directory with its sub-directories...")
         os.mkdir(normpath(targetname))
         os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR))
         os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR))
@@ -558,11 +625,10 @@ def action__new(targetname):
                                                                     CST__DEFAULT_CONFIGFILE_NAME),
                                             location="local")
             if not res:
-                msg("  ! A problem occured : "
-                    "the creation of the target directory has been aborted.",
-                    consolecolor="red")
+                LOGGER.warning("  ! A problem occured : "
+                               "the creation of the target directory has been aborted.")
 
-    msg("  ... done with the creation of \"{0}\" as a new target directory.".format(targetname))
+    LOGGER.info("  ... done with the creation of \"%s\" as a new target directory.", targetname)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rebase(newtargetpath):
@@ -580,31 +646,28 @@ def action__rebase(newtargetpath):
     """
     source_path = CFG_PARAMETERS["source"]["path"]
 
-    msg("  = copying the current target directory into a new one =")
-    msg("    o from {0} (path : \"{1}\")".format(source_path,
-                                                 normpath(source_path)))
+    LOGGER.info("  = copying the current target directory into a new one =")
+    LOGGER.info("    o from %s (path : \"%s\")", source_path, normpath(source_path))
 
-    msg("    o to   {0} (path : \"{1}\")".format(newtargetpath,
-                                                 normpath(newtargetpath)))
+    LOGGER.info("    o to   %s (path : \"%s\")", newtargetpath, normpath(newtargetpath))
 
     to_configfile = os.path.join(newtargetpath,
                                  CST__KATALSYS_SUBDIR,
                                  CST__DEFAULT_CONFIGFILE_NAME)
-    msg("    o trying to read dest config file {0} "
-        "(path : \"{1}\") .".format(to_configfile,
-                                    normpath(to_configfile)))
+    LOGGER.info("    o trying to read dest config file %s "
+                "(path : \"%s\") .", to_configfile, normpath(to_configfile))
+
     dest_params = read_parameters_from_cfgfile(normpath(to_configfile))
 
     if dest_params is None:
-        msg("    ! can't read the dest config file !",
-            consolecolor="red")
+        LOGGER.warning("    ! can't read the dest config file !")
         return
 
-    msg("    o config file found and read (ok)")
-    msg("    o new filenames' format : "
-        "{0}".format(dest_params["target"]["name of the target files"]))
-    msg("    o tags to be added : "
-        "{0}".format(dest_params["target"]["tags"]))
+    LOGGER.info("    o config file found and read (ok)")
+    LOGGER.info("    o new filenames' format : %s",
+                dest_params["target"]["name of the target files"])
+    LOGGER.info("    o tags to be added : %s",
+                dest_params["target"]["tags"])
 
     new_db = os.path.join(normpath(newtargetpath), CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)
     if not ARGS.off:
@@ -688,24 +751,21 @@ def action__rebase__files(olddb_cursor, dest_params, newtargetpath):
         new_name = normpath(os.path.join(newtargetpath, new_name))
         tagsstr = olddb_record["tagsstr"]
 
-        msg("      o {0} : {1} would be copied as {2}".format(olddb_record["hashid"],
-                                                              olddb_record["name"],
-                                                              new_name))
+        LOGGER.info("      o %s : %s would be copied as %s",
+                    olddb_record["hashid"], olddb_record["name"], new_name)
 
         if new_name in filenames:
-            msg("      ! anomaly : ancient file {1} should be renamed as {0} "
-                "but this name would have been already created in the new target directory ! "
-                "".format(new_name, fullname),
-                consolecolor="red")
-            msg("        Two different files from the ancient target directory "
-                "can't bear the same name in the new target directory !",
-                consolecolor="red")
+            LOGGER.warning("      ! anomaly : ancient file %s should be renamed as %s "
+                           "but this name would have been already created "
+                           "in the new target directory ! ",
+                           new_name, fullname)
+            LOGGER.warning("        Two different files from the ancient target directory "
+                           "can't bear the same name in the new target directory !")
             anomalies_nbr += 1
         elif os.path.exists(new_name):
-            msg("      ! anomaly : ancient file {1} should be renamed as {0} "
-                "but this name already exists in new target directory !".format(new_name,
-                                                                                fullname),
-                consolecolor="red")
+            LOGGER.warning("      ! anomaly : ancient file %s should be renamed as %s "
+                           "but this name already exists in new target directory !",
+                           new_name, fullname)
             anomalies_nbr += 1
         else:
             files[olddb_record["hashid"]] = (fullname, new_name, date, tagsstr)
@@ -754,20 +814,20 @@ def action__rebase__write(new_db, _files):
                                 futurefile[3])          # tags
 
             strdate = datetime.utcfromtimestamp(futurefile[2]).strftime(CST__DTIME_FORMAT)
-            msg("    o ({0}/{1}) adding a file in the new database".format(index+1, len(_files)))
-            msg("      o hashid      : {0}".format(futurefile_hashid))
-            msg("      o source name : \"{0}\"".format(futurefile[0]))
-            msg("      o desti. name : \"{0}\"".format(futurefile[1]))
-            msg("      o source date : {0}".format(strdate))
-            msg("      o size        : {0}".format(futurefile[4]))
-            msg("      o tags        : \"{0}\"".format(futurefile[3]))
+            LOGGER.info("    o (%s/%s) adding a file in the new database", index+1, len(_files))
+            LOGGER.info("      o hashid      : %s", futurefile_hashid)
+            LOGGER.info("      o source name : \"%s\"", futurefile[0])
+            LOGGER.info("      o desti. name : \"%s\"", futurefile[1])
+            LOGGER.info("      o source date : %s", strdate)
+            LOGGER.info("      o size        : %s", futurefile[4])
+            LOGGER.info("      o tags        : \"%s\"", futurefile[3])
 
             if not ARGS.off:
                 newdb_cursor.execute('INSERT INTO dbfiles VALUES (?,?,?,?,?,?,?)', file_to_be_added)
                 newdb_connection.commit()
 
     except sqlite3.IntegrityError as exception:
-        msg("!!! An error occured while writing the new database : "+str(exception))
+        LOGGER.exception("!!! An error occured while writing the new database : ")
         raise KatalError("An error occured while writing the new database : "+str(exception))
 
     newdb_connection.close()
@@ -777,12 +837,12 @@ def action__rebase__write(new_db, _files):
         futurefile = _files[futurefile_hashid]
         old_name, new_name = futurefile[0], futurefile[1]
 
-        msg("    o ({0}/{1}) copying \"{2}\" as \"{3}\"".format(index+1, len(_files),
-                                                                old_name, new_name))
+        LOGGER.info("    o (%s/%s) copying \"%s\" as \"%s\"",
+                    index+1, len(_files), old_name, new_name)
         if not ARGS.off:
             shutil.copyfile(old_name, new_name)
 
-    msg("    ... done")
+    LOGGER.info("    ... done")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__reset():
@@ -795,11 +855,10 @@ def action__reset():
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("    = about to delete (=move in the trash) the target files and the database.")
+    LOGGER.info("    = about to delete (=move in the trash) the target files and the database.")
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found, nothing to do .",
-            consolecolor="red")
+        LOGGER.warning("    ! no database found, nothing to do .")
         return
 
     if ARGS.verbosity != 'none':
@@ -818,7 +877,7 @@ def action__reset():
         files_to_be_removed.append((db_record["hashid"], db_record["name"]))
 
     for hashid, name in files_to_be_removed:
-        msg("   o removing {0} from the database and from the target path".format(name))
+        LOGGER.info("   o removing %s from the database and from the target path", name)
         if not ARGS.off:
             # let's remove the file from the target directory :
             shutil.move(os.path.join(normpath(ARGS.targetpath), name),
@@ -831,7 +890,8 @@ def action__reset():
 
     db_connection.close()
 
-    msg("    = ... done : the database should be empty, the target files should no longer exist.")
+    LOGGER.info("    = ... done : the database should be empty, "
+                "the target files should no longer exist.")
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rmnotags():
@@ -845,11 +905,10 @@ def action__rmnotags():
 
         no PARAMETER, no RETURNED VALUE
     """
-    msg("  = removing all files with no tags (=moving them to the trash) =")
+    LOGGER.info("  = removing all files with no tags (=moving them to the trash) =")
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.",
-            consolecolor="red")
+        LOGGER.warning("    ! no database found.")
     else:
         db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
@@ -861,11 +920,10 @@ def action__rmnotags():
                 files_to_be_removed.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_removed) == 0:
-            msg("   ! no files to be removed.",
-                consolecolor="red")
+            LOGGER.warning("   ! no files to be removed.")
         else:
             for hashid, name in files_to_be_removed:
-                msg("   o removing {0} from the database and from the target path".format(name))
+                LOGGER.info("   o removing %s from the database and from the target path", name)
                 if not ARGS.off:
                     # let's remove the file from the target directory :
                     shutil.move(os.path.join(normpath(ARGS.targetpath), name),
@@ -891,7 +949,7 @@ def action__rmtags(dest):
                 o dest           : (str) a regex string describing what files are
                                    concerned
     """
-    msg("  = let's remove the tags' string(s) in {0}".format(dest))
+    LOGGER.info("  = let's remove the tags' string(s) in %s", dest)
     action__settagsstr(tagsstr="", dest=dest)
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -906,37 +964,34 @@ def action__select():
 
         no PARAMETER, no RETURNED VALUE.
     """
-    msg("  = selecting files according to the instructions in the config file... =")
+    LOGGER.info("  = selecting files according to the instructions in the config file... =")
 
-    msg("  o the files will be copied in \"{0}\" "
-        "(path: \"{1}\")".format(ARGS.targetpath,
-                                 normpath(ARGS.targetpath)))
-    msg("  o the files will be renamed according "
-        "to the \"{0}\" pattern.".format(CFG_PARAMETERS["target"]["name of the target files"]))
+    LOGGER.info("  o the files will be copied in \"%s\" "
+                "(path: \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
+    LOGGER.info("  o the files will be renamed according "
+                "to the \"%s\" pattern.", CFG_PARAMETERS["target"]["name of the target files"])
 
-    msg("  o filters :")
+    LOGGER.info("  o filters :")
 
     for filter_index in FILTERS:
-        msg("    o filter #{0} : {1}".format(filter_index,
-                                             FILTERS[filter_index]))
-    msg("  o file list :")
+        LOGGER.info("    o filter #%s : %s",
+                    filter_index, FILTERS[filter_index])
+    LOGGER.info("  o file list :")
 
     # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
     number_of_discarded_files = fill_select()
 
-    msg("    o size of the selected file(s) : {0}".format(size_as_str(SELECT_SIZE_IN_BYTES)))
+    LOGGER.info("    o size of the selected file(s) : %s", size_as_str(SELECT_SIZE_IN_BYTES))
 
     if len(SELECT) == 0:
-        msg("    ! no file selected ! "
-            "You have to modify the config file to get some files selected.",
-            consolecolor="red")
+        LOGGER.warning("    ! no file selected ! "
+                       "You have to modify the config file to get some files selected.")
     else:
         ratio = len(SELECT)/(len(SELECT)+number_of_discarded_files)*100.0
-        msg("    o number of selected files "
-            "(after discarding {1} file(s)) : {0}, "
-            "{2:.2f}% of the source files.".format(len(SELECT),
-                                                   number_of_discarded_files,
-                                                   ratio))
+        LOGGER.info("    o number of selected files "
+                    "(after discarding %s file(s)) : %s, "
+                    "%.2f%% of the source files.",
+                    len(SELECT), number_of_discarded_files, ratio)
 
     # let's check that the target path has sufficient free space :
     if CFG_PARAMETERS["target"]["mode"] != "nocopy":
@@ -948,11 +1003,10 @@ def action__select():
             size_ok = "!!! problem !!!"
             colorconsole = "red"
 
-        msg("    o required space : {0}; "
-            "available space on disk : {1} ({2})".format(size_as_str(SELECT_SIZE_IN_BYTES),
-                                                         size_as_str(available_space),
-                                                         size_ok),
-            consolecolor=colorconsole)
+        LOGGER.info("    o required space : %s; "
+                    "available space on disk : %s (%s)",
+                    size_as_str(SELECT_SIZE_IN_BYTES), size_as_str(available_space),
+                    size_ok, color=colorconsole)
 
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add and CFG_PARAMETERS["target"]["mode"] != "nocopy":
@@ -963,9 +1017,8 @@ def action__select():
 
             target_name = os.path.join(normpath(ARGS.targetpath), SELECT[hashid].targetname)
 
-            msg("    o e.g. ... \"{0}\" "
-                "would be copied as \"{1}\" .".format(complete_source_filename,
-                                                      target_name))
+            LOGGER.info("    o e.g. ... \"%s\" "
+                        "would be copied as \"%s\" .", complete_source_filename, target_name)
 
             example_index += 1
 
@@ -986,7 +1039,7 @@ def action__settagsstr(tagsstr, dest):
                 o dest         : (str) a regex string describing what files are
                                  concerned
     """
-    msg("  = let's apply the tag string\"{0}\" to {1}".format(tagsstr, dest))
+    LOGGER.info("  = let's apply the tag string\"%s\" to %s", tagsstr, dest)
     modify_the_tag_of_some_files(tag=tagsstr, dest=dest, mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1008,16 +1061,14 @@ def action__target_kill(filename):
                         directory, -2 if the file doesn't exist in the database,
                         -3 if there's no database.
     """
-    msg("  = about to remove \"{0}\" from the target directory (=file moved to the trash) "
-        "and from its database =".format(filename))
+    LOGGER.info("  = about to remove \"%s\" from the target directory (=file moved to the trash) "
+                "and from its database =", filename)
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath), filename)):
-        msg("    ! can't find \"{0}\" file on disk.".format(filename),
-            consolecolor="red")
+        LOGGER.warning("    ! can't find \"%s\" file on disk.", filename)
         return -1
 
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.",
-            consolecolor="red")
+        LOGGER.warning("    ! no database found.")
         return -3
     else:
         db_connection = sqlite3.connect(get_database_fullname())
@@ -1030,8 +1081,7 @@ def action__target_kill(filename):
                 filename_hashid = db_record["hashid"]
 
         if filename_hashid is None:
-            msg("    ! can't find \"{0}\" file in the database.".format(filename),
-                consolecolor="red")
+            LOGGER.warning("    ! can't find \"%s\" file in the database.", filename)
             res = -2
         else:
             if not ARGS.off:
@@ -1048,7 +1098,7 @@ def action__target_kill(filename):
         db_connection.commit()
         db_connection.close()
 
-        msg("    ... done")
+        LOGGER.info("    ... done")
         return res
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1071,19 +1121,19 @@ def action__whatabout(src):
         """
                 Display the expected informations about a file named srcfile_name .
         """
-        msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(src, srcfile_name))
+        LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, srcfile_name)
         size = os.stat(srcfile_name).st_size
-        msg("    = size : {0}".format(size_as_str(size)))
+        LOGGER.info("    = size : %s", size_as_str(size))
 
         sourcedate = datetime.utcfromtimestamp(os.path.getmtime(srcfile_name))
         sourcedate = sourcedate.replace(second=0, microsecond=0)
         sourcedate2 = sourcedate
         sourcedate2 -= datetime(1970, 1, 1)
         sourcedate2 = sourcedate2.total_seconds()
-        msg("    = mtime : {0} (epoch value : {1})".format(sourcedate, sourcedate2))
+        LOGGER.info("    = mtime : %s (epoch value : %s)", sourcedate, sourcedate2)
 
         srchash = hashfile64(srcfile_name)
-        msg("    = hash : {0}".format(srchash))
+        LOGGER.info("    = hash : %s", srchash)
 
         # is the hash in the database ?
         already_present_in_db = False
@@ -1092,23 +1142,22 @@ def action__whatabout(src):
                 already_present_in_db = True
                 break
         if already_present_in_db:
-            msg("    = the file's content is equal to a file ALREADY present in the database.")
+            LOGGER.info("    = the file's content is equal to a file "
+                        "ALREADY present in the database.")
         else:
-            msg("    = the file isn't present in the database.")
+            LOGGER.info("    = the file isn't present in the database.")
 
     # (1) does src exist ?
     normsrc = normpath(src)
     if not os.path.exists(normsrc):
-        msg("  ! error : can't find source file \"{0}\" .".format(normsrc),
-            consolecolor="red")
+        LOGGER.warning("  ! error : can't find source file \"%s\" .", normsrc)
         return False
 
     # (2) is src a file or a directory ?
     if os.path.isdir(normsrc):
         # informations about the source directory :
         if normpath(ARGS.targetpath) in normsrc:
-            msg("  ! error : the given directory is inside the target directory.",
-                consolecolor="red")
+            LOGGER.warning("  ! error : the given directory is inside the target directory.")
             return False
 
         for dirpath, _, filenames in os.walk(normpath(src)):
@@ -1120,22 +1169,22 @@ def action__whatabout(src):
         # informations about the source file :
         if normpath(ARGS.targetpath) in normpath(src):
             # special case : the file is inside the target directory :
-            msg("  = what about the \"{0}\" file ? (path : \"{1}\")".format(src, normsrc))
-            msg("    This file is inside the target directory.")
+            LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, normsrc)
+            LOGGER.info("    This file is inside the target directory.")
             srchash = hashfile64(normsrc)
-            msg("    = hash : {0}".format(srchash))
-            msg("    Informations extracted from the database :")
+            LOGGER.info("    = hash : %s", srchash)
+            LOGGER.info("    Informations extracted from the database :")
             # informations from the database :
             db_connection = sqlite3.connect(get_database_fullname())
             db_connection.row_factory = sqlite3.Row
             db_cursor = db_connection.cursor()
             for db_record in db_cursor.execute("SELECT * FROM dbfiles WHERE hashid=?", (srchash,)):
-                msg("    = partial hashid : {0}".format(db_record["partialhashid"]))
-                msg("    = name : {0}".format(db_record["name"]))
-                msg("    = size : {0}".format(db_record["size"]))
-                msg("    = source name : {0}".format(db_record["sourcename"]))
-                msg("    = source date : {0}".format(db_record["sourcedate"]))
-                msg("    = tags' string : {0}".format(db_record["tagsstr"]))
+                LOGGER.info("    = partial hashid : %s", db_record["partialhashid"])
+                LOGGER.info("    = name : %s", db_record["name"])
+                LOGGER.info("    = size : %s", db_record["size"])
+                LOGGER.info("    = source name : %s", db_record["sourcename"])
+                LOGGER.info("    = source date : %s", db_record["sourcedate"])
+                LOGGER.info("    = tags' string : %s", db_record["tagsstr"])
             db_connection.close()
 
         else:
@@ -1292,7 +1341,7 @@ def create_empty_db(db_name):
 
         no RETURNED VALUE
     """
-    msg("  ... creating an empty database named \"{0}\"...".format(db_name))
+    LOGGER.info("  ... creating an empty database named \"%s\"...", db_name)
 
     if not ARGS.off:
 
@@ -1304,7 +1353,7 @@ def create_empty_db(db_name):
         db_connection.commit()
         db_connection.close()
 
-    msg("   ... database created")
+    LOGGER.info("   ... database created")
 
 #///////////////////////////////////////////////////////////////////////////////
 def create_subdirs_in_target_path():
@@ -1329,10 +1378,9 @@ def create_subdirs_in_target_path():
                      ("tasks", os.path.join(normpath(ARGS.targetpath),
                                             CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))):
         if not os.path.exists(normpath(fullpath)):
-            msg("  * Since the {0} path \"{1}\" (path : \"{2}\") "
-                "doesn't exist, let's create it.".format(name,
-                                                         fullpath,
-                                                         normpath(fullpath)))
+            LOGGER.info("  * Since the %s path \"%s\" (path : \"%s\") "
+                        "doesn't exist, let's create it.",
+                        name, fullpath, normpath(fullpath))
             if not ARGS.off:
                 os.mkdir(normpath(fullpath))
 
@@ -1521,8 +1569,8 @@ def draw_table(rows, data):
         draw_table()
         ________________________________________________________________________
 
-        Draw a table with some <rows> and fill it with data. The output is
-        created by calling the msg() function.
+        Draw a table with some <_rows> and fill it with _data. The output is
+        created by calling the LOGGER.info() function.
         ________________________________________________________________________
 
         PARAMETERS :
@@ -1545,7 +1593,7 @@ def draw_table(rows, data):
         string = " "*6 + "+"
         for _, row_maxlength, _ in rows:
             string += "-"*(row_maxlength+2) + "+"
-        msg(string)
+        LOGGER.info(string)
 
     # real rows' widths : it may happen that a row's width is greater than
     # the maximal value given in rows since the row name is longer than
@@ -1560,7 +1608,7 @@ def draw_table(rows, data):
     string = " "*6 + "|"
     for row_name, row_maxlength, row_separator in _rows:
         string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + row_separator
-    msg(string)
+    LOGGER.info(string)
 
     draw_line()
 
@@ -1570,9 +1618,9 @@ def draw_table(rows, data):
         for row_index, row_content in enumerate(linedata):
             text = shortstr(row_content, rows[row_index][1])
             string += (" " + text + \
-                       " "*(_rows[row_index][1]-len(text)) + \
-                       " " + _rows[row_index][2])
-        msg(string)  # let's write the computed line
+                       " "*(rows[row_index][1]-len(text)) + \
+                       " " + rows[row_index][2])
+        LOGGER.info(string)  # let's write the computed line
 
     draw_line()
 
@@ -1680,8 +1728,9 @@ def fill_select(debug_datatime=None):
                     number_of_discarded_files += 1
 
                     if ARGS.verbosity == 'high':
-                        msg("    - {0} discarded \"{1}\" "
-                            ": incompatibility with the filter(s)".format(prefix, fullname))
+                        LOGGER.info("    - %s discarded \"%s\" "
+                                    ": incompatibility with the filter(s)",
+                                    prefix, fullname)
                 else:
                     # 'filename' being compatible with the filters, let's try
                     # to add it in the datase :
@@ -1694,9 +1743,9 @@ def fill_select(debug_datatime=None):
                         number_of_discarded_files += 1
 
                         if ARGS.verbosity == 'high':
-                            msg("    - {0} (similar hashid among the files to be copied, "
-                                "in the source directory) "
-                                " discarded \"{1}\"".format(prefix, fullname))
+                            LOGGER.info("    - %s (similar hashid among the files to be copied, "
+                                        "in the source directory) discarded \"%s\"",
+                                        prefix, fullname)
 
                     elif tobeadded:
                         # . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -1730,11 +1779,10 @@ def fill_select(debug_datatime=None):
                                                              database_index=len(TARGET_DB) + \
                                                                              len(SELECT)))
 
-                        msg("    + {0} selected \"{1}\" (file selected #{2})".format(prefix,
-                                                                                     fullname,
-                                                                                     len(SELECT)))
-                        msg("       size={0}; date={1}".format(size,
-                                                               time.strftime(CST__DTIME_FORMAT)))
+                        LOGGER.info("    + %s selected \"%s\" (file selected #%s)",
+                                    prefix, fullname, len(SELECT))
+                        LOGGER.info("       size=%s; date=%s",
+                                    size, time.strftime(CST__DTIME_FORMAT))
 
                         SELECT_SIZE_IN_BYTES += size
 
@@ -1744,15 +1792,12 @@ def fill_select(debug_datatime=None):
                         number_of_discarded_files += 1
 
                         if ARGS.verbosity == 'high':
-                            msg("    - {0} (similar hashid in the database) "
-                                " discarded \"{1}\"".format(prefix, fullname))
+                            LOGGER.info("    - %s (similar hashid in the database) "
+                                        " discarded \"%s\"", prefix, fullname)
 
             else:
-                msg("    ! browsing {0}, an error occured : "
-                    "can't read the file ".format(source_path),
-                    consolecolor='red')
-                msg("    \"{0}\"".format(fullname),
-                    consolecolor='red')
+                LOGGER.warning("    ! browsing %s, an error occured : "
+                               "can't read the file \"%s\"", source_path, fullname)
 
     return fill_select__checks(number_of_discarded_files=number_of_discarded_files,
                                prefix=prefix,
@@ -1779,52 +1824,46 @@ def fill_select__checks(number_of_discarded_files, prefix, fullname):
         RETURNED VALUE
                 (int) the number of discarded files
     """
-    msg("    o checking that there's no anomaly with the selected files...")
+    LOGGER.info("    o checking that there's no anomaly with the selected files...")
 
     # (1) future filename's can't be in conflict with another file in SELECT
-    msg("       ... let's check that future filenames aren't in conflict "
-        "with another file in SELECT...")
+    LOGGER.info("       ... let's check that future filenames aren't in conflict "
+                "with another file in SELECT...")
     to_be_discarded = []        # a list of hash.
     for (selectedfile_hash1, selectedfile_hash2) in itertools.combinations(SELECT, 2):
 
         if SELECT[selectedfile_hash1].targetname == SELECT[selectedfile_hash2].targetname:
-            msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" would be used "
-                "two times for two different files !".format(prefix,
-                                                             fullname,
-                                                             SELECT[selectedfile_hash2].targetname),
-                consolecolor="red")
+            LOGGER.warning("    ! %s discarded \"%s\" : target filename \"%s\" would be used "
+                           "two times for two different files !",
+                           prefix, fullname, SELECT[selectedfile_hash2].targetname)
 
             to_be_discarded.append(selectedfile_hash2)
 
     # (2) future filename's can't be in conflict with another file already
     # stored in the target path :
     if not CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        msg("       ... let's check that future filenames aren't in conflict "
-            "with another file already")
-        msg("           stored in the target path...")
+        LOGGER.info("       ... let's check that future filenames aren't in conflict "
+                    "with another file already")
+        LOGGER.info("           stored in the target path...")
         for selectedfile_hash in SELECT:
             if os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                            SELECT[selectedfile_hash].targetname)):
-                msg("    ! {0} discarded \"{1}\" : target filename \"{2}\" already "
-                    "exists in the target path !".format(prefix,
-                                                         fullname,
-                                                         SELECT[selectedfile_hash].targetname),
-                    consolecolor="red")
+                LOGGER.warning("    ! %s discarded \"%s\" : target filename \"%s\" already "
+                               "exists in the target path !",
+                               prefix, fullname, SELECT[selectedfile_hash].targetname)
 
                 to_be_discarded.append(selectedfile_hash)
 
     # final message and deletion :
     if len(to_be_discarded) == 0:
-        msg("    o  everything ok : no anomaly detected. See details above.")
+        LOGGER.info("    o  everything ok : no anomaly detected. See details above.")
     else:
         if len(to_be_discarded) == 1:
             ending = "y"
         else:
             ending = "ies"
-        msg("    !  beware : {0} anomal{1} detected. "
-            "See details above.".format(len(to_be_discarded),
-                                        ending),
-            consolecolor="red")
+        LOGGER.warning("    !  beware : %s anomal%s detected. "
+                       "See details above.", len(to_be_discarded), ending)
 
         for _hash in to_be_discarded:
             # e.g. , _hash may have discarded two times (same target name + file
@@ -1933,9 +1972,9 @@ def goodbye(timestamp_start):
 
         no RETURNED VALUE
     """
-    msg("=== exit (Katal stopped at {0}; "
-        "total duration time : {1}) ===".format(datetime.now().strftime(CST__DTIME_FORMAT),
-                                                datetime.now() - timestamp_start))
+    LOGGER.info("=== exit (Katal stopped at %s; "
+                "total duration time : %s) ===",
+                datetime.now().strftime(CST__DTIME_FORMAT), datetime.now() - timestamp_start)
 
 #///////////////////////////////////////////////////////////////////////////////
 def hashfile64(filename, stop_after=None):
@@ -2061,19 +2100,19 @@ def main():
         ARGS = read_command_line_arguments()
         check_args()
 
-        welcome(timestamp_start)
         main_warmup(timestamp_start)
         main_actions_tags()
         main_actions()
 
         goodbye(timestamp_start)
 
-        if USE_LOGFILE:
-            LOGFILE.close()
-
     except KatalError as exception:
-        print("({0}) ! a critical error occured.\nError message : {1}".format(__projectname__,
-                                                                              exception))
+        if LOGGER:
+            LOGGER.exception("(%s) ! a critical error occured.\n"
+                             "Error message : {%s}", __projectname__, exception)
+        else:
+            print("({0}) ! a critical error occured.\n"
+                  "Error message : {1}".format(__projectname__, exception))
         sys.exit(-2)
     else:
         sys.exit(-3)
@@ -2165,6 +2204,51 @@ def main_actions_tags():
         action__rmtags(ARGS.to)
 
 #///////////////////////////////////////////////////////////////////////////////
+def main_loggers():
+    """
+        main_loggers()
+        ________________________________________________________________________
+        Initializations:
+            Configure loggers to write to the correct files and display well
+    """
+    #...........................................................................
+    if USE_LOGFILE:
+        handler = RotatingFileHandler(
+            get_logfile_fullname(),
+            maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
+            backupCount=CFG_PARAMETERS.getint('log file', 'backup count'))
+
+        formatter = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
+        handler.setFormatter(formatter)
+
+        if ARGS.verbosity == 'none':
+            handler.setLevel(logging.INFO) # To keep a record of what is done
+        elif ARGS.verbosity == 'normal':
+            handler.setLevel(logging.INFO)
+        elif ARGS.verbosity == 'high':
+            handler.setLevel(logging.DEBUG)
+
+        LOGGER.addHandler(handler)
+        FILE_LOGGER.addHandler(handler)
+
+    #...........................................................................
+    fmtter = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
+
+    hdler = logging.StreamHandler()
+    hdler.setFormatter(fmtter)
+
+    if ARGS.verbosity == 'none':
+        hdler.setLevel(logging.ERROR)
+    elif ARGS.verbosity == 'normal':
+        hdler.setLevel(logging.INFO)
+    elif ARGS.verbosity == 'high':
+        hdler.setLevel(logging.DEBUG)
+
+    LOGGER.addHandler(hdler)
+
+    LOGGER.setLevel(logging.DEBUG)
+
+#///////////////////////////////////////////////////////////////////////////////
 def main_warmup(timestamp_start):
     """
         main_warmup()
@@ -2192,7 +2276,7 @@ def main_warmup(timestamp_start):
 
         o  sys.exit(-1) is called if the expected config file is ill-formed or missing.
     """
-    global CFG_PARAMETERS, LOGFILE
+    global CFG_PARAMETERS
 
     #...........................................................................
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
@@ -2210,27 +2294,27 @@ def main_warmup(timestamp_start):
     if configfile_name__err > 0:
         # see the code's error of the where_is_the_configfile() function.
         return
-
     #...........................................................................
     # let's read the config file :
     CFG_PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+
     if CFG_PARAMETERS is None:
         # ill-formed config file :
         sys.exit(-1)
     else:
-        msg("    ... config file found and read (ok)")
+        # Logger initialising
+        main_loggers()
+        welcome(timestamp_start)
+
+        LOGGER.info("    ... config file found and read (ok)")
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
-        msg("  = mode=move                                                             =",
-            consolecolor="cyan")
-        msg("  =     the files will be moved (NOT copied) in the target directory      =",
-            consolecolor="cyan")
+        LOGGER.info("  = mode=move                                                             =")
+        LOGGER.info("  =     the files will be moved (NOT copied) in the target directory      =")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        msg("  = mode=nocopy                                                           =",
-            consolecolor="cyan")
-        msg("  =     the files will NOT be copied or moved in the target directory     =",
-            consolecolor="cyan")
+        LOGGER.info("  = mode=nocopy                                                           =")
+        LOGGER.info("  =     the files will NOT be copied or moved in the target directory     =")
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
@@ -2239,16 +2323,10 @@ def main_warmup(timestamp_start):
     create_subdirs_in_target_path()
 
     #...........................................................................
-    if USE_LOGFILE:
-        LOGFILE = logfile_opening()
-        welcome_in_logfile(timestamp_start)
-
-    #...........................................................................
     if ARGS.targetpath == source_path:
-        msg("  ! warning : "
-            "source path and target path have the same value, "
-            "namely \"{0}\" (path: \"{1}\")".format(ARGS.targetpath, normpath(ARGS.targetpath)),
-            consolecolor="red")
+        LOGGER.warning("  ! warning : "
+                       "source path and target path have the same value, "
+                       "namely \"%s\" (path: \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
 
     #...........................................................................
     # we show the following informations :
@@ -2259,10 +2337,10 @@ def main_warmup(timestamp_start):
                                      CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
                                      CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
-        msg("  = let's use \"{0}\" as {1}".format(path, info))
+        LOGGER.info("  = let's use \"%s\" as %s", path, info)
 
-    msg("  = source directory : \"{0}\" (path : \"{1}\")".format(source_path,
-                                                                 normpath(source_path)))
+    LOGGER.info("  = source directory : \"%s\" (path : \"%s\")",
+                source_path, normpath(source_path))
 
     #...........................................................................
     if ARGS.infos:
@@ -2293,8 +2371,7 @@ def modify_the_tag_of_some_files(tag, dest, mode):
                                        "set" to replace old tag(s) by a new one
     """
     if not os.path.exists(normpath(get_database_fullname())):
-        msg("    ! no database found.",
-            consolecolor="red")
+        LOGGER.warning("    ! no database found.")
     else:
         db_connection = sqlite3.connect(get_database_fullname())
         db_connection.row_factory = sqlite3.Row
@@ -2306,12 +2383,12 @@ def modify_the_tag_of_some_files(tag, dest, mode):
                 files_to_be_modified.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_modified) == 0:
-            msg("    * no files match the given name(s) given as a parameter.")
+            LOGGER.info("    * no files match the given name(s) given as a parameter.")
         else:
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
 
-                msg("    o applying the tag string \"{0}\" to {1}.".format(tag, filename))
+                LOGGER.info("    o applying the tag string \"%s\" to %s.", tag, filename)
 
                 if ARGS.off:
                     pass
@@ -2333,59 +2410,6 @@ def modify_the_tag_of_some_files(tag, dest, mode):
         db_connection.close()
 
 #///////////////////////////////////////////////////////////////////////////////
-def msg(_msg, for_console=True, for_logfile=True, consolecolor=None):
-    """
-        msg()
-        ________________________________________________________________________
-
-        Display a message on console, write the same message in the log file.
-        The message isn't displayed on console if ARGS.verbosity has been set to
-        'none' (see the --verbosity argument) .
-        ________________________________________________________________________
-
-        PARAMETERS
-                o _msg          : (str) the message to be written
-                o for_console  : (bool) authorization to write on console
-                o for_logfile  : (bool) authorization to write in the log file
-                o consolecolor : (None/str) see CST__LINUXCONSOLECOLORS
-                                  The color will be displayed on console, not
-                                  in the log file.
-
-        no RETURNED VALUE
-    """
-    global LOGFILE, LOGFILE_SIZE
-
-    final_msg = _msg + "\n"
-
-    # first to the console : otherwise, if an error occurs by writing to the log
-    # file, it would'nt possible to read the message.
-    if ARGS.verbosity != 'none' and for_console:
-        if consolecolor is None or CST__PLATFORM == 'Windows':
-            sys.stdout.write(_msg+"\n")
-        else:
-            sys.stdout.write(CST__LINUXCONSOLECOLORS[consolecolor])
-            sys.stdout.write(_msg+"\n")
-            sys.stdout.write(CST__LINUXCONSOLECOLORS["default"])
-
-    # secondly, to the logfile :
-    if USE_LOGFILE and for_logfile and LOGFILE is not None:
-        if LOGFILE_SIZE + len(final_msg) > int(CFG_PARAMETERS["log file"]["maximal size"]):
-            # let's force writing on disk...
-            LOGFILE.flush()
-            os.fsync(LOGFILE)
-            # ... before closing :
-            LOGFILE.close()
-            # let's backup the current log file :
-            backup_logfile(get_logfile_fullname())
-            # let's remove the current log file's content :
-            os.remove(get_logfile_fullname())
-            # let's open a new log file :
-            LOGFILE = logfile_opening()
-
-        LOGFILE.write(final_msg)
-        LOGFILE_SIZE += len(final_msg)
-
-#///////////////////////////////////////////////////////////////////////////////
 def normpath(path):
     """
         normpath()
@@ -2405,7 +2429,7 @@ def normpath(path):
 
         PARAMETER : (str)path
 
-        RETURNED VALUE : the expected string
+        RETURNED VALUE : the expected strinc
     """
     res = os.path.normpath(os.path.abspath(os.path.expanduser(path)))
 
@@ -2623,17 +2647,16 @@ def possible_paths_to_cfg():
     """
     res = []
 
-    res.append(os.path.os.path.join(normpath("."),
-                                    normpath(ARGS.targetpath),
-                                    CST__KATALSYS_SUBDIR))
+    res.append(os.path.join(normpath(ARGS.targetpath),
+                            CST__KATALSYS_SUBDIR))
 
     if CST__PLATFORM == 'Windows':
-        res.append(os.path.join(os.path.expanduser("~"),
+        res.append(os.path.join(normpath("~"),
                                 "Local Settings",
                                 "Application Data",
                                 "katal"))
 
-    res.append(os.path.join(os.path.expanduser("~"),
+    res.append(os.path.join(normpath("~"),
                             ".katal"))
 
     return res
@@ -2667,6 +2690,8 @@ def read_parameters_from_cfgfile(configfile_name):
         # just to check the existence of the following values in the configuration file :
         _ = parser["log file"]["maximal size"]
         _ = parser["log file"]["name"]
+        _ = parser["log file"]["backup count"]
+        _ = parser["log file"]["use color"]
         _ = parser["target"]["name of the target files"]
         _ = parser["target"]["mode"]
         _ = parser["source"]["eval"]
@@ -2676,21 +2701,18 @@ def read_parameters_from_cfgfile(configfile_name):
         _ = parser["display"]["source filename.max length on console"]
         _ = parser["source"]["path"]
     except KeyError as exception:
-        msg("  ! An error occured while reading "
-            "the config file \"{0}\".".format(configfile_name),
-            consolecolor="red")
-        msg("  ! Your configuration file lacks a specific value : \"{0}\".".format(exception),
-            consolecolor="red")
-        msg("  ... you should download a new default config file : "
-            "see -dlcfg/--downloaddefaultcfg option",
-            consolecolor="red")
+        print("  ! An error occured while reading " "the config file \"{}\".\n"
+              "  ! Your configuration file lacks a specific value : \"{}\".\n"
+              "  ... you should download a new default config file : "
+              "see -dlcfg/--downloaddefaultcfg option".format(configfile_name,
+                                                              exception))
+
         return None
     except BaseException as exception:
-        msg("  ! An error occured while reading "
-            "the config file \"{0}\".".format(configfile_name),
-            consolecolor="red")
-        msg("  ! Python message : \"{0}\"".format(exception),
-            consolecolor="red")
+        print("  ! An error occured while reading "
+              "the config file \"%s\"." % configfile_name)
+        print(exception)
+
         return None
 
     if parser["target"]["mode"] == 'nocopy':
@@ -2699,10 +2721,8 @@ def read_parameters_from_cfgfile(configfile_name):
         # natural "%i" we have to write "%%i" :
         parser["target"]["name of the target files"] = "%%i"
 
-        msg("  *  since 'mode'=='nocopy', the value of \"[target]name of the target files\" ",
-            consolecolor="cyan")
-        msg("     is neutralized and set to '%i' (i.e. the database index : '1', '2', ...)",
-            consolecolor="cyan")
+        print("  *  since 'mode'=='nocopy', the value of \"[target]name of the target files\" ")
+        print("     is neutralized and set to '%i' (i.e. the database index : '1', '2', ...)")
 
     return parser
 
@@ -2830,31 +2850,25 @@ def show_infos_about_source_path():
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
-    msg("  = informations about the \"{0}\" "
-        "(path: \"{1}\") source directory =".format(source_path,
-                                                    normpath(source_path)))
+    LOGGER.info("  = informations about the \"%s\" "
+                "(path: \"%s\") source directory =", source_path, normpath(source_path))
 
     if not os.path.exists(normpath(source_path)):
-        msg("    ! can't find source path \"{0}\" .".format(source_path),
-            consolecolor="red")
+        LOGGER.warning("    ! can't find source path \"%s\" .", source_path)
         return
     if not os.path.isdir(normpath(source_path)):
-        msg("    ! source path \"{0}\" isn't a directory .".format(source_path),
-            consolecolor="red")
+        LOGGER.warning("    ! source path \"%s\" isn't a directory .", source_path)
         return
 
     if is_ntfs_prefix_mandatory(source_path):
-        msg("    ! the source path should be used with the NTFS prefix for long filenames.",
-            consolecolor="red")
+        LOGGER.warning("    ! the source path should be used "
+                       "with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
-            msg("    ! ... but the --usentfsprefix argument wasn't given !",
-                consolecolor="red")
-            msg("    ! You may encounter an IOError, or a FileNotFound error.",
-                consolecolor="red")
-            msg("    ! If so, please use the --usentfsprefix argument.",
-                consolecolor="red")
-            msg("")
+            LOGGER.warning("    ! ... but the --usentfsprefix argument wasn't given !")
+            LOGGER.warning("    ! You may encounter an IOError, or a FileNotFound error.")
+            LOGGER.warning("    ! If so, please use the --usentfsprefix argument.")
+            LOGGER.info("")
 
     total_size = 0
     files_number = 0
@@ -2884,23 +2898,21 @@ def show_infos_about_source_path():
 
                 files_number_interval += 1
                 if files_number_interval == 100000:
-                    msg("    ... already {0} files read in the source directory, "
-                        "still processing...".format(files_number_interval))
+                    LOGGER.info("    ... already %s files read in the source directory, "
+                                "still processing...", files_number_interval)
                     files_number_interval = 0
             else:
-                msg("    ! browsing {0}, an error occured : "
-                    "can't read the file ".format(source_path),
-                    consolecolor='red')
-                msg("    \"{0}\"".format(fullname),
-                    consolecolor='red')
+                LOGGER.warning("    ! browsing %s, an error occured : "
+                               "can't read the file ", source_path, color='red')
+                LOGGER.warning("    \"%s\"", fullname, color='red')
 
-    msg("    o files number : {0} file(s)".format(files_number))
-    msg("    o total size : {0}".format(size_as_str(total_size)))
-    msg("    o list of all extensions ({0} extension(s) found): ".format(len(extensions)))
+    LOGGER.info("    o files number : %s file(s)", files_number)
+    LOGGER.info("    o total size : %s", size_as_str(total_size))
+    LOGGER.info("    o list of all extensions (%s extension(s) found): ", len(extensions))
+
     for extension in sorted(extensions, key=lambda s: s.lower()):
-        msg("      - {0:15} : {1} files, {2}".format(extension,
-                                                     extensions[extension][0],
-                                                     size_as_str(extensions[extension][1])))
+        LOGGER.info("      - %15s : %s files, %s",
+                    extension, extensions[extension][0], size_as_str(extensions[extension][1]))
 
     INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
 
@@ -2919,36 +2931,32 @@ def show_infos_about_target_path():
                 (int) 0 if ok, -1 if an error occured
     """
     #...........................................................................
-    msg("  = informations about the \"{0}\" "
-        "(path: \"{1}\") target directory =".format(ARGS.targetpath,
-                                                    normpath(ARGS.targetpath)))
+    LOGGER.info("  = informations about the \"%s\" "
+                "(path: \"%s\") target directory =",
+                ARGS.targetpath, normpath(ARGS.targetpath))
 
     #...........................................................................
     if is_ntfs_prefix_mandatory(ARGS.targetpath):
-        msg("    ! the target path should be used with the NTFS prefix for long filenames.",
-            consolecolor="red")
+        LOGGER.warning("    ! the target path should be used "
+                       "with the NTFS prefix for long filenames.")
 
         if not ARGS.usentfsprefix:
-            msg("    ! ... but the --usentfsprefix argument wasn't given !",
-                consolecolor="red")
-            msg("    ! You may encounter an IOError, or a FileNotFound error.",
-                consolecolor="red")
-            msg("    ! If so, please use the --usentfsprefix argument.",
-                consolecolor="red")
-            msg("")
+            LOGGER.warning("    ! ... but the --usentfsprefix argument wasn't given !")
+            LOGGER.warning("    ! You may encounter an IOError, or a FileNotFound error.")
+            LOGGER.warning("    ! If so, please use the --usentfsprefix argument.")
 
     #...........................................................................
     if not os.path.exists(normpath(ARGS.targetpath)):
-        msg("Can't find target path \"{0}\".".format(ARGS.targetpath))
+        LOGGER.info("Can't find target path \"%s\".", ARGS.targetpath)
         return -1
 
     if not os.path.isdir(normpath(ARGS.targetpath)):
-        msg("target path \"{0}\" isn't a directory.".format(ARGS.targetpath))
+        LOGGER.info("target path \"%s\" isn't a directory.", ARGS.targetpath)
         return -1
 
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                        CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)):
-        msg("    o no database in the target directory.")
+        LOGGER.info("    o no database in the target directory.")
         return 0
 
     #...........................................................................
@@ -2979,11 +2987,10 @@ def show_infos_about_target_path():
         row_index += 1
 
     if row_index == 0:
-        msg("    ! (empty database)",
-            consolecolor="red")
+        LOGGER.warning("    ! (empty database)")
         return 0
 
-    msg("    o {0} file(s) in the database :".format(row_index))
+    LOGGER.info("    o {%s} file(s) in the database :", row_index)
 
     targetname_maxlength = \
             int(CFG_PARAMETERS["display"]["target filename.max length on console"])
@@ -3194,8 +3201,7 @@ def thefilehastobeadded__filters(filename, _size, date):
                                  "trying to compute the \"{0}\" string; "
                                  "wrong character '{1}'({2}) "
                                  "used in the string to be evaluated. "
-                                 "Authorized "
-                                 "characters are "
+                                 "Authorized " "characters are "
                                  "{3}".format(evalstr,
                                               char,
                                               unicodedata.name(char),
@@ -3358,39 +3364,30 @@ def welcome(timestamp_start):
               "(launched at {2}) ===").format(__projectname__,
                                               __version__,
                                               timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
-    msg("="*len(strmsg),
-        consolecolor="white")
-    msg(strmsg,
-        consolecolor="white")
-    msg("="*len(strmsg),
-        consolecolor="white")
+    LOGGER.info("="*len(strmsg))
+    LOGGER.info(strmsg)
+    LOGGER.info("="*len(strmsg))
 
     # command line arguments :
-    msg("  = command line arguments : {0}".format(sys.argv))
+    LOGGER.info("  = command line arguments : %s", sys.argv)
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
-        msg("  = target directory given as parameter : \"{0}\" "
-            "(path : \"{1}\")".format(ARGS.targetpath,
-                                      normpath(ARGS.targetpath)))
+        LOGGER.info("  = target directory given as parameter : \"%s\" "
+                    "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
 
         if ARGS.configfile is not None:
-            msg("  = expected config file : \"{0}\" "
-                "(path : \"{1}\")".format(ARGS.configfile,
-                                          normpath(ARGS.configfile)))
+            LOGGER.info("  = expected config file : \"%s\" "
+                        "(path : \"%s\")", ARGS.configfile, normpath(ARGS.configfile))
         else:
-            msg("  * no config file specified on the command line : "
-                "let's search a config file...")
+            LOGGER.info("  * no config file specified on the command line : "
+                        "let's search a config file...")
 
     if ARGS.off:
-        msg("  = --off option detected :                                               =",
-            consolecolor="cyan")
-        msg("  =                no file will be modified, no directory will be created =",
-            consolecolor="cyan")
-        msg("  =                but the corresponding messages will be written in the  =",
-            consolecolor="cyan")
-        msg("  =                log file.                                              =",
-            consolecolor="cyan")
+        LOGGER.info("  = --off option detected :                                               =")
+        LOGGER.info("  =                no file will be modified, no directory will be created =")
+        LOGGER.info("  =                but the corresponding messages will be written in the  =")
+        LOGGER.info("  =                log file.                                              =")
 
 #///////////////////////////////////////////////////////////////////////////////
 def welcome_in_logfile(timestamp_start):
@@ -3414,22 +3411,14 @@ def welcome_in_logfile(timestamp_start):
 
         no RETURNED VALUE
     """
-    msg(_msg="=== {0} v.{1} "
-        "(launched at {2}) ===".format(__projectname__,
-                                       __version__,
-                                       timestamp_start.strftime("%Y-%m-%d %H:%M:%S")),
-        for_logfile=True,
-        for_console=False)
+    FILE_LOGGER.info("=== %s v.%s " "(launched at %s) ===",
+                     __projectname__, __version__, timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
 
-    msg("  = command line arguments : {0}".format(sys.argv),
-        for_logfile=True,
-        for_console=False)
+    FILE_LOGGER.info("  = command line arguments : %s", sys.argv)
 
-    msg("  = target directory given as parameter : \"{0}\" "
-        "(path : \"{1}\")".format(ARGS.targetpath,
-                                  normpath(ARGS.targetpath)),
-        for_logfile=True,
-        for_console=False)
+    FILE_LOGGER.info("  = target directory given as parameter : \"%s\" "
+                     "(path : \"%s\")", ARGS.targetpath,
+                     normpath(ARGS.targetpath))
 
 #///////////////////////////////////////////////////////////////////////////////
 def where_is_the_configfile():
@@ -3469,45 +3458,30 @@ def where_is_the_configfile():
         # no config file given as a parameter, let's guess where it is :
 
         for cfg_path in possible_paths_to_cfg():
-            msg("  * trying to find a config file in \"{0}\"...".format(cfg_path))
 
             if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
-                msg("   ... ok a config file has been found, let's try to read it...")
                 configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
                 break
 
-        if configfile_name != "":
-            msg("  * config file name : \"{0}\" (path : \"{1}\")".format(configfile_name,
-                                                                         normpath(configfile_name)))
-
-        else:
-
+        if not configfile_name:
             if ARGS.downloaddefaultcfg is None:
-                msg(msg_please_use_dlcfg,
-                    consolecolor="red")
+                print(msg_please_use_dlcfg)
                 return ("", -1)
             else:
-                msg("  ! Can't find any configuration file, but you used the "
-                    "--downloaddefaultcfg option.")
+                print("  ! Can't find any configuration file, but you used the "
+                      "--downloaddefaultcfg option.")
                 return ("", 1)
 
     else:
         # A config file has been given as a parameter :
         configfile_name = ARGS.configfile
 
-        msg("  * config file given as a parameter : \"{0}\" "
-            "(path : \"{1}\"".format(configfile_name,
-                                     normpath(configfile_name)))
-
         if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
-            msg("  ! The config file \"{0}\" (path : \"{1}\") "
-                "doesn't exist. ".format(configfile_name,
-                                         normpath(configfile_name)),
-                consolecolor="red")
+            print("  ! The config file \"%s\" (path : \"%s\") "
+                  "doesn't exist. " % configfile_name, normpath(configfile_name))
 
             if ARGS.downloaddefaultcfg is None:
-                msg(msg_please_use_dlcfg,
-                    consolecolor="red")
+                print(msg_please_use_dlcfg)
 
             return ("", -2)
 
