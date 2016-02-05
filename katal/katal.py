@@ -2332,9 +2332,9 @@ def main_warmup(timestamp_start):
                                      CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
                                      CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
-        LOGGER.info("  = let's use \"%s\" as %s", path, info)
+        LOGGER.debug("  = let's use \"%s\" as %s", path, info)
 
-    LOGGER.info("  = source directory : \"%s\" (path : \"%s\")",
+    LOGGER.debug("  = source directory : \"%s\" (path : \"%s\")",
                 source_path, normpath(source_path))
 
     #...........................................................................
@@ -3355,18 +3355,18 @@ def welcome(timestamp_start):
     LOGGER.info("="*len(strmsg), color="white")
 
     # command line arguments :
-    LOGGER.info("  = command line arguments : %s", sys.argv)
+    LOGGER.debug("  = command line arguments : %s", sys.argv)
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
-        LOGGER.info("  = target directory given as parameter : \"%s\" "
+        LOGGER.debug("  = target directory given as parameter : \"%s\" "
             "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
 
         if ARGS.configfile is not None:
             LOGGER.info("  = expected config file : \"%s\" "
                 "(path : \"%s\")", ARGS.configfile, normpath(ARGS.configfile))
         else:
-            LOGGER.info("  * no config file specified on the command line : "
+            LOGGER.debug("  * no config file specified on the command line : "
                 "let's search a config file...")
 
     if ARGS.off:
@@ -3378,37 +3378,6 @@ def welcome(timestamp_start):
                     color="cyan")
         LOGGER.info("  =                log file.                                              =",
                     color="cyan")
-
-#///////////////////////////////////////////////////////////////////////////////
-def welcome_in_logfile(timestamp_start):
-    """
-        welcome_in_logfile()
-        ________________________________________________________________________
-
-        The function writes in the log file a welcome message with some very
-        broad informations about the program.
-
-        This function has to be called after the opening of the log file.
-        This function doesn't write anything on the console.
-
-        See welcome() function for more informations since welcome() and
-        welcome_in_logfile() do the same job, the first on console, the
-        second in the log file.
-        ________________________________________________________________________
-
-        PARAMETER :
-                o  timestamp_start : a datetime.datetime object
-
-        no RETURNED VALUE
-    """
-    FILE_LOGGER.info("=== %s v.%s " "(launched at %s) ===",
-                     __projectname__, __version__, timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
-
-    FILE_LOGGER.info("  = command line arguments : %s", sys.argv)
-
-    FILE_LOGGER.info("  = target directory given as parameter : \"%s\" "
-        "(path : \"%s\")", ARGS.targetpath,
-                                  normpath(ARGS.targetpath))
 
 #///////////////////////////////////////////////////////////////////////////////
 def where_is_the_configfile():
