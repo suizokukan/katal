@@ -193,10 +193,6 @@ CST__KATALSYS_SUBDIR = ".katal"
 
 CST__LOG_SUBSUBDIR = "logs"
 
-CST__LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
-                                                      # logfiles' filename .
-                                                      # see the backup_logfile() function .
-
 # suffix, multiple :
 # about the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte
 CST__MULTIPLES = (("kB", 1000),
@@ -1269,27 +1265,6 @@ def add_keywords_in_targetstr(srcstring,
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def backup_logfile(_logfile_fullname):
-    """
-        backup_logfile()
-        ________________________________________________________________________
-
-        copy a logfile named _logfile_fullname into a backuped file.
-
-          o  The backuped file is stored in the CST__LOG_SUBSUBDIR directory.
-          o  The name of the backuped file is automatically created from a call to
-             datetime.now() . See the CST__LOGFILE_DTIMEFORMATSTR constant.
-        ________________________________________________________________________
-
-        NO PARAMETER, no RETURNED VALUE
-    """
-    logfile_backup = os.path.join(CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR,
-                                  CFG_PARAMETERS["log file"]["name"] + \
-                                  datetime.strftime(datetime.now(),
-                                                    CST__LOGFILE_DTIMEFORMATSTR))
-    shutil.copyfile(_logfile_fullname, logfile_backup)
-
-#///////////////////////////////////////////////////////////////////////////////
 def check_args():
     """
         check_args()
@@ -2045,7 +2020,7 @@ def is_ntfs_prefix_mandatory(path):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def main():
+def main(args=None):
     """
         main()
         ________________________________________________________________________
@@ -2053,7 +2028,13 @@ def main():
         Main entry point.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER:
+            o list(args) (Optionnal, default=None): the list of arguments to
+              parse from the command line. If None, the arguments are taken from
+              sys.argv.
+              Mainly for tests
+
+        no RETURNED VALUE
 
         This function should NOT have arguments : otherwise, the entrypoint
         defined in setup.py would not be valid.
@@ -2067,7 +2048,7 @@ def main():
     timestamp_start = datetime.now()
 
     try:
-        ARGS = read_command_line_arguments()
+        ARGS = read_command_line_arguments(args)
         check_args()
 
         main_warmup(timestamp_start)
@@ -2418,7 +2399,7 @@ def normpath(path):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def read_command_line_arguments():
+def read_command_line_arguments(args=None):
     """
         read_command_line_arguments()
         ________________________________________________________________________
@@ -2426,7 +2407,9 @@ def read_command_line_arguments():
         Read the command line arguments.
         ________________________________________________________________________
 
-        no PARAMETER
+        PARAMETER
+                args (Optional): a list of command line arguments to test. If
+                None, use sys.argv. Mainly for tests.
 
         RETURNED VALUE
                 return the argparse object.
@@ -2599,7 +2582,7 @@ def read_command_line_arguments():
                              "given as a parameter is in the target directory "
                              "notwithstanding its name.")
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 #///////////////////////////////////////////////////////////////////////////////
 def possible_paths_to_cfg():
