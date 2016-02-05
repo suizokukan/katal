@@ -143,7 +143,6 @@ USE_LOGFILE = False     # (bool) initialized from the configuration file
 LOGGER = logging.getLogger('katal')      # base logger, will log everywhere
 FILE_LOGGER = logging.getLogger('file')  # will log only in file
 LOGFILE_SIZE = 0                         # size of the current logfile.
-USE_COLOR = True
 
 #===============================================================================
 # type(s)
@@ -236,15 +235,6 @@ CST__TASKS_SUBSUBDIR = "tasks"
 
 CST__TRASH_SUBSUBDIR = "trash"
 
-# foreground colors :
-# (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
-CST_V_LINUXCONSOLECOLORS = {
-    "default"       : "\033[0m",
-    "red"           : "\033[0;31;1m",
-    "cyan"          : "\033[0;36;1m",
-    "white"         : "\033[0;37;1m",
-}
-
 # 'Linux', 'Windows', 'Java' according to https://docs.python.org/3.5/library/platform.html
 CST__PLATFORM = platform.system()
 
@@ -265,6 +255,17 @@ class KatalError(BaseException):
 
 #///////////////////////////////////////////////////////////////////////////////
 class ColorFormatter(logging.Formatter):
+    """
+        A custom formatter class used to display color in stream output.
+
+        Color is determined by default value depending of the log level (eg. by
+        default, warnings will be red), but this can be overrided by providing
+        a color value in the log function
+
+        Posistions of color codes in the formatting string are determined by
+        the keys color_start and color_end.
+    """
+
     # foreground colors :
     # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
     default =  "\033[0m"
@@ -272,15 +273,33 @@ class ColorFormatter(logging.Formatter):
     cyan    =  "\033[0;36;1m"
     white   =  "\033[0;37;1m"
 
+    # default colors for the different logging level
+    # they will be overrided if a color parameter is given
+    debug =  default
+    info = white
+    warning = red
+
     def format(self, record):
         color = record.color
-        if color and CST__PLATFORM != 'Windows':
-            record.color_start = getattr(self, color)
-            record.color_end = self.default
-        else:
+        if CST__PLATFORM == 'Windows' or \
+                not CFG_PARAMETERS.getboolean('logfile', 'use color'):
+
             record.color_start = ''
             record.color_end = ''
+        else:
+            if color:
+                record.color_start = getattr(self, color)
+            else:
+                if record.levelno <= logging.DEBUG:
+                    record.color_start = ''
+                    record.color_end = ''
+                elif record.levelno <= logging.INFO:
+                    record.color_start = self.white
+                else:
+                    record.color_start = self.red
 
+
+        record.color_end = self.default
         return super().format(record)
 
 def action__add():
@@ -2213,6 +2232,7 @@ def main_loggers():
         FILE_LOGGER.setLevel(logging.DEBUG)
 
 #///////////////////////////////////////////////////////////////////////////////
+
 def main_warmup(timestamp_start):
     """
         main_warmup()
@@ -2258,10 +2278,10 @@ def main_warmup(timestamp_start):
     if configfile_name__err > 0:
         # see the code's error of the where_is_the_configfile() function.
         return
-
     #...........................................................................
     # let's read the config file :
     CFG_PARAMETERS = read_parameters_from_cfgfile(configfile_name)
+
     if CFG_PARAMETERS is None:
         # ill-formed config file :
         sys.exit(-1)
@@ -2656,6 +2676,8 @@ def read_parameters_from_cfgfile(_configfile_name):
         # just to check the existence of the following values in the configuration file :
         _ = parser["log file"]["maximal size"]
         _ = parser["log file"]["name"]
+        _ = parser["log file"]["backup count"]
+        _ = parser["log file"]["use color"]
         _ = parser["target"]["name of the target files"]
         _ = parser["target"]["mode"]
         _ = parser["source"]["eval"]
@@ -2882,7 +2904,6 @@ def show_infos_about_source_path():
     LOGGER.info("    o total size : %s", size_as_str(total_size))
     LOGGER.info("    o list of all extensions (%s extension(s) found): ", len(extensions))
     for extension in sorted(extensions, key=lambda s: s.lower()):
-        #TODO replace {:15}
         LOGGER.info("      - %15s : %s files, %s",
                     extension, extensions[extension][0], size_as_str(extensions[extension][1]))
 
