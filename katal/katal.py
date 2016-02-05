@@ -319,16 +319,53 @@ class Config(configparser.ConfigParser):
             'display': {
                 'verbosity': self.verbosity,
             },
-            'tags': {
-                self.addtag: True,
+            'source': {
+                'strict comparison': self.strictcmp
             },
         }
 
+    def check_args(self, parser):
+        """
+            check_args(self, parser)
+            ________________________________________________________________________
+
+            check the arguments of the command line. Raise a parser error if
+            something is wrong.
+            ________________________________________________________________________
+
+            no PARAMETER, no RETURNED VALUE
+        """
+        # --select and --add can't be used simultaneously.
+        # Already checked with the mutually exclusive group in the argparse
+        # definition
+
+        # --settagsstr must be used with --to :
+        if self.settagsstr and not self.to:
+            parser.error("please use --to in combination with --settagsstr")
+
+        # --addtag must be used with --to :
+        if self.addtag and not self.to:
+            parser.error("please use --to in combination with --addtag")
+
+        # --rmtags must be used with --to :
+        if self.rmtags and not self.to:
+            parser.error("please use --to in combination with --rmtags")
+
+        # --strictcmp can only be used with --select or with --add :
+        if self.strictcmp and not (self.add or self.select):
+            parser.error("--strictcmp can only be used in combination with --select or with --add")
+
+        # --copyto can only be used with --findtag :
+        if self.copyto and not self.findtag:
+            parser.error("--copyto can only be used in combination with --findtag .")
+
+#///////////////////////////////////////////////////////////////////////////////
     def default_config(self):
         return {
         'source': {
             'path': '.',
             'eval': '*',
+            'strict comparison': False,
         },
         'target': {
             'mode': 'copy',
@@ -388,12 +425,14 @@ class Config(configparser.ConfigParser):
             ________________________________________________________________________
 
             Read the command line arguments.
+            Automatically check if arguments are correct ba calling self.check_args().
+            In case of command line error, it is shown with parser.error(msg)
             ________________________________________________________________________
 
             no PARAMETER
 
             RETURNED VALUE
-                    return the argparse object.
+                    return self
         """
         parser = \
         argparse.ArgumentParser(description="{0} v. {1}".format(__projectname__, __version__),
@@ -565,7 +604,11 @@ class Config(configparser.ConfigParser):
                                 "given as a parameter is in the target directory "
                                 "notwithstanding its name.")
 
-        return parser.parse_args(namespace=self)
+        parser.parse_args(namespace=self)
+
+        self.check_args(parser)
+
+        return self
 
     #///////////////////////////////////////////////////////////////////////////////
     def possible_paths_to_cfg(self):
@@ -618,11 +661,10 @@ class Config(configparser.ConfigParser):
             is set to "%i" .
             ________________________________________________________________________
 
-            PARAMETER
-                    o _configfile_name       : (str) config file name (e.g. katal.ini)
+            NO PARAMETER
 
             RETURNED VALUE
-                    The expected configparser.ConfigParser object=.
+                    self
             EXCEPTION
                     A ConfigError if an error occured while reading the configuration file
 
@@ -666,7 +708,9 @@ class Config(configparser.ConfigParser):
             LOGGER.info("     is neutralized and set to '%i' (i.e. the database index : '1', '2', ...)",
                         color="cyan")
 
-    #///////////////////////////////////////////////////////////////////////////////
+        return parser
+
+#///////////////////////////////////////////////////////////////////////////////
 
 
 def action__add():
@@ -1667,42 +1711,6 @@ def backup_logfile(_logfile_fullname):
     shutil.copyfile(_logfile_fullname, logfile_backup)
 
 #///////////////////////////////////////////////////////////////////////////////
-def check_args():
-    """
-        check_args()
-        ________________________________________________________________________
-
-        check the arguments of the command line. Raise an exception if something
-        is wrong.
-        ________________________________________________________________________
-
-        no PARAMETER, no RETURNED VALUE
-    """
-    # --select and --add can't be used simultaneously.
-    # Already checked with the mutually exclusive group in the argparse
-    # definition
-
-    # --settagsstr must be used with --to :
-    if ARGS.settagsstr and not ARGS.to:
-        raise KatalError("please use --to in combination with --settagsstr")
-
-    # --addtag must be used with --to :
-    if ARGS.addtag and not ARGS.to:
-        raise KatalError("please use --to in combination with --addtag")
-
-    # --rmtags must be used with --to :
-    if ARGS.rmtags and not ARGS.to:
-        raise KatalError("please use --to in combination with --rmtags")
-
-    # --strictcmp can only be used with --select or with --add :
-    if ARGS.strictcmp and not (ARGS.add or ARGS.select):
-        raise KatalError("--strictcmp can only be used in combination with --select or with --add")
-
-    # --copyto can only be used with --findtag :
-    if ARGS.copyto and not ARGS.findtag:
-        raise KatalError("--copyto can only be used in combination with --findtag .")
-
-#///////////////////////////////////////////////////////////////////////////////
 def create_empty_db(_db_name):
     """
         create_empty_db()
@@ -2454,9 +2462,7 @@ def main():
 
     try:
         CONFIG = Config()
-        CONFIG.read_command_line_arguments()
-        ARGS = CONFIG
-        check_args()
+        ARGS = CONFIG.read_command_line_arguments()
         main_loggers()
 
         welcome(timestamp_start)
