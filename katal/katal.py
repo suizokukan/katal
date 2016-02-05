@@ -282,7 +282,7 @@ class ColorFormatter(logging.Formatter):
     def format(self, record):
         color = record.color
         if CST__PLATFORM == 'Windows' or \
-                not CFG_PARAMETERS.getboolean('logfile', 'use color'):
+                not CFG_PARAMETERS.getboolean('log file', 'use color'):
 
             record.color_start = ''
             record.color_end = ''
@@ -2089,9 +2089,7 @@ def main():
     try:
         ARGS = read_command_line_arguments()
         check_args()
-        main_loggers()
 
-        welcome(timestamp_start)
         main_warmup(timestamp_start)
         main_actions_tags()
         main_actions()
@@ -2099,8 +2097,12 @@ def main():
         goodbye(timestamp_start)
 
     except KatalError as exception:
-        LOGGER.exception("(%s) ! a critical error occured.\nError message : %s",
-                        __projectname__)
+        if LOGGER:
+            LOGGER.exception("(%s) ! a critical error occured.\nError message :",
+                            __projectname__)
+        else:
+            print("(%s) ! a critical error occured.\n"
+                  "Error message : %s".format(__projectname__, exception))
         sys.exit(-2)
     else:
         sys.exit(-3)
@@ -2201,38 +2203,42 @@ def main_loggers():
     """
     #...........................................................................
     if USE_LOGFILE:
-        handler = RotatingFileHandler(get_logfile_fullname(),
-                                      maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
-                                      backupCount=1) #TODO: add config key
+        handler = RotatingFileHandler(
+            get_logfile_fullname(),
+            maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
+            backupCount=CFG_PARAMETERS.getint('log file', 'backup count'))
+
+        formatter = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
+        handler.setFormatter(formatter)
+
+        if ARGS.verbosity == 'none':
+            handler.setLevel(logging.INFO) # To keep a record of what is done
+        elif ARGS.verbosity == 'normal':
+            handler.setLevel(logging.INFO)
+        elif ARGS.verbosity == 'high':
+            handler.setLevel(logging.DEBUG)
 
         LOGGER.addHandler(handler)
         FILE_LOGGER.addHandler(handler)
 
     #...........................................................................
-    if USE_COLOR: #TODO: add config key to change this
-        formatter = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
-    else:
-        formatter = logging.Formatter('%(message)s')
+    formatter = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
 
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    LOGGER.addHandler(handler)
-
-    handler = logging.FileHandler('msg.log')
-    LOGGER.addHandler(handler)
 
     if ARGS.verbosity == 'none':
-        LOGGER.setLevel(logging.ERROR)
-        FILE_LOGGER.setLevel(logging.INFO) # To keep a record of what is done
+        handler.setLevel(logging.ERROR)
     elif ARGS.verbosity == 'normal':
-        LOGGER.setLevel(logging.INFO)
-        FILE_LOGGER.setLevel(logging.INFO)
+        handler.setLevel(logging.INFO)
     elif ARGS.verbosity == 'high':
-        LOGGER.setLevel(logging.DEBUG)
-        FILE_LOGGER.setLevel(logging.DEBUG)
+        handler.setLevel(logging.DEBUG)
+
+    LOGGER.addHandler(handler)
+
+    LOGGER.setLevel(logging.DEBUG)
 
 #///////////////////////////////////////////////////////////////////////////////
-
 def main_warmup(timestamp_start):
     """
         main_warmup()
@@ -2286,6 +2292,10 @@ def main_warmup(timestamp_start):
         # ill-formed config file :
         sys.exit(-1)
     else:
+        # Logger initialising
+        main_loggers()
+        welcome(timestamp_start)
+
         LOGGER.info("    ... config file found and read (ok)")
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
@@ -2687,19 +2697,18 @@ def read_parameters_from_cfgfile(_configfile_name):
         _ = parser["display"]["source filename.max length on console"]
         _ = parser["source"]["path"]
     except KeyError as exception:
-        LOGGER.error("  ! An error occured while reading "
-                       "the config file \"%s\".", _configfile_name,
-                        color="red")
-        LOGGER.warning("  ! Your configuration file lacks a specific value : \"%s\".",
-                       exception, color="red")
-        LOGGER.warning("  ... you should download a new default config file : "
-                       "see -dlcfg/--downloaddefaultcfg option",
-                       color="red")
+        print("  ! An error occured while reading " "the config file \"{}\".\n"
+              "  ! Your configuration file lacks a specific value : \"{}\".\n"
+              "  ... you should download a new default config file : "
+              "see -dlcfg/--downloaddefaultcfg option".format(_configfile_name,
+                                                              exception))
+
         return None
     except BaseException as exception:
-        LOGGER.exception("  ! An error occured while reading "
-            "the config file \"%s\".", _configfile_name,
-            color="red", exc_info=True)
+        print("  ! An error occured while reading "
+            "the config file \"%s\"." % _configfile_name)
+        print(exception)
+
         return None
 
     if parser["target"]["mode"] == 'nocopy':
@@ -2707,11 +2716,6 @@ def read_parameters_from_cfgfile(_configfile_name):
         # exactly equal to the strings read in an .ini file : so instead of the
         # natural "%i" we have to write "%%i" :
         parser["target"]["name of the target files"] = "%%i"
-
-        LOGGER.info("  *  since 'mode'=='nocopy', the value of \"[target]name of the target files\" ",
-                    color="cyan")
-        LOGGER.info("     is neutralized and set to '%i' (i.e. the database index : '1', '2', ...)",
-                    color="cyan")
 
     return parser
 
@@ -3444,24 +3448,17 @@ def where_is_the_configfile():
         # no config file given as a parameter, let's guess where it is :
 
         for cfg_path in possible_paths_to_cfg():
-            LOGGER.info("  * trying to find a config file in \"%s\"...", cfg_path)
 
             if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
-                LOGGER.info("   ... ok a config file has been found, let's try to read it...")
                 configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
                 break
 
-        if configfile_name != "":
-            LOGGER.info("  * config file name : \"%s\" (path : \"%s\")",
-                        configfile_name, normpath(configfile_name))
-
-        else:
-
+        if not configfile_name:
             if ARGS.downloaddefaultcfg is None:
-                LOGGER.warning(msg_please_use_dlcfg, color="red")
+                print(msg_please_use_dlcfg)
                 return ("", -1)
             else:
-                LOGGER.info("  ! Can't find any configuration file, but you used the "
+                print("  ! Can't find any configuration file, but you used the "
                     "--downloaddefaultcfg option.")
                 return ("", 1)
 
@@ -3469,16 +3466,12 @@ def where_is_the_configfile():
         # A config file has been given as a parameter :
         configfile_name = ARGS.configfile
 
-        LOGGER.info("  * config file given as a parameter : \"%s\" "
-                    "(path : \"%s\"", configfile_name, normpath(configfile_name))
-
         if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
-            LOGGER.warning("  ! The config file \"%s\" (path : \"%s\") "
-                           "doesn't exist. ", configfile_name, normpath(configfile_name),
-                           color="red")
+            print("  ! The config file \"%s\" (path : \"%s\") "
+                  "doesn't exist. " % configfile_name, normpath(configfile_name))
 
             if ARGS.downloaddefaultcfg is None:
-                LOGGER.warning(msg_please_use_dlcfg, color="red")
+                print(msg_please_use_dlcfg, color="red")
 
             return ("", -2)
 
