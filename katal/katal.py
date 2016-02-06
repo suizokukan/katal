@@ -372,7 +372,7 @@ def action__add():
                                   sourcedate,
                                   SELECT[hashid].targettags))
 
-    LOGGER.info("    = all files have been copied, let's update the database... =")
+    LOGGER.info("    = all files have been copied, let's update the database...")
 
     try:
         if not ARGS.off:
@@ -389,7 +389,7 @@ def action__add():
     db_connection.commit()
     db_connection.close()
 
-    LOGGER.info("    = ... database updated =")
+    LOGGER.info("    = ... database updated.")
 
     # returned value : 0 = success
     return 0
@@ -423,7 +423,7 @@ def action__cleandbrm():
 
         no PARAMETER, no RETURNED VALUE
     """
-    LOGGER.info("  = clean the database : remove missing files from the target directory =")
+    LOGGER.info("  = clean the database : remove missing files from the target directory.")
 
     if not os.path.exists(normpath(get_database_fullname())):
         LOGGER.warning("    ! no database found.")
@@ -473,7 +473,7 @@ def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location=
         RETURNED VALUE :
             (bool) success
     """
-    LOGGER.info("  = downloading the default configuration file =")
+    LOGGER.info("  = downloading the default configuration file...")
     LOGGER.info("    ... trying to download %s from %s", targetname, CST__DEFAULTCFGFILE_URL)
 
     try:
@@ -521,7 +521,7 @@ def action__findtag(tag):
 
         no RETURNED VALUE
     """
-    LOGGER.info("  = searching the files with the tag \"%s\" =", tag)
+    LOGGER.info("  = searching the files with the tag \"%s\"", tag)
 
     if not os.path.exists(normpath(get_database_fullname())):
         LOGGER.warning("    ! no database found.")
@@ -648,7 +648,7 @@ def action__rebase(newtargetpath):
     """
     source_path = CFG_PARAMETERS["source"]["path"]
 
-    LOGGER.info("  = copying the current target directory into a new one =")
+    LOGGER.info("  = copying the current target directory into a new one.")
     LOGGER.info("    o from %s (path : \"%s\")", source_path, normpath(source_path))
 
     LOGGER.info("    o to   %s (path : \"%s\")", newtargetpath, normpath(newtargetpath))
@@ -907,7 +907,7 @@ def action__rmnotags():
 
         no PARAMETER, no RETURNED VALUE
     """
-    LOGGER.info("  = removing all files with no tags (=moving them to the trash) =")
+    LOGGER.info("  = removing all files with no tags (=moving them to the trash).")
 
     if not os.path.exists(normpath(get_database_fullname())):
         LOGGER.warning("    ! no database found.")
@@ -966,7 +966,7 @@ def action__select():
 
         no PARAMETER, no RETURNED VALUE.
     """
-    LOGGER.info("  = selecting files according to the instructions in the config file... =")
+    LOGGER.info("  = selecting files according to the instructions in the config file...")
 
     LOGGER.info("  o the files will be copied in \"%s\" "
                 "(path: \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
@@ -2235,10 +2235,12 @@ def main_warmup(timestamp_start):
 
             if the --new/--downloaddefaultcfg options have not be used :
 
+            o welcome()
             o configfile_name = None / a string
             o reading of the configuration file
             o list of the expected directories : if one directory is missing, let's create it.
               create_subdirs_in_target_path()
+            o configure_loggers()
             o welcome_in_logfile()
             o warning if source path == target path
             o --infos
@@ -2259,6 +2261,9 @@ def main_warmup(timestamp_start):
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
     if ARGS.new is not None or ARGS.downloaddefaultcfg is not None:
         return
+
+    #...........................................................................
+    welcome(timestamp_start)
 
     #...........................................................................
     # let's find a config file to be read :
@@ -2285,22 +2290,19 @@ def main_warmup(timestamp_start):
         # the .katal/logs folder doesn't exist
         create_subdirs_in_target_path()
 
-        # Logger initialising
+        # Logger initialisation :
         configure_loggers()
-        welcome(timestamp_start)
-
-        LOGGER.info("    ... config file found and read (ok)")
+        welcome_in_logfile(timestamp_start)
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
-        LOGGER.warning("  = mode=move                                                             =")
-        LOGGER.warning("  =     the files will be moved (NOT copied) in the target directory      =")
+        LOGGER.warning("  = mode=move")
+        LOGGER.warning("  =     the files will be moved (NOT copied) in the target directory")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        LOGGER.warning("  = mode=nocopy                                                           =")
-        LOGGER.warning("  =     the files will NOT be copied or moved in the target directory     =")
+        LOGGER.warning("  = mode=nocopy")
+        LOGGER.warning("  =     the files will NOT be copied or moved in the target directory")
 
     source_path = CFG_PARAMETERS["source"]["path"]
-
 
     #...........................................................................
     if ARGS.targetpath == source_path:
@@ -2683,8 +2685,8 @@ def read_parameters_from_cfgfile(configfile_name):
         _ = parser["display"]["source filename.max length on console"]
         _ = parser["source"]["path"]
     except KeyError as exception:
-        print("  ! An error occured while reading " "the config file \"{}\".\n"
-              "  ! Your configuration file lacks a specific value : \"{}\".\n"
+        print("  ! An error occured while reading " "the config file \"{0}\".\n"
+              "  ! Your configuration file lacks a specific value : {1}.\n"
               "  ... you should download a new default config file : "
               "see -dlcfg/--downloaddefaultcfg option".format(configfile_name,
                                                               exception))
@@ -3330,7 +3332,7 @@ def welcome(timestamp_start):
         file (confer the variable CFG_PARAMETERS).
 
         This function is called before the opening of the log file; hence, all
-        the messages are only displayed on console (see welcome_in_logfile
+        the messages are only displayed on console (see the welcome_in_logfile()
         function)
         ________________________________________________________________________
 
@@ -3346,30 +3348,61 @@ def welcome(timestamp_start):
               "(launched at {2}) ===").format(__projectname__,
                                               __version__,
                                               timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
-    LOGGER.info("="*len(strmsg))
-    LOGGER.info(strmsg)
-    LOGGER.info("="*len(strmsg))
+    print("="*len(strmsg))
+    print(strmsg)
+    print("="*len(strmsg))
 
     # command line arguments :
-    LOGGER.debug("  = command line arguments : %s", sys.argv)
+    print("  = command line arguments : %s", sys.argv)
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
-        LOGGER.debug("  = target directory given as parameter : \"%s\" "
-                     "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
+        print("  = target directory given as parameter : \"{0}\" "
+              "(path : \"{1}\")".format(ARGS.targetpath, normpath(ARGS.targetpath)))
 
         if ARGS.configfile is not None:
-            LOGGER.info("  = expected config file : \"%s\" "
-                        "(path : \"%s\")", ARGS.configfile, normpath(ARGS.configfile))
+            print("  = expected config file : \"{0}\" "
+                  "(path : \"{1}\")".format(ARGS.configfile, normpath(ARGS.configfile)))
         else:
-            LOGGER.debug("  * no config file specified on the command line : "
-                         "let's search a config file...")
+            print("  * no config file specified on the command line : "
+                  "let's search a config file...")
 
     if ARGS.off:
-        LOGGER.info("  = --off option detected :                                               =")
-        LOGGER.info("  =                no file will be modified, no directory will be created =")
-        LOGGER.info("  =                but the corresponding messages will be written in the  =")
-        LOGGER.info("  =                log file.                                              =")
+        print("  = --off option detected :")
+        print("  =                no file will be modified, no directory will be created")
+        print("  =                but the corresponding messages will be written in the")
+        print("  =                log file.")
+
+#///////////////////////////////////////////////////////////////////////////////
+def welcome_in_logfile(timestamp_start):
+    """
+        welcome_in_logfile()
+        ________________________________________________________________________
+
+        The function writes in the log file a welcome message with some very
+        broad informations about the program.
+
+        This function has to be called after the opening of the log file.
+        This function doesn't write anything on the console.
+
+        See welcome() function for more informations since welcome() and
+        welcome_in_logfile() do the same job, the first on console, the
+        second in the log file.
+        ________________________________________________________________________
+
+        PARAMETER :
+                o  timestamp_start : a datetime.datetime object
+
+        no RETURNED VALUE
+    """
+    FILE_LOGGER.info("=== %s v.%s " "(launched at %s) ===",
+                     __projectname__, __version__, timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
+
+    FILE_LOGGER.info("  = command line arguments : %s", sys.argv)
+
+    FILE_LOGGER.info("  = target directory given as parameter : \"%s\" "
+                     "(path : \"%s\")", ARGS.targetpath,
+                     normpath(ARGS.targetpath))
 
 #///////////////////////////////////////////////////////////////////////////////
 def where_is_the_configfile():
@@ -3402,17 +3435,21 @@ def where_is_the_configfile():
     configfile_name = ""
 
     msg_please_use_dlcfg = \
-     ("    ! error : can't find any config file !\n"
-      "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file.")
+     ("    ! Error : can't find any config file !\n"
+      "    ! Please use the -dlcfg/--downloaddefaultcfg argument " \
+      "to download a default config file.")
 
     if ARGS.configfile is None:
         # no config file given as a parameter, let's guess where it is :
 
         for cfg_path in possible_paths_to_cfg():
 
-            if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
-                configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
+            cfg_fullpath = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
+            if os.path.exists(cfg_fullpath):
+                configfile_name = cfg_fullpath
                 break
+            else:
+                print("    ... {0} doesn't exist...".format(cfg_fullpath))
 
         if not configfile_name:
             if ARGS.downloaddefaultcfg is None:
