@@ -464,6 +464,8 @@ def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location=
 
         Download the default configuration file; save it in the current directory
         (location='local') or in the user's HOME directory (location='home').
+
+        No log messages for this function, everything is printed to the console.
         ________________________________________________________________________
 
         PARAMETERS :
@@ -473,34 +475,34 @@ def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location=
         RETURNED VALUE :
             (bool) success
     """
-    LOGGER.info("  = downloading the default configuration file...")
-    LOGGER.info("    ... trying to download %s from %s", targetname, CST__DEFAULTCFGFILE_URL)
+    print("  = downloading the default configuration file...")
+    print("    ... trying to download %s from %s", targetname, CST__DEFAULTCFGFILE_URL)
 
     try:
         if not ARGS.off:
             with urllib.request.urlopen(CST__DEFAULTCFGFILE_URL) as response, \
                  open(targetname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
-        LOGGER.info("  * download completed : \"%s\" (path : \"%s\")", targetname,
-                    normpath(targetname))
+        print("  * download completed : \"{0}\" (path : \"{1}\")".format(targetname,
+                                                                         normpath(targetname)))
 
         if location == 'home':
             newname = os.path.join(possible_paths_to_cfg()[-1],
                                    os.path.basename(targetname))
-            LOGGER.info("  * Since you wrote '--downloaddefaultcfg=home', "
-                        "let's move the download file to the user's home directory...")
-            LOGGER.info("    namely %s -> %s", targetname, newname)
+            print("  * Since you wrote '--downloaddefaultcfg=home', "
+                  "let's move the download file to the user's home directory...")
+            print("    namely {0} -> {1}".format(targetname, newname))
             shutil.move(targetname, newname)
 
         return True
 
     except urllib.error.URLError as exception:
-        LOGGER.exception("  ! An error occured : %s\n"
-                         "  ... if you can't download the default config file, what about simply\n"
-                         "  ... copy another config file to the target directory ?\n"
-                         "  ... In a target directory, the config file is \n"
-                         "in the \"%s\" directory.",
-                         str(exception), os.path.join(CST__KATALSYS_SUBDIR))
+        print("  ! An error occured : {0}\n"
+              "  ... if you can't download the default config file, what about simply\n"
+              "  ... copy another config file to the target directory ?\n"
+              "  ... In a target directory, the config file is \n"
+              "in the \"{1}\" directory.".format(exception,
+                                                 os.path.join(CST__KATALSYS_SUBDIR)))
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -593,19 +595,20 @@ def action__new(targetname):
         action__new()
         ________________________________________________________________________
 
-        Create a new target directory
+        Create a new target directory.
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
     """
-    LOGGER.info("  = about to create a new target directory "
-                "named \"%s\" (path : \"%s\")", targetname, normpath(targetname))
+    LOGGER.warning("  = about to create a new target directory "
+                   "named \"%s\" (path : \"%s\")", targetname, normpath(targetname))
+
     if os.path.exists(normpath(targetname)):
         LOGGER.warning("  ! can't go further : the directory already exists.")
         return
 
     if not ARGS.off:
-        LOGGER.info("  ... creating the target directory with its sub-directories...")
+        LOGGER.warning("  ... creating the target directory with its sub-directories...")
         os.mkdir(normpath(targetname))
         os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR))
         os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR))
@@ -630,7 +633,7 @@ def action__new(targetname):
                 LOGGER.warning("  ! A problem occured : "
                                "the creation of the target directory has been aborted.")
 
-    LOGGER.info("  ... done with the creation of \"%s\" as a new target directory.", targetname)
+    LOGGER.warning("  ... done with the creation of \"%s\" as a new target directory.", targetname)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rebase(newtargetpath):
@@ -2258,12 +2261,12 @@ def main_warmup(timestamp_start):
     global CFG_PARAMETERS
 
     #...........................................................................
+    welcome(timestamp_start)
+
+    #...........................................................................
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
     if ARGS.new is not None or ARGS.downloaddefaultcfg is not None:
         return
-
-    #...........................................................................
-    welcome(timestamp_start)
 
     #...........................................................................
     # let's find a config file to be read :
@@ -3353,7 +3356,7 @@ def welcome(timestamp_start):
     print("="*len(strmsg))
 
     # command line arguments :
-    print("  = command line arguments : %s", sys.argv)
+    print("  = command line arguments : ", sys.argv)
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
