@@ -345,7 +345,7 @@ def action__add():
         if not ARGS.off:
             if CFG_PARAMETERS["target"]["mode"] == "nocopy":
                 # nothing to do
-                LOGGER.info("    ... (%s/%s) due to the mode=nocopy' option, "
+                LOGGER.info("    ... (%s/%s) due to the nocopy mode argument, "
                             "\"%s\" will be simply added "
                             "in the target database.", index+1, len_select,
                             complete_source_filename)
@@ -2298,11 +2298,11 @@ def main_warmup(timestamp_start):
         welcome_in_logfile(timestamp_start)
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
-        LOGGER.warning("  = mode=move")
+        LOGGER.warning("  = 'move' mode")
         LOGGER.warning("  =     the files will be moved (NOT copied) in the target directory")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        LOGGER.warning("  = mode=nocopy")
+        LOGGER.warning("  = 'nocopy' mode")
         LOGGER.warning("  =     the files will NOT be copied or moved in the target directory")
 
     source_path = CFG_PARAMETERS["source"]["path"]
