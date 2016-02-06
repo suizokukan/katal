@@ -169,10 +169,14 @@ Caveats :
 ####Display informations about a file belonging to the target directory :
     $ katal --whatabout=myfile
 
-#(5) project's author and project's name
+#(5) project's author, project's name, contributors
 Xavier Faure (suizokukan / 94.23.197.37) : suizokukan @T orange D@T fr
 
 The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, register, catalogue").
+
+Contributors :
+*  ytterbium / Yann Balland / ytterbium@laposte.net
+*  Stéphan Gorget / sgorget@fb.com
 
 #(6) arguments
 
