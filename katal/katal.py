@@ -323,7 +323,7 @@ def action__add():
     db_cursor = db_connection.cursor()
 
     if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
-        LOGGER.info("    ! Not enough space on disk. Stopping the program.")
+        LOGGER.warning("    ! Not enough space on disk. Stopping the program.")
         # returned value : -1 = error
         return -1
 
@@ -2291,12 +2291,12 @@ def main_warmup(timestamp_start):
         LOGGER.info("    ... config file found and read (ok)")
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
-        LOGGER.info("  = mode=move                                                             =")
-        LOGGER.info("  =     the files will be moved (NOT copied) in the target directory      =")
+        LOGGER.warning("  = mode=move                                                             =")
+        LOGGER.warning("  =     the files will be moved (NOT copied) in the target directory      =")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        LOGGER.info("  = mode=nocopy                                                           =")
-        LOGGER.info("  =     the files will NOT be copied or moved in the target directory     =")
+        LOGGER.warning("  = mode=nocopy                                                           =")
+        LOGGER.warning("  =     the files will NOT be copied or moved in the target directory     =")
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
@@ -2849,7 +2849,7 @@ def show_infos_about_source_path():
             LOGGER.warning("    ! ... but the --usentfsprefix argument wasn't given !")
             LOGGER.warning("    ! You may encounter an IOError, or a FileNotFound error.")
             LOGGER.warning("    ! If so, please use the --usentfsprefix argument.")
-            LOGGER.info("")
+            LOGGER.warning("")
 
     total_size = 0
     files_number = 0
@@ -2928,16 +2928,16 @@ def show_infos_about_target_path():
 
     #...........................................................................
     if not os.path.exists(normpath(ARGS.targetpath)):
-        LOGGER.info("Can't find target path \"%s\".", ARGS.targetpath)
+        LOGGER.warning("Can't find target path \"%s\".", ARGS.targetpath)
         return -1
 
     if not os.path.isdir(normpath(ARGS.targetpath)):
-        LOGGER.info("target path \"%s\" isn't a directory.", ARGS.targetpath)
+        LOGGER.warning("target path \"%s\" isn't a directory.", ARGS.targetpath)
         return -1
 
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                        CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)):
-        LOGGER.info("    o no database in the target directory.")
+        LOGGER.warning("    o no database in the target directory.")
         return 0
 
     #...........................................................................
