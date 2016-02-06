@@ -166,12 +166,6 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
 # global constants : CST__*
 #===============================================================================
 
-# this minimal subset of characters are the only characters to be used in the
-# eval() function. Other characters are forbidden to avoid malicious code execution.
-# keywords an symbols : filter, parentheses, "and", "or", "not", "xor", "True", "False"
-#                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-CST__AUTHORIZED_EVALCHARS = " TFasdlfiteruxnot0123456789&|^()"
-
 CST__DATABASE_NAME = "katal.db"
 
 CST__DEFAULT_CONFIGFILE_NAME = "katal.ini"
@@ -3143,28 +3137,20 @@ def thefilehastobeadded__filters(filename, _size, date):
     """
     evalstr = CFG_PARAMETERS["source"]["eval"]
 
-    for filter_index in FILTERS:
-        _filter = FILTERS[filter_index]
-
-        evalstr = evalstr.replace("filter"+str(filter_index),
-                                  str(eval_filter_for_a_file(_filter, filename, _size, date)))
-
     try:
-        # eval() IS a dangerous function : see the note about CST__AUTHORIZED_EVALCHARS.
-        for char in evalstr:
-            if char not in CST__AUTHORIZED_EVALCHARS:
-                raise KatalError("Error in configuration file : "
-                                 "trying to compute the \"{0}\" string; "
-                                 "wrong character '{1}'({2}) "
-                                 "used in the string to be evaluated. "
-                                 "Authorized " "characters are "
-                                 "{3}".format(evalstr,
-                                              char,
-                                              unicodedata.name(char),
-                                              "|"+"|".join(CST__AUTHORIZED_EVALCHARS)))
-        return eval(evalstr)
+        # eval() IS a dangerous function : see for example
+        # http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
+        if '__' in evalstr:
+            raise KatalError("Error in configuration file : trying to compute "
+                             'the "{0}" string; double underscore (__) '
+                             "are not allowed".format(evalstr))
 
-    except BaseException as exception:
+        return eval(evalstr, {'__builtins__': {}},
+                    {"filter" + str(index):
+                     eval_filter_for_a_file(filter, filename, _size, date)
+                     for index, filter in FILTERS.items()})
+
+    except Exception as exception:
         raise KatalError("The eval formula in the config file (\"{0}\")"
                          "contains an error. Python message : \"{1}\"".format(evalstr,
                                                                               exception))
