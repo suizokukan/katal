@@ -1301,6 +1301,71 @@ def check_args():
         raise KatalError("--copyto can only be used in combination with --findtag .")
 
 #///////////////////////////////////////////////////////////////////////////////
+def configure_loggers():
+    """
+        configure_loggers()
+        ________________________________________________________________________
+
+        Configure loggers to write to the correct files and to the console.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    #...........................................................................
+    # to the log files :
+    if USE_LOGFILE:
+
+        try:
+            handler1 = RotatingFileHandler(
+                get_logfile_fullname(),
+                maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
+                backupCount=CFG_PARAMETERS.getint('log file', 'backup count'))
+
+            formatter1 = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
+            handler1.setFormatter(formatter1)
+
+            if ARGS.verbosity == 'none':
+                handler1.setLevel(logging.INFO) # To keep a record of what is done
+            elif ARGS.verbosity == 'normal':
+                handler1.setLevel(logging.INFO)
+            elif ARGS.verbosity == 'high':
+                handler1.setLevel(logging.DEBUG)
+
+            LOGGER.addHandler(handler1)
+            FILE_LOGGER.addHandler(handler1)
+
+        except FileNotFoundError as exception:
+            print("  ! Beware, the log file can't be opened : the log messages will be displayed")
+            print("  ! to the console and will not be stored in log files. THAT'S SURELY NOT")
+            print("  ! WHAT YOU WANT TO DO.")
+            print("  ! It's typically because the path to the log file doesn't exist.")
+            print("  ! Python's message : ", exception)
+
+    #...........................................................................
+    # to the console :
+    formatter2 = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
+
+    handler2 = logging.StreamHandler()
+    handler2.setFormatter(formatter2)
+
+    if ARGS.verbosity == 'none':
+        handler2.setLevel(logging.ERROR)
+    elif ARGS.verbosity == 'normal':
+        handler2.setLevel(logging.INFO)
+    elif ARGS.verbosity == 'high':
+        handler2.setLevel(logging.DEBUG)
+
+    LOGGER.addHandler(handler2)
+
+    #...........................................................................
+    # setting the threshold for each handler :
+    # see https://docs.python.org/3.5/library/logging.html
+    FILE_LOGGER.setLevel(logging.DEBUG)
+    LOGGER.setLevel(logging.DEBUG)
+
+#///////////////////////////////////////////////////////////////////////////////
+
+#///////////////////////////////////////////////////////////////////////////////
 def create_empty_db(db_name):
     """
         create_empty_db()
@@ -2155,51 +2220,6 @@ def main_actions_tags():
         action__rmtags(ARGS.to)
 
 #///////////////////////////////////////////////////////////////////////////////
-def main_loggers():
-    """
-        main_loggers()
-        ________________________________________________________________________
-        Initializations:
-            Configure loggers to write to the correct files and display well
-    """
-    #...........................................................................
-    if USE_LOGFILE:
-        handler = RotatingFileHandler(
-            get_logfile_fullname(),
-            maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
-            backupCount=CFG_PARAMETERS.getint('log file', 'backup count'))
-
-        formatter = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
-        handler.setFormatter(formatter)
-
-        if ARGS.verbosity == 'none':
-            handler.setLevel(logging.INFO) # To keep a record of what is done
-        elif ARGS.verbosity == 'normal':
-            handler.setLevel(logging.INFO)
-        elif ARGS.verbosity == 'high':
-            handler.setLevel(logging.DEBUG)
-
-        LOGGER.addHandler(handler)
-        FILE_LOGGER.addHandler(handler)
-
-    #...........................................................................
-    fmtter = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
-
-    hdler = logging.StreamHandler()
-    hdler.setFormatter(fmtter)
-
-    if ARGS.verbosity == 'none':
-        hdler.setLevel(logging.ERROR)
-    elif ARGS.verbosity == 'normal':
-        hdler.setLevel(logging.INFO)
-    elif ARGS.verbosity == 'high':
-        hdler.setLevel(logging.DEBUG)
-
-    LOGGER.addHandler(hdler)
-
-    LOGGER.setLevel(logging.DEBUG)
-
-#///////////////////////////////////////////////////////////////////////////////
 def main_warmup(timestamp_start):
     """
         main_warmup()
@@ -2260,7 +2280,7 @@ def main_warmup(timestamp_start):
         create_subdirs_in_target_path()
 
         # Logger initialising
-        main_loggers()
+        configure_loggers()
         welcome(timestamp_start)
 
         LOGGER.info("    ... config file found and read (ok)")
@@ -2294,7 +2314,7 @@ def main_warmup(timestamp_start):
         LOGGER.debug("  = let's use \"%s\" as %s", path, info)
 
     LOGGER.debug("  = source directory : \"%s\" (path : \"%s\")",
-                source_path, normpath(source_path))
+                 source_path, normpath(source_path))
 
     #...........................................................................
     if ARGS.infos:
@@ -3330,14 +3350,14 @@ def welcome(timestamp_start):
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
         LOGGER.debug("  = target directory given as parameter : \"%s\" "
-            "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
+                     "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
 
         if ARGS.configfile is not None:
             LOGGER.info("  = expected config file : \"%s\" "
                         "(path : \"%s\")", ARGS.configfile, normpath(ARGS.configfile))
         else:
             LOGGER.debug("  * no config file specified on the command line : "
-                "let's search a config file...")
+                         "let's search a config file...")
 
     if ARGS.off:
         LOGGER.info("  = --off option detected :                                               =")

@@ -461,6 +461,8 @@ trash name is defined in the configuration file.
                                               in order to make strings used to create the target files
     o  backup_logfile()                     : copy a logfile into a backuped file.
     o  check_args()                         : check the arguments of the command line.
+    o  configure_loggers()                  : configure loggers to write to the correct files and to
+                                              the console.
     o  create_empty_db()                    : create an empty database.
     o  create_subdirs_in_target_path()      : create the expected subdirectories in ARGS.targetpath .
     o  create_target_name()                 : create the name of a file (a target file)
