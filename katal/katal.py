@@ -2131,7 +2131,7 @@ def main(args=None):
     except KatalError as exception:
         if LOGGER:
             LOGGER.exception("(%s) ! a critical error occured.\n"
-                             "Error message : {%s}", __projectname__, exception)
+                             "Error message : %s", __projectname__, exception)
         else:
             print("({0}) ! a critical error occured.\n"
                   "Error message : {1}".format(__projectname__, exception))
@@ -2974,7 +2974,7 @@ def show_infos_about_target_path():
         LOGGER.warning("    ! (empty database)")
         return 0
 
-    LOGGER.info("    o {%s} file(s) in the database :", row_index)
+    LOGGER.info("    o %s file(s) in the database :", row_index)
 
     targetname_maxlength = \
             int(CFG_PARAMETERS["display"]["target filename.max length on console"])
