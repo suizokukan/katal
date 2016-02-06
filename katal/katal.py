@@ -252,16 +252,10 @@ class KatalError(BaseException):
 #///////////////////////////////////////////////////////////////////////////////
 class ColorFormatter(logging.Formatter):
     """
-        A custom formatter class used to display color in stream output.
+         A custom formatter class used to display color in stream output.
 
-        Color is determined by default value depending of the log level (eg. by
-        default, warnings will be red), but this can be overrided by providing
-        a color value in the log function
-
-        Posistions of color codes in the formatting string are determined by
-        the keys color_start and color_end.
+         see https://docs.python.org/3/library/logging.html .
     """
-
     # foreground colors :
     # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
     default = "\033[0m"
@@ -269,13 +263,23 @@ class ColorFormatter(logging.Formatter):
     cyan = "\033[0;36;1m"
     white = "\033[0;37;1m"
 
-    # default colors for the different logging level
-    # they will be overrided if a color parameter is given
-    debug = default
-    info = default
-    warning = red
-
+    #///////////////////////////////////////////////////////////////////////////
     def format(self, record):
+        """
+                ColorFormatter.format()
+                ________________________________________________________________
+
+                see https://docs.python.org/3.5/library/logging.html :
+
+                " The record’s attribute dictionary is used as the operand to a
+                " string formatting operation. Returns the resulting string. [...]
+                ________________________________________________________________
+
+                PARAMETER :
+                        o record : a logging.LogRecord object
+
+                no RETURNED VALUE
+        """
         color = record.color
         if CST__PLATFORM == 'Windows' or \
                 not CFG_PARAMETERS.getboolean('log file', 'use color'):
@@ -290,10 +294,11 @@ class ColorFormatter(logging.Formatter):
                     record.color_start = ''
                     record.color_end = ''
                 elif record.levelno <= logging.INFO:
-                    record.color_start = self.white
+                    record.color_start = self.default
+                elif record.levelno <= logging.WARNING:
+                    record.color_start = self.cyan
                 else:
                     record.color_start = self.red
-
 
         record.color_end = self.default
         return super().format(record)
