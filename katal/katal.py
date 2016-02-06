@@ -3422,8 +3422,8 @@ def where_is_the_configfile():
         configfile_name = ARGS.configfile
 
         if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
-            print("  ! The config file \"%s\" (path : \"%s\") "
-                  "doesn't exist. " % configfile_name, normpath(configfile_name))
+            print("  ! The config file \"{0}\" (path : \"{1}\") "
+                  "doesn't exist. ".format(configfile_name, normpath(configfile_name)))
 
             if ARGS.downloaddefaultcfg is None:
                 print(msg_please_use_dlcfg)
