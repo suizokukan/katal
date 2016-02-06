@@ -1411,6 +1411,8 @@ def create_subdirs_in_target_path():
         ________________________________________________________________________
 
         Create the expected subdirectories in ARGS.targetpath .
+
+        No log messages for this function, everything is printed to the console.
         ________________________________________________________________________
 
         no PARAMETERS, no RETURNED VALUE
@@ -1427,6 +1429,10 @@ def create_subdirs_in_target_path():
                      ("tasks", os.path.join(normpath(ARGS.targetpath),
                                             CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))):
         if not os.path.exists(normpath(fullpath)) and not ARGS.off:
+            print("  * Since the {0} path \"{1}\" (path : \"{2}\") "
+                  "doesn't exist, let's create it.".format(name,
+                                                           fullpath,
+                                                           normpath(fullpath)))
             os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
