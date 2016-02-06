@@ -235,21 +235,6 @@ CST__TRASH_SUBSUBDIR = "trash"
 CST__PLATFORM = platform.system()
 
 ################################################################################
-class KatalError(BaseException):
-    """
-        KatalError class
-
-        A very basic class called when an error is raised by the program.
-    """
-    #///////////////////////////////////////////////////////////////////////////
-    def __init__(self, value):
-        BaseException.__init__(self)
-        self.value = value
-    #///////////////////////////////////////////////////////////////////////////
-    def __str__(self):
-        return repr(self.value)
-
-#///////////////////////////////////////////////////////////////////////////////
 class ColorFormatter(logging.Formatter):
     """
          A custom formatter class used to display color in stream output.
@@ -303,6 +288,22 @@ class ColorFormatter(logging.Formatter):
         record.color_end = self.default
         return super().format(record)
 
+################################################################################
+class KatalError(BaseException):
+    """
+        KatalError class
+
+        A very basic class called when an error is raised by the program.
+    """
+    #///////////////////////////////////////////////////////////////////////////
+    def __init__(self, value):
+        BaseException.__init__(self)
+        self.value = value
+    #///////////////////////////////////////////////////////////////////////////
+    def __str__(self):
+        return repr(self.value)
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__add():
     """
         action__add()
