@@ -193,10 +193,6 @@ CST__KATALSYS_SUBDIR = ".katal"
 
 CST__LOG_SUBSUBDIR = "logs"
 
-CST__LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
-                                                      # logfiles' filename .
-                                                      # see the backup_logfile() function .
-
 # suffix, multiple :
 # about the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte
 CST__MULTIPLES = (("kB", 1000),
@@ -1269,27 +1265,6 @@ def add_keywords_in_targetstr(srcstring,
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def backup_logfile(_logfile_fullname):
-    """
-        backup_logfile()
-        ________________________________________________________________________
-
-        copy a logfile named _logfile_fullname into a backuped file.
-
-          o  The backuped file is stored in the CST__LOG_SUBSUBDIR directory.
-          o  The name of the backuped file is automatically created from a call to
-             datetime.now() . See the CST__LOGFILE_DTIMEFORMATSTR constant.
-        ________________________________________________________________________
-
-        NO PARAMETER, no RETURNED VALUE
-    """
-    logfile_backup = os.path.join(CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR,
-                                  CFG_PARAMETERS["log file"]["name"] + \
-                                  datetime.strftime(datetime.now(),
-                                                    CST__LOGFILE_DTIMEFORMATSTR))
-    shutil.copyfile(_logfile_fullname, logfile_backup)
-
-#///////////////////////////////////////////////////////////////////////////////
 def check_args():
     """
         check_args()
@@ -1377,12 +1352,8 @@ def create_subdirs_in_target_path():
                                           CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR)),
                      ("tasks", os.path.join(normpath(ARGS.targetpath),
                                             CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))):
-        if not os.path.exists(normpath(fullpath)):
-            LOGGER.info("  * Since the %s path \"%s\" (path : \"%s\") "
-                        "doesn't exist, let's create it.",
-                        name, fullpath, normpath(fullpath))
-            if not ARGS.off:
-                os.mkdir(normpath(fullpath))
+        if not os.path.exists(normpath(fullpath)) and not ARGS.off:
+            os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(parameters,
@@ -2049,33 +2020,7 @@ def is_ntfs_prefix_mandatory(path):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def logfile_opening():
-    """
-        logfile_opening()
-        ________________________________________________________________________
-
-          Open the log file in "a" mode, initialize LOGFILE_SIZE and return
-        the result of the call to open().
-          If the ancient logfile exists, it is renamed to avoid its overwriting.
-        ________________________________________________________________________
-
-        no PARAMETER
-
-        RETURNED VALUE
-                the _io.BufferedReader object returned by the call to open()
-    """
-    global LOGFILE_SIZE
-    logfile_fullname = get_logfile_fullname()
-
-    if os.path.exists(normpath(logfile_fullname)):
-        LOGFILE_SIZE = os.stat(normpath(logfile_fullname)).st_size
-    else:
-        LOGFILE_SIZE = 0
-
-    return open(logfile_fullname, "a")
-
-#///////////////////////////////////////////////////////////////////////////////
-def main():
+def main(args=None):
     """
         main()
         ________________________________________________________________________
@@ -2083,7 +2028,13 @@ def main():
         Main entry point.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER:
+            o list(args) (Optionnal, default=None): the list of arguments to
+              parse from the command line. If None, the arguments are taken from
+              sys.argv.
+              Mainly for tests
+
+        no RETURNED VALUE
 
         This function should NOT have arguments : otherwise, the entrypoint
         defined in setup.py would not be valid.
@@ -2097,7 +2048,7 @@ def main():
     timestamp_start = datetime.now()
 
     try:
-        ARGS = read_command_line_arguments()
+        ARGS = read_command_line_arguments(args)
         check_args()
 
         main_warmup(timestamp_start)
@@ -2302,6 +2253,12 @@ def main_warmup(timestamp_start):
         # ill-formed config file :
         sys.exit(-1)
     else:
+        #.......................................................................
+        # list of the expected directories : if one directory is missing, let's
+        # create it. Required to do that before initialising loggers in case
+        # the .katal/logs folder doesn't exist
+        create_subdirs_in_target_path()
+
         # Logger initialising
         main_loggers()
         welcome(timestamp_start)
@@ -2318,9 +2275,6 @@ def main_warmup(timestamp_start):
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
-    #...........................................................................
-    # list of the expected directories : if one directory is missing, let's create it.
-    create_subdirs_in_target_path()
 
     #...........................................................................
     if ARGS.targetpath == source_path:
@@ -2337,9 +2291,9 @@ def main_warmup(timestamp_start):
                                      CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
                                      CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
-        LOGGER.info("  = let's use \"%s\" as %s", path, info)
+        LOGGER.debug("  = let's use \"%s\" as %s", path, info)
 
-    LOGGER.info("  = source directory : \"%s\" (path : \"%s\")",
+    LOGGER.debug("  = source directory : \"%s\" (path : \"%s\")",
                 source_path, normpath(source_path))
 
     #...........................................................................
@@ -2445,7 +2399,7 @@ def normpath(path):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def read_command_line_arguments():
+def read_command_line_arguments(args=None):
     """
         read_command_line_arguments()
         ________________________________________________________________________
@@ -2453,7 +2407,9 @@ def read_command_line_arguments():
         Read the command line arguments.
         ________________________________________________________________________
 
-        no PARAMETER
+        PARAMETER
+                args (Optional): a list of command line arguments to test. If
+                None, use sys.argv. Mainly for tests.
 
         RETURNED VALUE
                 return the argparse object.
@@ -2626,7 +2582,7 @@ def read_command_line_arguments():
                              "given as a parameter is in the target directory "
                              "notwithstanding its name.")
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 #///////////////////////////////////////////////////////////////////////////////
 def possible_paths_to_cfg():
@@ -3369,56 +3325,25 @@ def welcome(timestamp_start):
     LOGGER.info("="*len(strmsg))
 
     # command line arguments :
-    LOGGER.info("  = command line arguments : %s", sys.argv)
+    LOGGER.debug("  = command line arguments : %s", sys.argv)
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
-        LOGGER.info("  = target directory given as parameter : \"%s\" "
-                    "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
+        LOGGER.debug("  = target directory given as parameter : \"%s\" "
+            "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
 
         if ARGS.configfile is not None:
             LOGGER.info("  = expected config file : \"%s\" "
                         "(path : \"%s\")", ARGS.configfile, normpath(ARGS.configfile))
         else:
-            LOGGER.info("  * no config file specified on the command line : "
-                        "let's search a config file...")
+            LOGGER.debug("  * no config file specified on the command line : "
+                "let's search a config file...")
 
     if ARGS.off:
         LOGGER.info("  = --off option detected :                                               =")
         LOGGER.info("  =                no file will be modified, no directory will be created =")
         LOGGER.info("  =                but the corresponding messages will be written in the  =")
         LOGGER.info("  =                log file.                                              =")
-
-#///////////////////////////////////////////////////////////////////////////////
-def welcome_in_logfile(timestamp_start):
-    """
-        welcome_in_logfile()
-        ________________________________________________________________________
-
-        The function writes in the log file a welcome message with some very
-        broad informations about the program.
-
-        This function has to be called after the opening of the log file.
-        This function doesn't write anything on the console.
-
-        See welcome() function for more informations since welcome() and
-        welcome_in_logfile() do the same job, the first on console, the
-        second in the log file.
-        ________________________________________________________________________
-
-        PARAMETER :
-                o  timestamp_start : a datetime.datetime object
-
-        no RETURNED VALUE
-    """
-    FILE_LOGGER.info("=== %s v.%s " "(launched at %s) ===",
-                     __projectname__, __version__, timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
-
-    FILE_LOGGER.info("  = command line arguments : %s", sys.argv)
-
-    FILE_LOGGER.info("  = target directory given as parameter : \"%s\" "
-                     "(path : \"%s\")", ARGS.targetpath,
-                     normpath(ARGS.targetpath))
 
 #///////////////////////////////////////////////////////////////////////////////
 def where_is_the_configfile():
