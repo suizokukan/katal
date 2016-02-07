@@ -3363,16 +3363,11 @@ def thefilehastobeadded__db(filename, _size):
                 either (False, None, None)
                 either (True, partial hashid, hashid)
     """
-    # a list of hashid(s) :
-    res = []
-
     # (1) how many file(s) in the database have a size equal to _size ?
-    for hashid in TARGET_DB:
-        _, target_size, _ = TARGET_DB[hashid]
-        if target_size == _size:
-            res.append(hashid)
+    # a list of hashid(s) :
+    res = [hashid for hashid in TARGET_DB if TARGET_DB[hashid][1] == _size]
 
-    if len(res) == 0:
+    if not res:
         return (True,
                 hashfile64(filename=filename,
                            stop_after=CST__PARTIALHASHID_BYTESNBR),
@@ -3380,24 +3375,21 @@ def thefilehastobeadded__db(filename, _size):
 
     # (2) how many file(s) among those in <res> have a partial hashid equal
     # to the partial hashid of filename ?
-    new_res = []
     src_partialhashid = hashfile64(filename=filename,
                                    stop_after=CST__PARTIALHASHID_BYTESNBR)
-    for hashid in res:
-        target_partialhashid, _, _ = TARGET_DB[hashid]
-        if target_partialhashid == src_partialhashid:
-            new_res.append(hashid)
+
+    new_res = [hashid for hashid in res if TARGET_DB[0] == target_partialhashid]
 
     res = new_res
-    if len(res) == 0:
+    if not res:
         return (True,
                 src_partialhashid,
                 hashfile64(filename=filename))
 
     # (3) how many file(s) among those in <res> have an hashid equal to the
     # hashid of filename ?
-    new_res = []
     src_hashid = hashfile64(filename=filename)
+    new_res = [hashid for hashid in res if TARGET_DB[hashid][0]]
     for hashid in res:
         target_hashid, _, _ = TARGET_DB[hashid]
         if target_hashid == src_hashid:
