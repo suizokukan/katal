@@ -353,6 +353,8 @@ class Filter:
         self.conditions['name'] = self.match_regex(regex)
         self.conditions['size'] = self.match_size(config.get('size'))
         self.conditions['date'] = self.match_date(config.get('date'))
+        self.conditions['name not existing'] = \
+            self.match_name_not_existing(config.get('name not existing'))
 
     def match_date(self, filter_date):
         """
@@ -508,7 +510,6 @@ class Filter:
             raise KatalError("Can't analyse {0} in the filter. "
                              "Format must be for example size : >= 10 MB".format(filter_size))
 
-
         def return_match(name):
             # ..................................................................
             # protection against the FileNotFoundError exception.
@@ -552,6 +553,66 @@ class Filter:
                 return op(self(name), filter2(name))
 
         return return_match
+
+    def match_name_not_existing(self, name_template=None):
+        """
+        self.match_name_not_existing(name_template) -> test_function
+        ________________________________________________________________________
+
+        Analyze the name_template and return a function which test if the
+        name_template modified accoding the file is already in the db.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o filter_name_not_existing: (str) the string from config file
+                corresponding to the name_template to test
+
+        RETURNED VALUE
+                o function(file_name) : function which test if the file succeed
+                the condition
+                If filter_size is evaluated to False, always return True
+        """
+        if not name_template:
+            return lambda name: True
+
+        list_names = set(name for _, _, name in TARGET_DB.items())
+
+        def return_match(name):
+            res = name
+            size = os.stat(name).st_size
+            time = datetime.fromtimestamp(os.stat(name).st_mtime)
+            time = time.replace(second=0, microsecond=0)
+
+            basename, ext = get_filename_and_extension(os.path.basename(name))
+
+            # beware : order matters !
+            res = res.replace("%ht", hex(time.timestamp())[2:])
+            res = res.replace("%h", hashfile64(name))
+
+            res = res.replace("%ff", remove_illegal_characters(basename))
+            res = res.replace("%f", basename)
+
+            res = res.replace("%pp", remove_illegal_characters(os.path.dirname(name)))
+            res = res.replace("%p", os.path.dirname(name))
+
+            res = res.replace("%ee", remove_illegal_characters(ext))
+            res = res.replace("%e", ext)
+
+            res = res.replace("%s", str(size))
+
+            res = res.replace("%dd", remove_illegal_characters(
+                time.strftime(CST__DTIME_FORMAT)))
+
+            res = res.replace("%t", str(time.timestamp))
+
+            if '%i' in res:
+                raise KatalError('"%i" not allowed in "name not already existing"'
+                                 ' config key')
+
+            res = res.replace("%i",
+                            remove_illegal_characters(str(database_index)))
+
+            return res not in list_names
 
     def test(self, file_name):
         """
@@ -2384,9 +2445,7 @@ def main(args=None):
                   "Error message : {1}".format(__projectname__, exception))
         sys.exit(-2)
     else:
-        sys.exit(-3)
-
-    sys.exit(0)
+        sys.exit(0)
 
 #///////////////////////////////////////////////////////////////////////////////
 def main_actions():
@@ -3363,7 +3422,7 @@ def thefilehastobeadded__db(filename, _size):
                 either (False, None, None)
                 either (True, partial hashid, hashid)
     """
-    # (1) how many file(s) in the database have a size equal to _size ?
+    # (1) hont(datetime.strptime(date, CST__DTIME_FORMAT))w many file(s) in the database have a size equal to _size ?
     # a list of hashid(s) :
     res = [hashid for hashid in TARGET_DB if TARGET_DB[hashid][1] == _size]
 
@@ -3389,14 +3448,10 @@ def thefilehastobeadded__db(filename, _size):
     # (3) how many file(s) among those in <res> have an hashid equal to the
     # hashid of filename ?
     src_hashid = hashfile64(filename=filename)
-    new_res = [hashid for hashid in res if TARGET_DB[hashid][0]]
-    for hashid in res:
-        target_hashid, _, _ = TARGET_DB[hashid]
-        if target_hashid == src_hashid:
-            new_res.append(hashid)
+    new_res = [hashid for hashid in res if hashid == src_hashid]
 
     res = new_res
-    if len(res) == 0:
+    if not res:
         return (True,
                 src_partialhashid,
                 src_hashid)
