@@ -48,6 +48,7 @@ import fnmatch
 import itertools
 import logging
 from logging.handlers import RotatingFileHandler
+import operator
 import os
 import platform
 import re
@@ -98,7 +99,7 @@ TARGET_DB = dict()      # see documentation:database; initialized by read_target
 
 SELECT = {}               # see documentation:selection; initialized by action__select()
 SELECT_SIZE_IN_BYTES = 0  # initialized by action__select()
-FILTERS = {}              # see documentation:selection; initialized by read_filters()
+FILTER = None             # see documentation:selection; initialized by read_filters()
 
 #===============================================================================
 # loggers
@@ -167,12 +168,6 @@ SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
 # global constants : CST__*
 #===============================================================================
 
-# this minimal subset of characters are the only characters to be used in the
-# eval() function. Other characters are forbidden to avoid malicious code execution.
-# keywords an symbols : filter, parentheses, "and", "or", "not", "xor", "True", "False"
-#                       space, &, |, ^, (, ), 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-CST__AUTHORIZED_EVALCHARS = " TFasdlfiteruxnot0123456789&|^()"
-
 CST__DATABASE_NAME = "katal.db"
 
 CST__DEFAULT_CONFIGFILE_NAME = "katal.ini"
@@ -193,10 +188,6 @@ CST__FREESPACE_MARGIN = 1.1
 CST__KATALSYS_SUBDIR = ".katal"
 
 CST__LOG_SUBSUBDIR = "logs"
-
-CST__LOGFILE_DTIMEFORMATSTR = "%Y_%m_%d__%H%M%S__%f"  # constant of the time format added to old
-                                                      # logfiles' filename .
-                                                      # see the backup_logfile() function .
 
 # suffix, multiple :
 # about the multiples of bytes, see e.g. https://en.wikipedia.org/wiki/Megabyte
@@ -321,8 +312,8 @@ class Config(configparser.ConfigParser):
     def __init__(self):
         super().__init__(interpolation=None)
 
-    def read_config(self):
-        self.read_command_line_arguments()
+    def read_config(self, args=None):
+        self.read_command_line_arguments(args)
 
         # TODO: download configfile
         self.read_dict(self.default_config())    # Initialize the defaults value
@@ -428,7 +419,7 @@ class Config(configparser.ConfigParser):
                   "to download a default config file.")
             raise ConfigError
 
-    def read_command_line_arguments(self):
+    def read_command_line_arguments(self, args=None):
         """
             read_command_line_arguments(self)
             ________________________________________________________________________
@@ -613,7 +604,7 @@ class Config(configparser.ConfigParser):
                                 "given as a parameter is in the target directory "
                                 "notwithstanding its name.")
 
-        parser.parse_args(namespace=self)
+        parser.parse_args(args=args, namespace=self)
 
         self.check_args(parser)
 
@@ -712,6 +703,394 @@ class Config(configparser.ConfigParser):
             print("     is neutralized and set to '%i' (i.e. the database index : '1', '2', ...)")
 
         return parser
+
+
+class Filter:
+    """
+    Filter class. Filter files according to conditions in config file
+    ________________________________________________________________________
+
+    PARAMETERS
+            o config :  (Configparser section, default=None) the config section
+                        where is defined the filter. If provided, the filter
+                        will analyze to find conditions, else nothing is done.
+            o name   :  (str, default='') the name of the parser, used for
+                        formatting.
+
+    ATTRIBUTES
+            o self.conditions : (dict) A dict of conditions a file must succeed.
+                        The key is the name of condition, used for formatting,
+                        and the values are funtion that take the name of the
+                        file as parameter and return True if the file suceed the
+                        conditions
+            o self.name : the name of the Filter, from the name parameter.
+    """
+    def __init__(self, config=None, name=''):
+        self.conditions = {}
+        self.name = name
+        if config is not None:
+            self.read_config(config)
+
+    def read_config(self, config):
+        """
+        self.read_config(config) Extract conditions from config section
+        ________________________________________________________________________
+
+        Analyze the ConfigParser section corresponding to the filter, and extract
+        the different conditions a file must check.
+        Populate self.conditions.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o config :  (Configparser) the config section to analyze.
+
+        no RETURNED VALUE
+        """
+
+        if 'name' and 'iname' in config:
+            LOGGER.warning("  ! Filter %s has two conditions about name: 'name'"
+                           " and 'iname'.\n"
+                           "    By default, use only the iname condition",
+                           config.name)
+
+        # Use first iname if defined, else name
+        if 'iname' in config:
+            regex = re.compile(config['iname'], re.IGNORECASE)
+        elif 'name' in config:
+            regex = re.compile(config['name'])
+        else:
+            regex = None
+
+        self.conditions['name'] = self.match_regex(regex)
+        self.conditions['size'] = self.match_size(config.get('size'))
+        self.conditions['date'] = self.match_date(config.get('date'))
+        self.conditions['name not existing'] = \
+            self.match_name_not_existing(config.get('name not existing'))
+
+    def match_date(self, filter_date):
+        """
+        self.match_date(filter_date) -> function
+        ________________________________________________________________________
+
+        Analyze the parameter filter_date and return a function which test the
+        file against the date.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o filter_date : (str) the string from config file corresponding
+                                to the condition on date (eg. >2016-09).
+
+        RETURNED VALUE
+                o function(file_name) : function which test if the file succeed
+                                        to the date condition.
+                                        If filter_date is evaluated to False,
+                                        always return True
+        """
+        if not filter_date:
+            return lambda name: True
+
+        # beware !  the order matters (<= before <, >= before >)
+        for condition, op in (('>=', operator.ge),
+                              ('>',  operator.gt),
+                              ('<=', operator.le),
+                              ('<' , operator.lt),
+                              ('=' , operator.eq)):
+            if filter_date.startswith(condition):
+                filter_date = filter_date[(len(condition)):]
+                break
+        else:
+            raise KatalError("Can't analyse a 'date' field : " + filter_date)
+
+        # Parse the filter date
+        for time_format in ('%Y-%m-%d %H:%M',   # '2015-09-17 20:01'
+                            '%Y-%m-%d',         # '2015-09-17
+                            '%Y-%m',            # '2015-09'
+                            '%Y',               # '2015'
+                            ):
+
+            try:
+                date = datetime.strptime(filter_date, time_format)
+            except ValueError:
+                pass
+            else:
+                break
+        else:
+            raise KatalError("Can't analyse the 'date' field {}, see "
+                             "configuration example for correct format".format(filter_date))
+
+
+        def return_match(name):
+            # ..................................................................
+            # protection against the FileNotFoundError exception.
+            # This exception would be raised on broken symbolic link on the
+            #   "size = os.stat(normpath(fullname)).st_size" line (see below).
+            # ..................................................................
+            if not os.path.exists(name):
+                return False
+
+            # do not use utcfromtimestamp ; since time_format is given in local
+            # tz, time must be also in local tz.
+            time = datetime.fromtimestamp(os.stat(name).st_mtime)
+            time = time.replace(second=0, microsecond=0)
+            return op(time, filter_date)
+
+        return return_match
+
+    def match_regex(self, regex):
+        """
+        self.match_regex(regex) -> test_function
+        ________________________________________________________________________
+
+        Analyze the parameter filter_regex and return a function which test if
+        the basename of the file match the regex
+        ________________________________________________________________________
+
+        PARAMETERS
+                o regex : (str) the string from config file corresponding
+                                to the condition on date (eg. .*\.jpg).
+
+        RETURNED VALUE
+                o function(file_name) : function which test if the file match the regex
+                                        If regex is evaluated to False,
+                                        always return True
+        """
+        if not regex:
+            return lambda name: True
+
+        def return_match(name):
+            # TODO: search or match ? Search will let to write for ex. .jpg instead
+            # of *.jpg since it doesn't match from the start of the string, but it
+            # may have side effects.
+            return regex.match(os.path.basename(name)) is not None
+
+        return return_match
+
+    def match_size(self, filter_size):
+        """
+        self.match_file(filter_size) -> test_function
+        ________________________________________________________________________
+
+        Analyze the parameter filter_regex and return a function which test if
+        the basename of the file match the regex
+        ________________________________________________________________________
+
+        PARAMETERS
+                o filter_size: (str) the string from config file corresponding
+                                to the condition on size (eg. >1MB).
+
+        RETURNED VALUE
+                o function(file_name) : function which test if the file succeed
+                                        the condition on size
+                                        If filter_size is evaluated to False,
+                                        always return True
+        """
+        if not filter_size:
+            return lambda name: True
+
+        # Parse filter definition
+
+        # remove possible space inside definition
+        filter_size = filter_size.replace(' ', '')
+
+        # beware !  the order matters (<= before <, >= before >)
+        for condition, op in (('>=', operator.ge),
+                              ('>',  operator.gt),
+                              ('<=', operator.le),
+                              ('<' , operator.lt),
+                              ('=' , operator.eq)):
+            if filter_size.startswith(condition):
+                filter_size = filter_size[(len(condition)):]
+                break
+        else:
+            raise KatalError("Can't analyse {0} in the filter.".format(filter_size))
+
+        multiple = 1
+        for suffix, _multiple in CST__MULTIPLES:
+            if filter_size.endswith(suffix):
+                multiple = _multiple
+                filter_size = filter_size[:-len(suffix)]
+                break
+        else:
+            if not filter_size[-1].isdigit():
+                raise KatalError("Can't analyse {0} in the filter. "
+                                "Available multiples are : {1}".format(filter_size,
+                                                                        CST__MULTIPLES))
+        try:
+            match_size = float(filter_size) * multiple
+        except ValueError:
+            raise KatalError("Can't analyse {0} in the filter. "
+                             "Format must be for example size : >= 10 MB".format(filter_size))
+
+        def return_match(name):
+            # ..................................................................
+            # protection against the FileNotFoundError exception.
+            # This exception would be raised on broken symbolic link
+            # ..................................................................
+            if not os.path.exists(name):
+                return False
+
+            size = os.stat(name).st_size
+            return op(size, match_size)
+
+        return return_match
+
+    def match_operator(self, op, filter2=None):
+        """
+        self.match_operator(op, filter2=None) -> test_function
+        ________________________________________________________________________
+
+        Test the boolean operation between self and filter2.
+        For example, self.match_operator(operator.and_, filter2)(file)
+            -> self(file) and filter2(file)
+        ________________________________________________________________________
+
+        PARAMETERS
+                o op : the boolean operation to make between filters (eg. operator.and)
+                o filter2: (Filter default=None) the second filter to do the operation
+
+        RETURNED VALUE
+                o function(file_name) : function which test if the file succeed
+                                        the condition on operations of Filters.
+                                        If op is evaluated to False,
+                                        always return True
+        """
+        if not op:
+            return lambda name: True
+
+        def return_match(name):
+            if filter2 is None:             # Negation is not a binary operator
+                return op(self(name))
+            else:
+                return op(self(name), filter2(name))
+
+        return return_match
+
+    def match_name_not_existing(self, name_template=None):
+        """
+        self.match_name_not_existing(name_template) -> test_function
+        ________________________________________________________________________
+
+        Analyze the name_template and return a function which test if the
+        name_template modified accoding the file is already in the db.
+        ________________________________________________________________________
+
+        PARAMETERS
+                o filter_name_not_existing: (str) the string from config file
+                corresponding to the name_template to test
+
+        RETURNED VALUE
+                o function(file_name) : function which test if the file succeed
+                the condition
+                If filter_size is evaluated to False, always return True
+        """
+        if not name_template:
+            return lambda name: True
+
+        list_names = set(name for _, _, name in TARGET_DB.items())
+
+        def return_match(name):
+            res = name
+            size = os.stat(name).st_size
+            time = datetime.fromtimestamp(os.stat(name).st_mtime)
+            time = time.replace(second=0, microsecond=0)
+
+            basename, ext = get_filename_and_extension(os.path.basename(name))
+
+            # beware : order matters !
+            res = res.replace("%ht", hex(time.timestamp())[2:])
+            res = res.replace("%h", hashfile64(name))
+
+            res = res.replace("%ff", remove_illegal_characters(basename))
+            res = res.replace("%f", basename)
+
+            res = res.replace("%pp", remove_illegal_characters(os.path.dirname(name)))
+            res = res.replace("%p", os.path.dirname(name))
+
+            res = res.replace("%ee", remove_illegal_characters(ext))
+            res = res.replace("%e", ext)
+
+            res = res.replace("%s", str(size))
+
+            res = res.replace("%dd", remove_illegal_characters(
+                time.strftime(CST__DTIME_FORMAT)))
+
+            res = res.replace("%t", str(time.timestamp))
+
+            if '%i' in res:
+                raise KatalError('"%i" not allowed in "name not already existing"'
+                                 ' config key')
+
+            res = res.replace("%i",
+                            remove_illegal_characters(str(database_index)))
+
+            return res not in list_names
+
+    def test(self, file_name):
+        """
+        self.test(file_name) -> check if the file succed to all conditions"
+        ________________________________________________________________________
+
+        PARAMETERS
+                o file_name : the full name of the file to test
+
+        RETURNED VALUE:
+                o True if file succed to all conditions, else False
+        """
+        list_tests_failled = [key for key, test in self.conditions.items()
+                              if not test(file_name)]
+
+        if list_tests_failled:
+            LOGGER.info('  o The following tests failed for filter "{}" and file "{}": '
+                        '{}'.format(self.name, file_name, list_tests_failled))
+            return False
+        else:
+            return True
+
+    def __call__(self, file_name):
+        """
+        self(file_name) -> self.test(file_name)
+        """
+        return self.test(file_name)
+
+    def __and__(self, filter2):
+        """
+        Return (self & filter2)
+
+        (self & filter2)(file_name) <=> self(file_name) and filter2(file_name)
+        """
+        f = Filter()
+        f.conditions['and'] = self.match_operator(operator.and_, filter2)
+        return f
+
+    def __or__(self, filter2):
+        """
+        Return (self | filter2)
+
+        (self | filter2)(file_name) <=> self(file_name) or² filter2(file_name)
+        """
+        f = Filter()
+        f.conditions['or'] = self.match_operator(operator.or_, filter2)
+        return f
+
+    def __xor__(self, filter2):
+        """
+        Return (self ^ filter2)
+
+        (self ^ filter2)(file_name) <=> self(file_name) xor filter2(file_name)
+        """
+        f = Filter()
+        f.conditions['xor'] = self.match_operator(operator.xor, filter2)
+        return f
+
+    def __invert__(self):
+        """
+        Return ~self (not self)
+
+        (~ self)(file_name) <=> not self(file_name)
+        """
+        f = Filter()
+        f.conditions['not'] = self.match_operator(operator.not_)
+        return f
 
 #///////////////////////////////////////////////////////////////////////////////
 
@@ -1385,11 +1764,6 @@ def action__select():
     LOGGER.info("  o the files will be renamed according "
                 "to the \"%s\" pattern.", CFG_PARAMETERS["target"]["name of the target files"])
 
-    LOGGER.info("  o filters :")
-
-    for filter_index in FILTERS:
-        LOGGER.info("    o filter #%s : %s",
-                    filter_index, FILTERS[filter_index])
     LOGGER.info("  o file list :")
 
     # let's initialize SELECT and SELECT_SIZE_IN_BYTES :
@@ -1682,27 +2056,6 @@ def add_keywords_in_targetstr(srcstring,
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def backup_logfile(_logfile_fullname):
-    """
-        backup_logfile()
-        ________________________________________________________________________
-
-        copy a logfile named _logfile_fullname into a backuped file.
-
-          o  The backuped file is stored in the CST__LOG_SUBSUBDIR directory.
-          o  The name of the backuped file is automatically created from a call to
-             datetime.now() . See the CST__LOGFILE_DTIMEFORMATSTR constant.
-        ________________________________________________________________________
-
-        NO PARAMETER, no RETURNED VALUE
-    """
-    logfile_backup = os.path.join(CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR,
-                                  CFG_PARAMETERS["log file"]["name"] + \
-                                  datetime.strftime(datetime.now(),
-                                                    CST__LOGFILE_DTIMEFORMATSTR))
-    shutil.copyfile(_logfile_fullname, logfile_backup)
-
-#///////////////////////////////////////////////////////////////////////////////
 def create_empty_db(db_name):
     """
         create_empty_db()
@@ -1754,12 +2107,8 @@ def create_subdirs_in_target_path():
                                           CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR)),
                      ("tasks", os.path.join(normpath(ARGS.targetpath),
                                             CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))):
-        if not os.path.exists(normpath(fullpath)):
-            LOGGER.info("  * Since the %s path \"%s\" (path : \"%s\") "
-                        "doesn't exist, let's create it.",
-                        name, fullpath, normpath(fullpath))
-            if not ARGS.off:
-                os.mkdir(normpath(fullpath))
+        if not os.path.exists(normpath(fullpath)) and not ARGS.off:
+            os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
 def create_target_name(parameters,
@@ -2002,40 +2351,41 @@ def draw_table(rows, data):
     draw_line()
 
 #///////////////////////////////////////////////////////////////////////////////
-def eval_filter_for_a_file(_filter, filename, _size, date):
+def eval_filters(filters):
     """
-        eval_filter_for_a_file()
-        ________________________________________________________________________
+    eval_filters(list_ of_filters) -> Filter()
+    ________________________________________________________________________
 
-        Eval a file according to a filter and answers the following question :
-        does the file matches what is described in the filter ?
-        ________________________________________________________________________
+    Evaluate the eval string from config.
+    Return a Filter instance which return True if a file can be selected
+    according filters definition and can be selected.
+    Called from read_filters()
+    ________________________________________________________________________
 
-        PARAMETERS
-                o _filter        : a dict, see documentation:select
-                o filename       : (str) file's name
-                o _size          : (int) file's size, in bytes.
-                o date           : (str)file's date
+    PARAMETERS
+            o filters : (list) list of defined filters
 
-        About the underscore before "_filter" and "_size" :
-        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
-          " If a function argument's name clashes with a reserved keyword, it is generally
-          " better to append a single trailing underscore rather than use an abbreviation
-          " or spelling corruption.
+    RETURNED VALUE
+            A Filter instance, corresponding to the eval string and filters
+            conditions.
 
-        RETURNED VALUE
-                a boolean, giving the expected answer
     """
-    res = True
+    evalstr = CFG_PARAMETERS["source"]["eval"]
 
-    if res and "name" in _filter:
-        res = thefilehastobeadded__filt_name(_filter, filename)
-    if res and "size" in _filter:
-        res = thefilehastobeadded__filt_size(_filter, _size)
-    if res and "date" in _filter:
-        res = thefilehastobeadded__filt_date(_filter, date)
+    try:
+        # eval() IS a dangerous function : see for example
+        # http://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
+        if '__' in evalstr:
+            raise KatalError("Error in configuration file : trying to compute "
+                             'the "{0}" string; double underscore (__) '
+                             "are not allowed".format(evalstr))
 
-    return res
+        return eval(evalstr, {'__builtins__': {}}, filters)
+
+    except Exception as exception:
+        raise KatalError("The eval formula in the config file (\"{0}\")"
+                         "contains an error. Python message : \"{1}\"".format(evalstr,
+                                                                              exception))
 
 #///////////////////////////////////////////////////////////////////////////////
 def fill_select(debug_datatime=None):
@@ -2081,14 +2431,11 @@ def fill_select(debug_datatime=None):
             # This exception would be raised on broken symbolic link on the
             #   "size = os.stat(normpath(fullname)).st_size" line (see below).
             # ..................................................................
-            if os.path.exists(fullname):
-                size = os.stat(normpath(fullname)).st_size
-                if debug_datatime is None:
-                    time = datetime.utcfromtimestamp(os.path.getmtime(normpath(fullname)))
-                    time = time.replace(second=0, microsecond=0)
-                else:
-                    time = datetime.strptime(debug_datatime[fullname], CST__DTIME_FORMAT)
+            if not os.path.exists(fullname):
+                LOGGER.warning("    ! browsing %s, an error occured : "
+                               "can't read the file \"%s\"", source_path, fullname)
 
+            else:
                 fname_no_extens, extension = get_filename_and_extension(normpath(filename))
 
                 # if we know the total amount of files to be selected (see the --infos option),
@@ -2100,7 +2447,7 @@ def fill_select(debug_datatime=None):
                 # ..................................................................
                 # what should we do with 'filename' ?
                 # ..................................................................
-                if not thefilehastobeadded__filters(filename, size, time):
+                if not FILTER(fullname):
                     # ... nothing : incompatibility with at least one filter :
                     number_of_discarded_files += 1
 
@@ -2109,6 +2456,9 @@ def fill_select(debug_datatime=None):
                                     ": incompatibility with the filter(s)",
                                     prefix, fullname)
                 else:
+                    size = os.stat(fullname).st_size
+                    time = datetime.fromtimestamp(os.stat(fullname).st_mtime)
+
                     # 'filename' being compatible with the filters, let's try
                     # to add it in the datase :
                     tobeadded, partialhashid, hashid = thefilehastobeadded__db(fullname, size)
@@ -2172,9 +2522,6 @@ def fill_select(debug_datatime=None):
                             LOGGER.info("    - %s (similar hashid in the database) "
                                         " discarded \"%s\"", prefix, fullname)
 
-            else:
-                LOGGER.warning("    ! browsing %s, an error occured : "
-                               "can't read the file \"%s\"", source_path, fullname)
 
     return fill_select__checks(number_of_discarded_files=number_of_discarded_files,
                                prefix=prefix,
@@ -2426,33 +2773,7 @@ def is_ntfs_prefix_mandatory(path):
     return res
 
 #///////////////////////////////////////////////////////////////////////////////
-def logfile_opening():
-    """
-        logfile_opening()
-        ________________________________________________________________________
-
-          Open the log file in "a" mode, initialize LOGFILE_SIZE and return
-        the result of the call to open().
-          If the ancient logfile exists, it is renamed to avoid its overwriting.
-        ________________________________________________________________________
-
-        no PARAMETER
-
-        RETURNED VALUE
-                the _io.BufferedReader object returned by the call to open()
-    """
-    global LOGFILE_SIZE
-    logfile_fullname = get_logfile_fullname()
-
-    if os.path.exists(normpath(logfile_fullname)):
-        LOGFILE_SIZE = os.stat(normpath(logfile_fullname)).st_size
-    else:
-        LOGFILE_SIZE = 0
-
-    return open(logfile_fullname, "a")
-
-#///////////////////////////////////////////////////////////////////////////////
-def main():
+def main(args=None):
     """
         main()
         ________________________________________________________________________
@@ -2460,7 +2781,13 @@ def main():
         Main entry point.
         ________________________________________________________________________
 
-        no PARAMETER, no RETURNED VALUE
+        PARAMETER:
+            o list(args) (Optionnal, default=None): the list of arguments to
+              parse from the command line. If None, the arguments are taken from
+              sys.argv.
+              Mainly for tests
+
+        no RETURNED VALUE
 
         This function should NOT have arguments : otherwise, the entrypoint
         defined in setup.py would not be valid.
@@ -2475,7 +2802,7 @@ def main():
 
     try:
         CONFIG = Config()
-        ARGS = CONFIG.read_command_line_arguments()
+        ARGS = CONFIG.read_command_line_arguments(args)
 
         main_warmup(timestamp_start)
         main_actions_tags()
@@ -2492,9 +2819,7 @@ def main():
                   "Error message : {1}".format(__projectname__, exception))
         sys.exit(-2)
     else:
-        sys.exit(-3)
-
-    sys.exit(0)
+        sys.exit(0)
 
 #///////////////////////////////////////////////////////////////////////////////
 def main_actions():
@@ -2670,6 +2995,12 @@ def main_warmup(timestamp_start):
         print("  ! Error while reading config files, aborting.")
         sys.exit(-1)
     else:
+        #.......................................................................
+        # list of the expected directories : if one directory is missing, let's
+        # create it. Required to do that before initialising loggers in case
+        # the .katal/logs folder doesn't exist
+        create_subdirs_in_target_path()
+
         # Logger initialising
         main_loggers()
         welcome(timestamp_start)
@@ -2686,9 +3017,6 @@ def main_warmup(timestamp_start):
 
     source_path = CFG_PARAMETERS["source"]["path"]
 
-    #...........................................................................
-    # list of the expected directories : if one directory is missing, let's create it.
-    create_subdirs_in_target_path()
 
     #...........................................................................
     if ARGS.targetpath == source_path:
@@ -2705,9 +3033,9 @@ def main_warmup(timestamp_start):
                                      CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
                                      CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
-        LOGGER.info("  = let's use \"%s\" as %s", path, info)
+        LOGGER.debug("  = let's use \"%s\" as %s", path, info)
 
-    LOGGER.info("  = source directory : \"%s\" (path : \"%s\")",
+    LOGGER.debug("  = source directory : \"%s\" (path : \"%s\")",
                 source_path, normpath(source_path))
 
     #...........................................................................
@@ -2823,35 +3151,15 @@ def read_filters():
 
         no PARAMETER, no RETURNED VALUE
     """
-    FILTERS.clear()
+    global FILTER
 
-    stop = False
-    filter_index = 1
+    filters = {}
+    for section in CFG_PARAMETERS:
+        if section.startswith('source.filter'):
+            name = section[len('source.'):]
+            filters[name] = Filter(CFG_PARAMETERS[section], name=name)
 
-    while not stop:
-        if not CFG_PARAMETERS.has_section("source.filter"+str(filter_index)):
-            stop = True
-        else:
-            FILTERS[filter_index] = dict()
-
-            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "name"):
-                FILTERS[filter_index]["name"] = \
-                             re.compile(CFG_PARAMETERS["source.filter"+str(filter_index)]["name"])
-
-            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "iname"):
-                FILTERS[filter_index]["name"] = \
-                             re.compile(CFG_PARAMETERS["source.filter"+str(filter_index)]["iname"],
-                                        re.IGNORECASE)
-
-            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "size"):
-                FILTERS[filter_index]["size"] = \
-                              CFG_PARAMETERS["source.filter"+str(filter_index)]["size"]
-
-            if CFG_PARAMETERS.has_option("source.filter"+str(filter_index), "date"):
-                FILTERS[filter_index]["date"] = \
-                              CFG_PARAMETERS["source.filter"+str(filter_index)]["date"]
-
-        filter_index += 1
+    FILTER = eval_filters(filters)
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_target_db():
@@ -3195,16 +3503,11 @@ def thefilehastobeadded__db(filename, _size):
                 either (False, None, None)
                 either (True, partial hashid, hashid)
     """
+    # (1) hont(datetime.strptime(date, CST__DTIME_FORMAT))w many file(s) in the database have a size equal to _size ?
     # a list of hashid(s) :
-    res = []
+    res = [hashid for hashid in TARGET_DB if TARGET_DB[hashid][1] == _size]
 
-    # (1) how many file(s) in the database have a size equal to _size ?
-    for hashid in TARGET_DB:
-        _, target_size, _ = TARGET_DB[hashid]
-        if target_size == _size:
-            res.append(hashid)
-
-    if len(res) == 0:
+    if not res:
         return (True,
                 hashfile64(filename=filename,
                            stop_after=CST__PARTIALHASHID_BYTESNBR),
@@ -3212,31 +3515,24 @@ def thefilehastobeadded__db(filename, _size):
 
     # (2) how many file(s) among those in <res> have a partial hashid equal
     # to the partial hashid of filename ?
-    new_res = []
     src_partialhashid = hashfile64(filename=filename,
                                    stop_after=CST__PARTIALHASHID_BYTESNBR)
-    for hashid in res:
-        target_partialhashid, _, _ = TARGET_DB[hashid]
-        if target_partialhashid == src_partialhashid:
-            new_res.append(hashid)
+
+    new_res = [hashid for hashid in res if TARGET_DB[0] == target_partialhashid]
 
     res = new_res
-    if len(res) == 0:
+    if not res:
         return (True,
                 src_partialhashid,
                 hashfile64(filename=filename))
 
     # (3) how many file(s) among those in <res> have an hashid equal to the
     # hashid of filename ?
-    new_res = []
     src_hashid = hashfile64(filename=filename)
-    for hashid in res:
-        target_hashid, _, _ = TARGET_DB[hashid]
-        if target_hashid == src_hashid:
-            new_res.append(hashid)
+    new_res = [hashid for hashid in res if hashid == src_hashid]
 
     res = new_res
-    if len(res) == 0:
+    if not res:
         return (True,
                 src_partialhashid,
                 src_hashid)
@@ -3252,173 +3548,6 @@ def thefilehastobeadded__db(filename, _size):
                     src_hashid)
 
     return (False, None, None)
-
-#///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__filters(filename, _size, date):
-    """
-        thefilehastobeadded__filters()
-        ________________________________________________________________________
-
-        Return True if a file (filename, _size) can be choosed and added to
-        the target directory, according to the filters (stored in FILTERS).
-        ________________________________________________________________________
-
-        PARAMETERS
-                o filename     : (str) file's name
-                o _size         : (int) file's size, in bytes.
-                o date         : (str) file's date
-
-        RETURNED VALUE
-                a boolean, giving the expected answer
-    """
-    evalstr = CFG_PARAMETERS["source"]["eval"]
-
-    for filter_index in FILTERS:
-        _filter = FILTERS[filter_index]
-
-        evalstr = evalstr.replace("filter"+str(filter_index),
-                                  str(eval_filter_for_a_file(_filter, filename, _size, date)))
-
-    try:
-        # eval() IS a dangerous function : see the note about CST__AUTHORIZED_EVALCHARS.
-        for char in evalstr:
-            if char not in CST__AUTHORIZED_EVALCHARS:
-                raise KatalError(
-                    'Error in configuration file : trying to compute the "{0}" string; '
-                    "wrong character '{1}'({2}) used in the string to be evaluated. "
-                    "Authorized characters are {3}".format(
-                        evalstr, char, unicodedata.name(char),
-                        "|"+"|".join(CST__AUTHORIZED_EVALCHARS)))
-        return eval(evalstr)
-
-    except Exception as exception:
-        raise KatalError("The eval formula in the config file (\"{0}\")"
-                         "contains an error. Python message : \"{1}\"".format(evalstr,
-                                                                              exception))
-
-#///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__filt_date(_filter, date):
-    """
-        thefilehastobeadded__filt_date()
-        ________________________________________________________________________
-
-        Function used by thefilehastobeadded__filters() : check if the date of a
-        file matches the filter given as a parameter.
-        ________________________________________________________________________
-
-        PARAMETERS
-                o _filter        : a dict object; see documentation:selection
-                o date         : (str) file's datestamp (object datetime.datetime)
-
-        About the underscore before "_filter" :
-        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
-          " If a function argument's name clashes with a reserved keyword, it is generally
-          " better to append a single trailing underscore rather than use an abbreviation
-          " or spelling corruption.
-
-        RETURNED VALUE
-                the expected boolean
-    """
-    # beware ! the order matters (<= before <, >= before >)
-    if _filter["date"].startswith("="):
-        return date == datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
-    elif _filter["date"].startswith(">="):
-        return date >= datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
-    elif _filter["date"].startswith(">"):
-        return date > datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
-    elif _filter["date"].startswith("<="):
-        return date < datetime.strptime(_filter["date"][2:], CST__DTIME_FORMAT)
-    elif _filter["date"].startswith("<"):
-        return date < datetime.strptime(_filter["date"][1:], CST__DTIME_FORMAT)
-    else:
-        raise KatalError("Can't analyse a 'date' field : "+_filter["date"])
-
-#///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__filt_name(_filter, filename):
-    """
-        thefilehastobeadded__filt_name()
-        ________________________________________________________________________
-
-        Function used by thefilehastobeadded__filters() : check if the name of a
-        file matches the filter given as a parameter.
-        ________________________________________________________________________
-
-        PARAMETERS
-                o _filter           : a dict object; see documentation:selection
-                o filename         : (str) file's name
-
-        About the underscore before "_filter" :
-        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
-          " If a function argument's name clashes with a reserved keyword, it is generally
-          " better to append a single trailing underscore rather than use an abbreviation
-          " or spelling corruption.
-
-        RETURNED VALUE
-                the expected boolean
-    """
-    # nb : _filter["name"] can either be a case sensitive regex, either
-    #      a case insensitive regex. See the read_filters() function.
-    return re.match(_filter["name"], filename) is not None
-
-#///////////////////////////////////////////////////////////////////////////////
-def thefilehastobeadded__filt_size(_filter, _size):
-    """
-        thefilehastobeadded__filt_size()
-        ________________________________________________________________________
-
-        Function used by thefilehastobeadded__filters() : check if the size of a
-        file matches the filter given as a parameter.
-        ________________________________________________________________________
-
-        PARAMETERS
-                o _filter        : a dict object; see documentation:selection
-                o _size         : (int) file's size
-
-        About the underscore before "_filter" and "_size" :
-        confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
-          " If a function argument's name clashes with a reserved keyword, it is generally
-          " better to append a single trailing underscore rather than use an abbreviation
-          " or spelling corruption.
-
-        RETURNED VALUE
-                the expected boolean
-    """
-    res = False
-
-    filter_size = _filter["size"] # a string like ">999" : see documentation:selection
-
-    multiple = 1
-    for suffix, _multiple in CST__MULTIPLES:
-        if filter_size.endswith(suffix):
-            multiple = _multiple
-            filter_size = filter_size[:-len(suffix)]
-            break
-
-    if multiple == 1 and not filter_size[-1].isdigit():
-        raise KatalError("Can't analyse {0} in the filter. "
-                         "Available multiples are : {1}".format(filter_size,
-                                                                CST__MULTIPLES))
-
-    # beware !  the order matters (<= before <, >= before >)
-    if filter_size.startswith(">="):
-        if _size >= float(filter_size[2:])*multiple:
-            res = True
-    elif filter_size.startswith(">"):
-        if _size > float(filter_size[1:])*multiple:
-            res = True
-    elif filter_size.startswith("<="):
-        if _size <= float(filter_size[2:])*multiple:
-            res = True
-    elif filter_size.startswith("<"):
-        if _size < float(filter_size[1:])*multiple:
-            res = True
-    elif filter_size.startswith("="):
-        if _size == float(filter_size[1:])*multiple:
-            res = True
-    else:
-        raise KatalError("Can't analyse {0} in the filter.".format(filter_size))
-
-    return res
 
 #///////////////////////////////////////////////////////////////////////////////
 def welcome(timestamp_start):
@@ -3452,56 +3581,25 @@ def welcome(timestamp_start):
     LOGGER.info("="*len(strmsg))
 
     # command line arguments :
-    LOGGER.info("  = command line arguments : %s", sys.argv)
+    LOGGER.debug("  = command line arguments : %s", sys.argv)
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
-        LOGGER.info("  = target directory given as parameter : \"%s\" "
-                    "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
+        LOGGER.debug("  = target directory given as parameter : \"%s\" "
+            "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
 
         if ARGS.configfile is not None:
             LOGGER.info("  = expected config file : \"%s\" "
                         "(path : \"%s\")", ARGS.configfile, normpath(ARGS.configfile))
         else:
-            LOGGER.info("  * no config file specified on the command line : "
-                        "let's search a config file...")
+            LOGGER.debug("  * no config file specified on the command line : "
+                "let's search a config file...")
 
     if ARGS.off:
         LOGGER.info("  = --off option detected :                                               =")
         LOGGER.info("  =                no file will be modified, no directory will be created =")
         LOGGER.info("  =                but the corresponding messages will be written in the  =")
         LOGGER.info("  =                log file.                                              =")
-
-#///////////////////////////////////////////////////////////////////////////////
-def welcome_in_logfile(timestamp_start):
-    """
-        welcome_in_logfile()
-        ________________________________________________________________________
-
-        The function writes in the log file a welcome message with some very
-        broad informations about the program.
-
-        This function has to be called after the opening of the log file.
-        This function doesn't write anything on the console.
-
-        See welcome() function for more informations since welcome() and
-        welcome_in_logfile() do the same job, the first on console, the
-        second in the log file.
-        ________________________________________________________________________
-
-        PARAMETER :
-                o  timestamp_start : a datetime.datetime object
-
-        no RETURNED VALUE
-    """
-    FILE_LOGGER.info("=== %s v.%s " "(launched at %s) ===",
-                     __projectname__, __version__, timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
-
-    FILE_LOGGER.info("  = command line arguments : %s", sys.argv)
-
-    FILE_LOGGER.info("  = target directory given as parameter : \"%s\" "
-                     "(path : \"%s\")", ARGS.targetpath,
-                     normpath(ARGS.targetpath))
 
 #///////////////////////////////////////////////////////////////////////////////
 
