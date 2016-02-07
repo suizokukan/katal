@@ -230,33 +230,12 @@ CST__TRASH_SUBSUBDIR = "trash"
 CST__PLATFORM = platform.system()
 
 ################################################################################
-class KatalError(BaseException):
-    """
-        KatalError class
-
-        A very basic class called when an error is raised by the program.
-    """
-    #///////////////////////////////////////////////////////////////////////////
-    def __init__(self, value):
-        BaseException.__init__(self)
-        self.value = value
-    #///////////////////////////////////////////////////////////////////////////
-    def __str__(self):
-        return repr(self.value)
-
-#///////////////////////////////////////////////////////////////////////////////
 class ColorFormatter(logging.Formatter):
     """
-        A custom formatter class used to display color in stream output.
+         A custom formatter class used to display color in stream output.
 
-        Color is determined by default value depending of the log level (eg. by
-        default, warnings will be red), but this can be overrided by providing
-        a color value in the log function
-
-        Posistions of color codes in the formatting string are determined by
-        the keys color_start and color_end.
+         see https://docs.python.org/3/library/logging.html .
     """
-
     # foreground colors :
     # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
     default = "\033[0m"
@@ -264,13 +243,23 @@ class ColorFormatter(logging.Formatter):
     cyan = "\033[0;36;1m"
     white = "\033[0;37;1m"
 
-    # default colors for the different logging level
-    # they will be overrided if a color parameter is given
-    debug = default
-    info = default
-    warning = red
-
+    #///////////////////////////////////////////////////////////////////////////
     def format(self, record):
+        """
+                ColorFormatter.format()
+                ________________________________________________________________
+
+                see https://docs.python.org/3.5/library/logging.html :
+
+                " The record’s attribute dictionary is used as the operand to a
+                " string formatting operation. Returns the resulting string. [...]
+                ________________________________________________________________
+
+                PARAMETER :
+                        o record : a logging.LogRecord object
+
+                no RETURNED VALUE
+        """
         color = record.color
         if CST__PLATFORM == 'Windows' or \
                 not CFG_PARAMETERS.getboolean('log file', 'use color'):
@@ -285,14 +274,14 @@ class ColorFormatter(logging.Formatter):
                     record.color_start = ''
                     record.color_end = ''
                 elif record.levelno <= logging.INFO:
-                    record.color_start = self.white
+                    record.color_start = self.default
+                elif record.levelno <= logging.WARNING:
+                    record.color_start = self.cyan
                 else:
                     record.color_start = self.red
 
-
         record.color_end = self.default
         return super().format(record)
-
 
 class Filter:
     """
@@ -684,6 +673,22 @@ class Filter:
 #///////////////////////////////////////////////////////////////////////////////
 
 
+################################################################################
+class KatalError(BaseException):
+    """
+        KatalError class
+
+        A very basic class called when an error is raised by the program.
+    """
+    #///////////////////////////////////////////////////////////////////////////
+    def __init__(self, value):
+        BaseException.__init__(self)
+        self.value = value
+    #///////////////////////////////////////////////////////////////////////////
+    def __str__(self):
+        return repr(self.value)
+
+#///////////////////////////////////////////////////////////////////////////////
 def action__add():
     """
         action__add()
@@ -704,7 +709,7 @@ def action__add():
     db_cursor = db_connection.cursor()
 
     if get_disk_free_space(ARGS.targetpath) < SELECT_SIZE_IN_BYTES*CST__FREESPACE_MARGIN:
-        LOGGER.info("    ! Not enough space on disk. Stopping the program.")
+        LOGGER.warning("    ! Not enough space on disk. Stopping the program.")
         # returned value : -1 = error
         return -1
 
@@ -725,7 +730,7 @@ def action__add():
         if not ARGS.off:
             if CFG_PARAMETERS["target"]["mode"] == "nocopy":
                 # nothing to do
-                LOGGER.info("    ... (%s/%s) due to the mode=nocopy' option, "
+                LOGGER.info("    ... (%s/%s) due to the nocopy mode argument, "
                             "\"%s\" will be simply added "
                             "in the target database.", index+1, len_select,
                             complete_source_filename)
@@ -752,7 +757,7 @@ def action__add():
                                   sourcedate,
                                   SELECT[hashid].targettags))
 
-    LOGGER.info("    = all files have been copied, let's update the database... =")
+    LOGGER.info("    = all files have been copied, let's update the database...")
 
     try:
         if not ARGS.off:
@@ -769,7 +774,7 @@ def action__add():
     db_connection.commit()
     db_connection.close()
 
-    LOGGER.info("    = ... database updated =")
+    LOGGER.info("    = ... database updated.")
 
     # returned value : 0 = success
     return 0
@@ -803,7 +808,7 @@ def action__cleandbrm():
 
         no PARAMETER, no RETURNED VALUE
     """
-    LOGGER.info("  = clean the database : remove missing files from the target directory =")
+    LOGGER.info("  = clean the database : remove missing files from the target directory.")
 
     if not os.path.exists(normpath(get_database_fullname())):
         LOGGER.warning("    ! no database found.")
@@ -844,6 +849,8 @@ def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location=
 
         Download the default configuration file; save it in the current directory
         (location='local') or in the user's HOME directory (location='home').
+
+        No log messages for this function, everything is printed to the console.
         ________________________________________________________________________
 
         PARAMETERS :
@@ -853,34 +860,34 @@ def action__downloadefaultcfg(targetname=CST__DEFAULT_CONFIGFILE_NAME, location=
         RETURNED VALUE :
             (bool) success
     """
-    LOGGER.info("  = downloading the default configuration file =")
-    LOGGER.info("    ... trying to download %s from %s", targetname, CST__DEFAULTCFGFILE_URL)
+    print("  = downloading the default configuration file...")
+    print("    ... trying to download %s from %s", targetname, CST__DEFAULTCFGFILE_URL)
 
     try:
         if not ARGS.off:
             with urllib.request.urlopen(CST__DEFAULTCFGFILE_URL) as response, \
                  open(targetname, 'wb') as out_file:
                 shutil.copyfileobj(response, out_file)
-        LOGGER.info("  * download completed : \"%s\" (path : \"%s\")", targetname,
-                    normpath(targetname))
+        print("  * download completed : \"{0}\" (path : \"{1}\")".format(targetname,
+                                                                         normpath(targetname)))
 
         if location == 'home':
             newname = os.path.join(possible_paths_to_cfg()[-1],
                                    os.path.basename(targetname))
-            LOGGER.info("  * Since you wrote '--downloaddefaultcfg=home', "
-                        "let's move the download file to the user's home directory...")
-            LOGGER.info("    namely %s -> %s", targetname, newname)
+            print("  * Since you wrote '--downloaddefaultcfg=home', "
+                  "let's move the download file to the user's home directory...")
+            print("    namely {0} -> {1}".format(targetname, newname))
             shutil.move(targetname, newname)
 
         return True
 
     except urllib.error.URLError as exception:
-        LOGGER.exception("  ! An error occured : %s\n"
-                         "  ... if you can't download the default config file, what about simply\n"
-                         "  ... copy another config file to the target directory ?\n"
-                         "  ... In a target directory, the config file is \n"
-                         "in the \"%s\" directory.",
-                         str(exception), os.path.join(CST__KATALSYS_SUBDIR))
+        print("  ! An error occured : {0}\n"
+              "  ... if you can't download the default config file, what about simply\n"
+              "  ... copy another config file to the target directory ?\n"
+              "  ... In a target directory, the config file is \n"
+              "in the \"{1}\" directory.".format(exception,
+                                                 os.path.join(CST__KATALSYS_SUBDIR)))
         return False
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -901,7 +908,7 @@ def action__findtag(tag):
 
         no RETURNED VALUE
     """
-    LOGGER.info("  = searching the files with the tag \"%s\" =", tag)
+    LOGGER.info("  = searching the files with the tag \"%s\"", tag)
 
     if not os.path.exists(normpath(get_database_fullname())):
         LOGGER.warning("    ! no database found.")
@@ -973,19 +980,20 @@ def action__new(targetname):
         action__new()
         ________________________________________________________________________
 
-        Create a new target directory
+        Create a new target directory.
         ________________________________________________________________________
 
         no PARAMETER, no RETURNED VALUE
     """
-    LOGGER.info("  = about to create a new target directory "
-                "named \"%s\" (path : \"%s\")", targetname, normpath(targetname))
+    LOGGER.warning("  = about to create a new target directory "
+                   "named \"%s\" (path : \"%s\")", targetname, normpath(targetname))
+
     if os.path.exists(normpath(targetname)):
         LOGGER.warning("  ! can't go further : the directory already exists.")
         return
 
     if not ARGS.off:
-        LOGGER.info("  ... creating the target directory with its sub-directories...")
+        LOGGER.warning("  ... creating the target directory with its sub-directories...")
         os.mkdir(normpath(targetname))
         os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR))
         os.mkdir(os.path.join(normpath(targetname), CST__KATALSYS_SUBDIR, CST__TRASH_SUBSUBDIR))
@@ -1010,7 +1018,7 @@ def action__new(targetname):
                 LOGGER.warning("  ! A problem occured : "
                                "the creation of the target directory has been aborted.")
 
-    LOGGER.info("  ... done with the creation of \"%s\" as a new target directory.", targetname)
+    LOGGER.warning("  ... done with the creation of \"%s\" as a new target directory.", targetname)
 
 #///////////////////////////////////////////////////////////////////////////////
 def action__rebase(newtargetpath):
@@ -1028,7 +1036,7 @@ def action__rebase(newtargetpath):
     """
     source_path = CFG_PARAMETERS["source"]["path"]
 
-    LOGGER.info("  = copying the current target directory into a new one =")
+    LOGGER.info("  = copying the current target directory into a new one.")
     LOGGER.info("    o from %s (path : \"%s\")", source_path, normpath(source_path))
 
     LOGGER.info("    o to   %s (path : \"%s\")", newtargetpath, normpath(newtargetpath))
@@ -1287,7 +1295,7 @@ def action__rmnotags():
 
         no PARAMETER, no RETURNED VALUE
     """
-    LOGGER.info("  = removing all files with no tags (=moving them to the trash) =")
+    LOGGER.info("  = removing all files with no tags (=moving them to the trash).")
 
     if not os.path.exists(normpath(get_database_fullname())):
         LOGGER.warning("    ! no database found.")
@@ -1346,7 +1354,7 @@ def action__select():
 
         no PARAMETER, no RETURNED VALUE.
     """
-    LOGGER.info("  = selecting files according to the instructions in the config file... =")
+    LOGGER.info("  = selecting files according to the instructions in the config file...")
 
     LOGGER.info("  o the files will be copied in \"%s\" "
                 "(path: \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
@@ -1682,6 +1690,71 @@ def check_args():
         raise KatalError("--copyto can only be used in combination with --findtag .")
 
 #///////////////////////////////////////////////////////////////////////////////
+def configure_loggers():
+    """
+        configure_loggers()
+        ________________________________________________________________________
+
+        Configure loggers to write to the correct files and to the console.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    #...........................................................................
+    # to the log files :
+    if USE_LOGFILE:
+
+        try:
+            handler1 = RotatingFileHandler(
+                get_logfile_fullname(),
+                maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
+                backupCount=CFG_PARAMETERS.getint('log file', 'backup count'))
+
+            formatter1 = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
+            handler1.setFormatter(formatter1)
+
+            if ARGS.verbosity == 'none':
+                handler1.setLevel(logging.INFO) # To keep a record of what is done
+            elif ARGS.verbosity == 'normal':
+                handler1.setLevel(logging.INFO)
+            elif ARGS.verbosity == 'high':
+                handler1.setLevel(logging.DEBUG)
+
+            LOGGER.addHandler(handler1)
+            FILE_LOGGER.addHandler(handler1)
+
+        except FileNotFoundError as exception:
+            print("  ! Beware, the log file can't be opened : the log messages will be displayed")
+            print("  ! to the console and will not be stored in log files. THAT'S SURELY NOT")
+            print("  ! WHAT YOU WANT TO DO.")
+            print("  ! It's typically because the path to the log file doesn't exist.")
+            print("  ! Python's message : ", exception)
+
+    #...........................................................................
+    # to the console :
+    formatter2 = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
+
+    handler2 = logging.StreamHandler()
+    handler2.setFormatter(formatter2)
+
+    if ARGS.verbosity == 'none':
+        handler2.setLevel(logging.ERROR)
+    elif ARGS.verbosity == 'normal':
+        handler2.setLevel(logging.INFO)
+    elif ARGS.verbosity == 'high':
+        handler2.setLevel(logging.DEBUG)
+
+    LOGGER.addHandler(handler2)
+
+    #...........................................................................
+    # setting the threshold for each handler :
+    # see https://docs.python.org/3.5/library/logging.html
+    FILE_LOGGER.setLevel(logging.DEBUG)
+    LOGGER.setLevel(logging.DEBUG)
+
+#///////////////////////////////////////////////////////////////////////////////
+
+#///////////////////////////////////////////////////////////////////////////////
 def create_empty_db(db_name):
     """
         create_empty_db()
@@ -1718,6 +1791,8 @@ def create_subdirs_in_target_path():
         ________________________________________________________________________
 
         Create the expected subdirectories in ARGS.targetpath .
+
+        No log messages for this function, everything is printed to the console.
         ________________________________________________________________________
 
         no PARAMETERS, no RETURNED VALUE
@@ -1734,6 +1809,10 @@ def create_subdirs_in_target_path():
                      ("tasks", os.path.join(normpath(ARGS.targetpath),
                                             CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR))):
         if not os.path.exists(normpath(fullpath)) and not ARGS.off:
+            print("  * Since the {0} path \"{1}\" (path : \"{2}\") "
+                  "doesn't exist, let's create it.".format(name,
+                                                           fullpath,
+                                                           normpath(fullpath)))
             os.mkdir(normpath(fullpath))
 
 #/////////////////////////////////////////////////////////////////////////////////////////
@@ -2439,7 +2518,7 @@ def main(args=None):
     except KatalError as exception:
         if LOGGER:
             LOGGER.exception("(%s) ! a critical error occured.\n"
-                             "Error message : {%s}", __projectname__, exception)
+                             "Error message : %s", __projectname__, exception)
         else:
             print("({0}) ! a critical error occured.\n"
                   "Error message : {1}".format(__projectname__, exception))
@@ -2532,51 +2611,6 @@ def main_actions_tags():
         action__rmtags(ARGS.to)
 
 #///////////////////////////////////////////////////////////////////////////////
-def main_loggers():
-    """
-        main_loggers()
-        ________________________________________________________________________
-        Initializations:
-            Configure loggers to write to the correct files and display well
-    """
-    #...........................................................................
-    if USE_LOGFILE:
-        handler = RotatingFileHandler(
-            get_logfile_fullname(),
-            maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
-            backupCount=CFG_PARAMETERS.getint('log file', 'backup count'))
-
-        formatter = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
-        handler.setFormatter(formatter)
-
-        if ARGS.verbosity == 'none':
-            handler.setLevel(logging.INFO) # To keep a record of what is done
-        elif ARGS.verbosity == 'normal':
-            handler.setLevel(logging.INFO)
-        elif ARGS.verbosity == 'high':
-            handler.setLevel(logging.DEBUG)
-
-        LOGGER.addHandler(handler)
-        FILE_LOGGER.addHandler(handler)
-
-    #...........................................................................
-    fmtter = ColorFormatter('%(color_start)s%(message)s%(color_end)s')
-
-    hdler = logging.StreamHandler()
-    hdler.setFormatter(fmtter)
-
-    if ARGS.verbosity == 'none':
-        hdler.setLevel(logging.ERROR)
-    elif ARGS.verbosity == 'normal':
-        hdler.setLevel(logging.INFO)
-    elif ARGS.verbosity == 'high':
-        hdler.setLevel(logging.DEBUG)
-
-    LOGGER.addHandler(hdler)
-
-    LOGGER.setLevel(logging.DEBUG)
-
-#///////////////////////////////////////////////////////////////////////////////
 def main_warmup(timestamp_start):
     """
         main_warmup()
@@ -2586,10 +2620,12 @@ def main_warmup(timestamp_start):
 
             if the --new/--downloaddefaultcfg options have not be used :
 
+            o welcome()
             o configfile_name = None / a string
             o reading of the configuration file
             o list of the expected directories : if one directory is missing, let's create it.
               create_subdirs_in_target_path()
+            o configure_loggers()
             o welcome_in_logfile()
             o warning if source path == target path
             o --infos
@@ -2605,6 +2641,9 @@ def main_warmup(timestamp_start):
         o  sys.exit(-1) is called if the expected config file is ill-formed or missing.
     """
     global CFG_PARAMETERS
+
+    #...........................................................................
+    welcome(timestamp_start)
 
     #...........................................................................
     # a special case : if the options --new//--downloaddefaultcfg have been used, let's quit :
@@ -2636,22 +2675,19 @@ def main_warmup(timestamp_start):
         # the .katal/logs folder doesn't exist
         create_subdirs_in_target_path()
 
-        # Logger initialising
-        main_loggers()
-        welcome(timestamp_start)
-
-        LOGGER.info("    ... config file found and read (ok)")
+        # Logger initialisation :
+        configure_loggers()
+        welcome_in_logfile(timestamp_start)
 
     if CFG_PARAMETERS["target"]["mode"] == 'move':
-        LOGGER.info("  = mode=move                                                             =")
-        LOGGER.info("  =     the files will be moved (NOT copied) in the target directory      =")
+        LOGGER.warning("  = 'move' mode")
+        LOGGER.warning("  =     the files will be moved (NOT copied) in the target directory")
 
     if CFG_PARAMETERS["target"]["mode"] == 'nocopy':
-        LOGGER.info("  = mode=nocopy                                                           =")
-        LOGGER.info("  =     the files will NOT be copied or moved in the target directory     =")
+        LOGGER.warning("  = 'nocopy' mode")
+        LOGGER.warning("  =     the files will NOT be copied or moved in the target directory")
 
     source_path = CFG_PARAMETERS["source"]["path"]
-
 
     #...........................................................................
     if ARGS.targetpath == source_path:
@@ -2671,7 +2707,7 @@ def main_warmup(timestamp_start):
         LOGGER.debug("  = let's use \"%s\" as %s", path, info)
 
     LOGGER.debug("  = source directory : \"%s\" (path : \"%s\")",
-                source_path, normpath(source_path))
+                 source_path, normpath(source_path))
 
     #...........................................................................
     if ARGS.infos:
@@ -3034,8 +3070,8 @@ def read_parameters_from_cfgfile(configfile_name):
         _ = parser["display"]["source filename.max length on console"]
         _ = parser["source"]["path"]
     except KeyError as exception:
-        print("  ! An error occured while reading " "the config file \"{}\".\n"
-              "  ! Your configuration file lacks a specific value : \"{}\".\n"
+        print("  ! An error occured while reading " "the config file \"{0}\".\n"
+              "  ! Your configuration file lacks a specific value : {1}.\n"
               "  ... you should download a new default config file : "
               "see -dlcfg/--downloaddefaultcfg option".format(configfile_name,
                                                               exception))
@@ -3181,7 +3217,7 @@ def show_infos_about_source_path():
             LOGGER.warning("    ! ... but the --usentfsprefix argument wasn't given !")
             LOGGER.warning("    ! You may encounter an IOError, or a FileNotFound error.")
             LOGGER.warning("    ! If so, please use the --usentfsprefix argument.")
-            LOGGER.info("")
+            LOGGER.warning("")
 
     total_size = 0
     files_number = 0
@@ -3260,16 +3296,16 @@ def show_infos_about_target_path():
 
     #...........................................................................
     if not os.path.exists(normpath(ARGS.targetpath)):
-        LOGGER.info("Can't find target path \"%s\".", ARGS.targetpath)
+        LOGGER.warning("Can't find target path \"%s\".", ARGS.targetpath)
         return -1
 
     if not os.path.isdir(normpath(ARGS.targetpath)):
-        LOGGER.info("target path \"%s\" isn't a directory.", ARGS.targetpath)
+        LOGGER.warning("target path \"%s\" isn't a directory.", ARGS.targetpath)
         return -1
 
     if not os.path.exists(os.path.join(normpath(ARGS.targetpath),
                                        CST__KATALSYS_SUBDIR, CST__DATABASE_NAME)):
-        LOGGER.info("    o no database in the target directory.")
+        LOGGER.warning("    o no database in the target directory.")
         return 0
 
     #...........................................................................
@@ -3303,7 +3339,7 @@ def show_infos_about_target_path():
         LOGGER.warning("    ! (empty database)")
         return 0
 
-    LOGGER.info("    o {%s} file(s) in the database :", row_index)
+    LOGGER.info("    o %s file(s) in the database :", row_index)
 
     targetname_maxlength = \
             int(CFG_PARAMETERS["display"]["target filename.max length on console"])
@@ -3479,7 +3515,7 @@ def welcome(timestamp_start):
         file (confer the variable CFG_PARAMETERS).
 
         This function is called before the opening of the log file; hence, all
-        the messages are only displayed on console (see welcome_in_logfile
+        the messages are only displayed on console (see the welcome_in_logfile()
         function)
         ________________________________________________________________________
 
@@ -3495,30 +3531,61 @@ def welcome(timestamp_start):
               "(launched at {2}) ===").format(__projectname__,
                                               __version__,
                                               timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
-    LOGGER.info("="*len(strmsg))
-    LOGGER.info(strmsg)
-    LOGGER.info("="*len(strmsg))
+    print("="*len(strmsg))
+    print(strmsg)
+    print("="*len(strmsg))
 
     # command line arguments :
-    LOGGER.debug("  = command line arguments : %s", sys.argv)
+    print("  = command line arguments : ", sys.argv)
 
     # if the target file doesn't exist, it will be created later by main_warmup() :
     if ARGS.new is None and ARGS.downloaddefaultcfg is None:
-        LOGGER.debug("  = target directory given as parameter : \"%s\" "
-            "(path : \"%s\")", ARGS.targetpath, normpath(ARGS.targetpath))
+        print("  = target directory given as parameter : \"{0}\" "
+              "(path : \"{1}\")".format(ARGS.targetpath, normpath(ARGS.targetpath)))
 
         if ARGS.configfile is not None:
-            LOGGER.info("  = expected config file : \"%s\" "
-                        "(path : \"%s\")", ARGS.configfile, normpath(ARGS.configfile))
+            print("  = expected config file : \"{0}\" "
+                  "(path : \"{1}\")".format(ARGS.configfile, normpath(ARGS.configfile)))
         else:
-            LOGGER.debug("  * no config file specified on the command line : "
-                "let's search a config file...")
+            print("  * no config file specified on the command line : "
+                  "let's search a config file...")
 
     if ARGS.off:
-        LOGGER.info("  = --off option detected :                                               =")
-        LOGGER.info("  =                no file will be modified, no directory will be created =")
-        LOGGER.info("  =                but the corresponding messages will be written in the  =")
-        LOGGER.info("  =                log file.                                              =")
+        print("  = --off option detected :")
+        print("  =                no file will be modified, no directory will be created")
+        print("  =                but the corresponding messages will be written in the")
+        print("  =                log file.")
+
+#///////////////////////////////////////////////////////////////////////////////
+def welcome_in_logfile(timestamp_start):
+    """
+        welcome_in_logfile()
+        ________________________________________________________________________
+
+        The function writes in the log file a welcome message with some very
+        broad informations about the program.
+
+        This function has to be called after the opening of the log file.
+        This function doesn't write anything on the console.
+
+        See welcome() function for more informations since welcome() and
+        welcome_in_logfile() do the same job, the first on console, the
+        second in the log file.
+        ________________________________________________________________________
+
+        PARAMETER :
+                o  timestamp_start : a datetime.datetime object
+
+        no RETURNED VALUE
+    """
+    FILE_LOGGER.info("=== %s v.%s " "(launched at %s) ===",
+                     __projectname__, __version__, timestamp_start.strftime("%Y-%m-%d %H:%M:%S"))
+
+    FILE_LOGGER.info("  = command line arguments : %s", sys.argv)
+
+    FILE_LOGGER.info("  = target directory given as parameter : \"%s\" "
+                     "(path : \"%s\")", ARGS.targetpath,
+                     normpath(ARGS.targetpath))
 
 #///////////////////////////////////////////////////////////////////////////////
 def where_is_the_configfile():
@@ -3551,17 +3618,21 @@ def where_is_the_configfile():
     configfile_name = ""
 
     msg_please_use_dlcfg = \
-     ("    ! error : can't find any config file !\n"
-      "    Use the -dlcfg/--downloaddefaultcfg option to download a default config file.")
+     ("    ! Error : can't find any config file !\n"
+      "    ! Please use the -dlcfg/--downloaddefaultcfg argument " \
+      "to download a default config file.")
 
     if ARGS.configfile is None:
         # no config file given as a parameter, let's guess where it is :
 
         for cfg_path in possible_paths_to_cfg():
 
-            if os.path.exists(os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)):
-                configfile_name = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
+            cfg_fullpath = os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
+            if os.path.exists(cfg_fullpath):
+                configfile_name = cfg_fullpath
                 break
+            else:
+                print("    ... {0} doesn't exist...".format(cfg_fullpath))
 
         if not configfile_name:
             if ARGS.downloaddefaultcfg is None:
@@ -3577,8 +3648,8 @@ def where_is_the_configfile():
         configfile_name = ARGS.configfile
 
         if not os.path.exists(normpath(configfile_name)) and ARGS.new is None:
-            print("  ! The config file \"%s\" (path : \"%s\") "
-                  "doesn't exist. " % configfile_name, normpath(configfile_name))
+            print("  ! The config file \"{0}\" (path : \"{1}\") "
+                  "doesn't exist. ".format(configfile_name, normpath(configfile_name)))
 
             if ARGS.downloaddefaultcfg is None:
                 print(msg_please_use_dlcfg)
