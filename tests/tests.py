@@ -154,20 +154,20 @@ class Tests(unittest.TestCase):
         self.assertTrue(hashid in katal.SELECT)
 
     #//////////////////////////////////////////////////////////////////////////
-    def test__thefilehastob__filt_size(self):
-        """
-                Tests.test__thefilehastob__filt_size()
-
-                Test of the katal.py::thefilehastobeadded__filt_size() function.
-        """
-        self.assertTrue(katal.thefilehastobeadded__filt_size(_filter={"size":"=100"},
-                                                             _size=100))
-
-        self.assertTrue(katal.thefilehastobeadded__filt_size(_filter={"size":"=1000"},
-                                                             _size=1000))
-
-        self.assertTrue(katal.thefilehastobeadded__filt_size(_filter={"size":"=1kB"},
-                                                             _size=1000))
-
-        self.assertFalse(katal.thefilehastobeadded__filt_size(_filter={"size":">1MiB"},
-                                                              _size=1024))
+#    def test__thefilehastob__filt_size(self):
+#        """
+#                Tests.test__thefilehastob__filt_size()
+#
+#                Test of the katal.py::thefilehastobeadded__filt_size() function.
+#        """
+#        #self.assertTrue(katal.thefilehastobeadded__filt_size(_filter={"size":"=100"},
+#                                                             _size=100))
+#
+#        self.assertTrue(katal.thefilehastobeadded__filt_size(_filter={"size":"=1000"},
+#                                                             _size=1000))
+#
+#        self.assertTrue(katal.thefilehastobeadded__filt_size(_filter={"size":"=1kB"},
+#                                                             _size=1000))
+#
+#        self.assertFalse(katal.thefilehastobeadded__filt_size(_filter={"size":">1MiB"},
+#                                                              _size=1024))
