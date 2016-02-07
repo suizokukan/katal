@@ -48,6 +48,7 @@ import fnmatch
 import itertools
 import logging
 from logging.handlers import RotatingFileHandler
+import operator
 import os
 import platform
 import re
@@ -291,6 +292,253 @@ class ColorFormatter(logging.Formatter):
 
         record.color_end = self.default
         return super().format(record)
+
+
+class Filter:
+    def __init__(self, config=None):
+        self.conditions = {}
+        if config is not None:
+            self.read_config(config)
+
+    def read_filter(self, config):
+        self.name = config.name
+        if 'name' and 'iname' in config:
+            LOGGER.warning("  ! Filter %s has two conditions about name: 'name'"
+                           " and 'iname'.\n"
+                           "    By default, use only the iname condition",
+                           config.name)
+
+        # Use first iname if defined, else name
+        if 'iname' in config:
+            regex = re.compile(config['iname'], re.IGNORECASE)
+        elif 'name' in config:
+            regex = re.compile(config['name'])
+        else:
+            regex = None
+
+        self.conditions['name'] = self.match_regex(regex)
+        self.conditions['size'] = self.match_size(config.get('size'))
+        self.conditions['date'] = self.match_date(config.get('date'))
+
+    def match_date(self, filter_date):
+        if filter_date is None:
+            return True
+
+        # beware !  the order matters (<= before <, >= before >)
+        for condition, op in (('>=', operator.ge),
+                              ('>',  operator.gt),
+                              ('<=', operator.le),
+                              ('<' , operator.lt),
+                              ('=' , operator.eq)):
+            if filter_date.startswith(condition):
+                filter_date = filter_date[(len(condition)):]
+                break
+        else:
+            raise KatalError("Can't analyse a 'date' field : " + filter_date)
+
+        # Parse the filter date
+        for time_format in ('%Y-%m-%d %H:%M',   # '2015-09-17 20:01'
+                            '%Y-%m-%d',         # '2015-09-17
+                            '%Y-%m',            # '2015-09'
+                            '%Y',               # '2015'
+                            ):
+
+            try:
+                date = datetime.strptime(filter_date, time_format)
+            except ValueError:
+                pass
+            else:
+                break
+        else:
+            raise KatalError("Can't analyse the 'date' field {}, see "
+                             "configuration example for correct format".format(filter_date))
+
+
+        def return_match(name):
+            # ..................................................................
+            # protection against the FileNotFoundError exception.
+            # This exception would be raised on broken symbolic link on the
+            #   "size = os.stat(normpath(fullname)).st_size" line (see below).
+            # ..................................................................
+            if not os.path.exists(name):
+                return False
+
+            # do not use utcfromtimestamp ; since time_format is given in local
+            # tz, time must be also in local tz.
+            time = datetime.fromtimestamp(os.stat(name).st_mtime)
+            time = time.replace(second=0, microsecond=0)
+            return op(time, filter_date)
+
+        return return_match
+
+    def match_regex(self, regex):
+        """
+            thefilehastobeadded__filt_name()
+            ________________________________________________________________________
+
+            Function used by thefilehastobeadded__filters() : check if the name of a
+            file matches the filter given as a parameter.
+            ________________________________________________________________________
+
+            PARAMETERS
+                    o name         : (str) file's name
+
+
+            RETURNED VALUE
+                    the expected boolean
+        """
+        if not regex:
+            return lambda name: True
+
+        def return_match(name):
+            # TODO: search or match ? Search will let to write for ex. .jpg instead
+            # of *.jpg since it doesn't match from the start of the string, but it
+            # may have side effects.
+            return self.re_name.match(name) is not None
+
+        return return_match
+
+    def match_size(self, filter_size):
+        """
+            thefilehastobeadded__filt_size()
+            ________________________________________________________________________
+
+            Function used by thefilehastobeadded__filters() : check if the size of a
+            file matches the filter given as a parameter.
+            ________________________________________________________________________
+
+            PARAMETERS
+                    o _filter        : a dict object; see documentation:selection
+                    o _size         : (int) file's size
+
+            About the underscore before "_filter" and "_size" :
+            confer https://www.python.org/dev/peps/pep-0008/#function-and-method-arguments
+            " If a function argument's name clashes with a reserved keyword, it is generally
+            " better to append a single trailing underscore rather than use an abbreviation
+            " or spelling corruption.
+
+            RETURNED VALUE
+                    the expected boolean
+        """
+        if not regex:
+            return lambda name: True
+
+        # Parse filter definition
+
+        # remove possible space inside definition
+        filter_size = filter_size.replace(' ', '')
+
+        # beware !  the order matters (<= before <, >= before >)
+        for condition, op in (('>=', operator.ge),
+                              ('>',  operator.gt),
+                              ('<=', operator.le),
+                              ('<' , operator.lt),
+                              ('=' , operator.eq)):
+            if filter_size.startswith(condition):
+                filter_size = filter_size[(len(condition)):]
+                break
+        else:
+            raise KatalError("Can't analyse {0} in the filter.".format(filter_size))
+
+        multiple = 1
+        for suffix, _multiple in CST__MULTIPLES:
+            if filter_size.endswith(suffix):
+                multiple = _multiple
+                filter_size = filter_size[:-len(suffix)]
+                break
+        else:
+            if not filter_size[-1].isdigit():
+                raise KatalError("Can't analyse {0} in the filter. "
+                                "Available multiples are : {1}".format(filter_size,
+                                                                        CST__MULTIPLES))
+        try:
+            match_size = float(filter_size) * multiple
+        except ValueError:
+            raise KatalError("Can't analyse {0} in the filter. "
+                             "Format must be for example size : >= 10 MB".format(filter_size))
+
+
+        def return_match(name):
+            # ..................................................................
+            # protection against the FileNotFoundError exception.
+            # This exception would be raised on broken symbolic link on the
+            #   "size = os.stat(normpath(fullname)).st_size" line (see below).
+            # ..................................................................
+            if not os.path.exists(name):
+                return False
+
+            size = os.stat(name).st_size
+            return op(size, filter_size * multiple)
+
+        return return_match
+
+    def match_operator(self, op, filter2=None):
+        if op is None:
+            return True
+
+        def return_match(name):
+            if filter2 is None:             # Negation is not a binary operator
+                return op(self(name))
+            else:
+                return op(self(name), filter2(name))
+            return op()
+
+    def test(self, file_name):
+        list_tests_failled = [key for key, test in self.conditions.items()
+                              if not test(file_name)]
+
+        if list_tests_failled:
+            LOGGER.info('  o The following tests failed for filter "{}" and file "{}": '
+                        '{}'.format(self.name, file_name, list_tests_failled))
+            return False
+        else:
+            return True
+
+    def __call__(self, file_name):
+        """
+        self(file_name) -> self.test(file_name)
+        Return
+        """
+        return self.test(file_name)
+
+    def __and__(self, filter2):
+        """
+        Return self & filter2
+        """
+        f = Filter()
+        f.name = ''
+        f.conditions['and'] = self.match_operator(operator.and_, filter2)
+        return f
+
+    def __or__(self, filter2):
+        """
+        Return self | filter2
+        """
+        f = Filter()
+        f.name = ''
+        f.conditions['or'] = self.match_operator(operator.or_, filter2)
+        return f
+
+    def __xor__(self, filter2):
+        """
+        Return self ^ filter2
+        """
+        f = Filter()
+        f.name = ''
+        f.conditions['xor'] = self.match_operator(operator.xor, filter2)
+        return f
+
+    def __invert__(self):
+        """
+        Return ~self
+        """
+        f = Filter()
+        f.name = ''
+        f.conditions['not'] = self.match_operator(operator.invert)
+        return f
+
+#///////////////////////////////////////////////////////////////////////////////
+
 
 def action__add():
     """
@@ -2716,6 +2964,23 @@ def read_filters():
                               CFG_PARAMETERS["source.filter"+str(filter_index)]["date"]
 
         filter_index += 1
+
+#///////////////////////////////////////////////////////////////////////////////
+def read_filters2():
+    """
+        read_filters()
+        ________________________________________________________________________
+
+        Initialize FILTERS from the configuration file.
+        ________________________________________________________________________
+
+        no PARAMETER, no RETURNED VALUE
+    """
+    FILTERS.clear()
+
+    for i, section in enumerate(CFG_PARAMETERS):
+        if section.startswith('source.filter'):
+            FILTER[i] = Filter(CFG_PARAMETERS[section])
 
 #///////////////////////////////////////////////////////////////////////////////
 def read_target_db():
