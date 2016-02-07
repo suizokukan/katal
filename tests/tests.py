@@ -52,8 +52,9 @@ class Tests(unittest.TestCase):
 
 		Test of the katal.py::fill_select() function.
         """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile1.ini")
-        katal.CFG_PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        config = katal.Config()
+        config.read(os.path.join("tests", "cfgfile1.ini"))
+        katal.CFG_PARAMETERS = config
         katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_filters()
         katal.fill_select()
@@ -71,9 +72,9 @@ class Tests(unittest.TestCase):
 
 		Test of the katal.py::fill_select() function.
         """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile2.ini")
-        katal.CFG_PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
-        katal.SOURCE_PATH = os.path.join("tests", "data1")
+        config = katal.Config()
+        config.read(os.path.join("tests", "cfgfile2.ini"))
+        katal.CFG_PARAMETERS = config
         katal.read_filters()
         katal.fill_select()
 
@@ -90,8 +91,9 @@ class Tests(unittest.TestCase):
 
 		Test of the katal.py::fill_select() function.
         """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile3.ini")
-        katal.CFG_PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        config = katal.Config()
+        config.read(os.path.join("tests", "cfgfile3.ini"))
+        katal.CFG_PARAMETERS = config
         katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_filters()
         katal.fill_select()
@@ -115,8 +117,9 @@ class Tests(unittest.TestCase):
 
 		Test of the katal.py::fill_select() function.
         """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile4.ini")
-        katal.CFG_PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        config = katal.Config()
+        config.read(os.path.join("tests", "cfgfile4.ini"))
+        katal.CFG_PARAMETERS = config
         katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_filters()
         katal.fill_select()
@@ -134,8 +137,9 @@ class Tests(unittest.TestCase):
 
 		Test of the katal.py::fill_select() function.
         """
-        katal.ARGS.configfile = os.path.join("tests", "cfgfile5.ini")
-        katal.CFG_PARAMETERS = katal.read_parameters_from_cfgfile(katal.ARGS.configfile)
+        config = katal.Config()
+        config.read(os.path.join("tests", "cfgfile5.ini"))
+        katal.CFG_PARAMETERS = config
         katal.SOURCE_PATH = os.path.join("tests", "data1")
         katal.read_filters()
         katal.fill_select()

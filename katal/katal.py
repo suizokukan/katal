@@ -319,7 +319,7 @@ class ColorFormatter(logging.Formatter):
 
 class Config(configparser.ConfigParser):
     def __init__(self):
-        super().__init__(interpolation=configparser.ExtendedInterpolation())
+        super().__init__(interpolation=None)
 
     def read_config(self):
         self.read_command_line_arguments()
