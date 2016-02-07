@@ -1707,7 +1707,8 @@ def configure_loggers():
         try:
             handler1 = RotatingFileHandler(
                 get_logfile_fullname(),
-                maxBytes=int(CFG_PARAMETERS["log file"]["maximal size"]),
+                # int(float) to allow to write 1e6 in the config file
+                maxBytes=int(float(CFG_PARAMETERS["log file"]["maximal size"])),
                 backupCount=CFG_PARAMETERS.getint('log file', 'backup count'))
 
             formatter1 = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
