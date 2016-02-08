@@ -322,18 +322,20 @@ class Filter:
     #///////////////////////////////////////////////////////////////////////////
     def read_config(self, config):
         """
-        self.read_config(config) Extract conditions from config section
-        ________________________________________________________________________
+            Filter.read_config(config)
+            ____________________________________________________________________
 
-        Analyze the ConfigParser section corresponding to the filter, and extract
-        the different conditions a file must check.
-        Populate self.conditions.
-        ________________________________________________________________________
+            Extract conditions from config section
 
-        PARAMETERS
-                o config :  (Configparser) the config section to analyze.
+            Analyze the ConfigParser section corresponding to the filter, and extract
+            the different conditions a file must check.
+            Populate self.conditions.
+            ____________________________________________________________________
 
-        no RETURNED VALUE
+            PARAMETERS
+                    o config :  (Configparser) the config section to analyze.
+
+            no RETURNED VALUE
         """
 
         if 'name' and 'iname' in config:
@@ -360,22 +362,22 @@ class Filter:
     @staticmethod
     def match_date(filter_date):
         """
-        Filter.match_date(filter_date) -> function
-        ________________________________________________________________________
+            Filter.match_date(filter_date) -> function
+            ____________________________________________________________________
 
-        Analyze the parameter filter_date and return a function which test the
-        file against the date.
-        ________________________________________________________________________
+            Analyze the parameter filter_date and return a function which test the
+            file against the date.
+            ____________________________________________________________________
 
-        PARAMETERS
-                o filter_date : (str) the string from config file corresponding
-                                to the condition on date (eg. >2016-09).
+            PARAMETERS
+                    o filter_date : (str) the string from config file corresponding
+                                    to the condition on date (eg. >2016-09).
 
-        RETURNED VALUE
-                o function(file_name) : function which tests if the file succeed
-                                        to the date condition.
-                                        If filter_date is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which tests if the file succeed
+                                            to the date condition.
+                                            If filter_date is evaluated to False,
+                                            always return True
         """
         if not filter_date:
             return lambda name: True
@@ -431,26 +433,38 @@ class Filter:
     @staticmethod
     def match_regex(regex):
         """
-        match_regex(regex) -> test_function
-        ________________________________________________________________________
+            Filter.match_regex(regex) -> test_function
+            ____________________________________________________________________
 
-        Analyze the parameter filter_regex and return a function which test if
-        the basename of the file match the regex
-        ________________________________________________________________________
+            Analyze the parameter filter_regex and return a function which test if
+            the basename of the file match the regex
+            ____________________________________________________________________
 
-        PARAMETERS
-                o regex : (str) the string from config file corresponding
-                                to the condition on date.
+            PARAMETERS
+                    o regex : (str) the string from config file corresponding
+                                    to the condition on date.
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file match the regex
-                                        If regex is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file match the regex
+                                            If regex is evaluated to False,
+                                            always return True
         """
         if not regex:
             return lambda name: True
 
         def return_match(name):
+            """
+                return_match()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_regex()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             # TODO: search or match ? Search will let to write for ex. .jpg instead
             # of *.jpg since it doesn't match from the start of the string, but it
             # may have side effects.
@@ -462,22 +476,22 @@ class Filter:
     @staticmethod
     def match_size(filter_size):
         """
-        Filter.match_file(filter_size) -> test_function
-        ________________________________________________________________________
+            Filter.match_file(filter_size) -> test_function
+            ____________________________________________________________________
 
-        Analyze the parameter filter_regex and return a function which test if
-        the basename of the file match the regex
-        ________________________________________________________________________
+            Analyze the parameter filter_regex and return a function which test if
+            the basename of the file match the regex
+            ____________________________________________________________________
 
-        PARAMETERS
-                o filter_size: (str) the string from config file corresponding
-                                to the condition on size (eg. >1MB).
+            PARAMETERS
+                    o filter_size: (str) the string from config file corresponding
+                                    to the condition on size (eg. >1MB).
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
-                                        the condition on size
-                                        If filter_size is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file succeed
+                                            the condition on size
+                                            If filter_size is evaluated to False,
+                                            always return True
         """
         if not filter_size:
             return lambda name: True
@@ -518,6 +532,18 @@ class Filter:
                              "Format must be for example size : >= 10 MB".format(filter_size))
 
         def return_match(name):
+            """
+                return_match()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_size()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             # ..................................................................
             # protection against the FileNotFoundError exception.
             # This exception would be raised on broken symbolic link
@@ -533,28 +559,40 @@ class Filter:
     #///////////////////////////////////////////////////////////////////////////
     def match_operator(self, operat, filter2=None):
         """
-        self.match_operator(operat, filter2=None) -> test_function
-        ________________________________________________________________________
+            Filter.match_operator(operat, filter2=None) -> test_function
+            ____________________________________________________________________
 
-        Test the boolean operation between self and filter2.
-        For example, self.match_operator(operator.and_, filter2)(file)
-            -> self(file) and filter2(file)
-        ________________________________________________________________________
+            Test the boolean operation between self and filter2.
+            For example, self.match_operator(operator.and_, filter2)(file)
+                -> self(file) and filter2(file)
+            ____________________________________________________________________
 
-        PARAMETERS
-                o operat : the boolean operation to make between filters (eg. operator.and)
-                o filter2: (Filter default=None) the second filter to do the operation
+            PARAMETERS
+                    o operat : the boolean operation to make between filters (eg. operator.and)
+                    o filter2: (Filter default=None) the second filter to do the operation
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
-                                        the condition on operations of Filters.
-                                        If operat is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file succeed
+                                            the condition on operations of Filters.
+                                            If operat is evaluated to False,
+                                            always return True
         """
         if not operat:
             return lambda name: True
 
         def return_match(name):
+            """
+                return_match()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_operator()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             if filter2 is None:             # Negation is not a binary operator
                 return operat(self(name))
             else:
@@ -566,21 +604,21 @@ class Filter:
     @staticmethod
     def match_name_not_existing(name_template=None):
         """
-        Filter.match_name_not_existing(name_template) -> test_function
-        ________________________________________________________________________
+            Filter.match_name_not_existing(name_template) -> test_function
+            ____________________________________________________________________
 
-        Analyze the name_template and return a function which test if the
-        name_template modified accoding the file is already in the db.
-        ________________________________________________________________________
+            Analyze the name_template and return a function which test if the
+            name_template modified accoding the file is already in the db.
+            ____________________________________________________________________
 
-        PARAMETERS
-                o filter_name_not_existing: (str) the string from config file
-                corresponding to the name_template to test
+            PARAMETERS
+                    o filter_name_not_existing: (str) the string from config file
+                    corresponding to the name_template to test
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
-                the condition
-                If filter_size is evaluated to False, always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file succeed
+                    the condition
+                    If filter_size is evaluated to False, always return True
         """
         if not name_template:
             return lambda name: True
@@ -588,6 +626,18 @@ class Filter:
         list_names = set(name for _, _, name in TARGET_DB.items())
 
         def return_match(name):
+            """
+                match_name_not_existing()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_size()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             res = name
             size = os.stat(name).st_size
             time = datetime.fromtimestamp(os.stat(name).st_mtime)
@@ -627,14 +677,14 @@ class Filter:
     #///////////////////////////////////////////////////////////////////////////
     def test(self, file_name):
         """
-        self.test(file_name) -> check if the file succed to all conditions"
-        ________________________________________________________________________
+            Filter.test(file_name) -> check if the file succed to all conditions
+            ____________________________________________________________________
 
-        PARAMETERS
-                o file_name : the full name of the file to test
+            PARAMETERS
+                    o file_name : the full name of the file to test
 
-        RETURNED VALUE:
-                o True if file succed to all conditions, else False
+            RETURNED VALUE:
+                    o True if file succeed to all conditions, else False
         """
         list_tests_failled = [key for key, test in self.conditions.items()
                               if not test(file_name)]
@@ -649,16 +699,34 @@ class Filter:
     #///////////////////////////////////////////////////////////////////////////
     def __call__(self, file_name):
         """
-        self(file_name) -> self.test(file_name)
+                Filter.__call__()
+                ________________________________________________________________
+
+                self(file_name) -> self.test(file_name)
+                ________________________________________________________________
+
+                PARAMETER
+                        o file_name : (str)
+
+                RETURNED VALUE : (bool) Filter.test(file_name)
         """
         return self.test(file_name)
 
     #///////////////////////////////////////////////////////////////////////////
     def __and__(self, filter2):
         """
-        Return (self & filter2)
+                Filter.__and__()
+                ________________________________________________________________
 
-        (self & filter2)(file_name) <=> self(file_name) and filter2(file_name)
+                Return (self & filter2)
+
+                (self & filter2)(file_name) <=> self(file_name) and filter2(file_name)
+                ________________________________________________________________
+
+                PARAMETER
+                        o filter2 : a Filter object
+
+                RETURNED VALUE : self and filter2
         """
         resfilter = Filter()
         resfilter.conditions['and'] = self.match_operator(operator.and_, filter2)
@@ -667,9 +735,18 @@ class Filter:
     #///////////////////////////////////////////////////////////////////////////
     def __or__(self, filter2):
         """
-        Return (self | filter2)
+                Filter.__or__()
+                ________________________________________________________________
 
-        (self | filter2)(file_name) <=> self(file_name) or² filter2(file_name)
+                Return (self | filter2)
+
+                (self | filter2)(file_name) <=> self(file_name) or² filter2(file_name)
+                ________________________________________________________________
+
+                PARAMETER
+                        o filter2 : a Filter object
+
+                RETURNED VALUE : self or filter2
         """
         resfilter = Filter()
         resfilter.conditions['or'] = self.match_operator(operator.or_, filter2)
