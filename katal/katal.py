@@ -56,7 +56,6 @@ import shutil
 import sqlite3
 import urllib.request
 import sys
-import unicodedata
 
 #===============================================================================
 # project's settings
@@ -107,14 +106,17 @@ def extra_logger(custom_parameters):
     """"
         extraLogger(custom_parameters)
         ________________________________________________________________________
+
         Mainly for syntax sugar.
-        R
-        It let to write logger.info(msg, color='blue') rather than
+
+        This functions allows to write logger.info(msg, color='blue') rather than
         logger.info(msg, extra={'color': 'blue'})
         ________________________________________________________________________
+
         PARAMETER
                 o custom_parameters : (list) extra parameters added to a Logger
-        RETURN
+
+        RETURNED VALUE
                 A Logger class which can take custom_parameters as extra parameters
                 and pass them to the extra argument of Logger
 
@@ -123,9 +125,12 @@ def extra_logger(custom_parameters):
                     Logger.info(msg, extra={'color': 'blue'})
         """
 
+    ############################################################################
     class CustomLogger(logging.Logger):
         """
-            A custom Logger class
+            A custom Logger class.
+
+            See https://docs.python.org/3.5/library/logging.html .
         """
         def _log(self, *args, **kwargs):
             extra = kwargs.get('extra', {})
@@ -144,24 +149,6 @@ USE_LOGFILE = False     # (bool) initialized from the configuration file
 LOGGER = logging.getLogger('katal')      # base logger, will log everywhere
 FILE_LOGGER = logging.getLogger('file')  # will log only in file
 LOGFILE_SIZE = 0                         # size of the current logfile.
-
-#===============================================================================
-# type(s)
-#===============================================================================
-
-# SELECT is made of SELECTELEMENT objects, where data about the original files
-# are stored.
-#
-# Due to Pylint's requirements, we can't name this type SelectElement.
-SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
-                                             "partialhashid",
-                                             "path",
-                                             "filename_no_extens",
-                                             "extension",
-                                             "size",
-                                             "date",
-                                             "targetname",
-                                             "targettags",])
 
 #===============================================================================
 # global constants : CST__*
@@ -229,12 +216,30 @@ CST__TRASH_SUBSUBDIR = "trash"
 # 'Linux', 'Windows', 'Java' according to https://docs.python.org/3.5/library/platform.html
 CST__PLATFORM = platform.system()
 
+#===============================================================================
+# types and classes :
+#===============================================================================
+
+# SELECT is made of SELECTELEMENT objects, where data about the original files
+# are stored.
+#
+# Due to Pylint's requirements, we can't name this type SelectElement.
+SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
+                                             "partialhashid",
+                                             "path",
+                                             "filename_no_extens",
+                                             "extension",
+                                             "size",
+                                             "date",
+                                             "targetname",
+                                             "targettags",])
+
 ################################################################################
 class ColorFormatter(logging.Formatter):
     """
-         A custom formatter class used to display color in stream output.
+        ColorFormatter class
 
-         see https://docs.python.org/3/library/logging.html .
+        A custom formatter class used to display color in stream output.
     """
     # foreground colors :
     # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
@@ -283,32 +288,38 @@ class ColorFormatter(logging.Formatter):
         record.color_end = self.default
         return super().format(record)
 
+################################################################################
 class Filter:
     """
-    Filter class. Filter files according to conditions in config file
-    ________________________________________________________________________
+        Filter class.
 
-    PARAMETERS
-            o config :  (Configparser section, default=None) the config section
-                        where is defined the filter. If provided, the filter
-                        will analyze to find conditions, else nothing is done.
-            o name   :  (str, default='') the name of the parser, used for
-                        formatting.
+        Filter files according to conditions in config file
+        ________________________________________________________________________
 
-    ATTRIBUTES
-            o self.conditions : (dict) A dict of conditions a file must succeed.
-                        The key is the name of condition, used for formatting,
-                        and the values are funtion that take the name of the
-                        file as parameter and return True if the file suceed the
-                        conditions
-            o self.name : the name of the Filter, from the name parameter.
+        PARAMETERS
+                o config :  (Configparser section, default=None) the config section
+                            where is defined the filter. If provided, the filter
+                            will analyze to find conditions, else nothing is done.
+                o name   :  (str, default='') the name of the parser, used for
+                            formatting.
+
+        ATTRIBUTES
+                o self.conditions : (dict) A dict of conditions a file must succeed.
+                            The key is the name of condition, used for formatting,
+                            and the values are funtion that take the name of the
+                            file as parameter and return True if the file suceed the
+                            conditions
+                o self.name : the name of the Filter, from the name parameter.
     """
+
+    #///////////////////////////////////////////////////////////////////////////
     def __init__(self, config=None, name=''):
         self.conditions = {}
         self.name = name
         if config is not None:
             self.read_config(config)
 
+    #///////////////////////////////////////////////////////////////////////////
     def read_config(self, config):
         """
         self.read_config(config) Extract conditions from config section
@@ -345,9 +356,11 @@ class Filter:
         self.conditions['name not existing'] = \
             self.match_name_not_existing(config.get('name not existing'))
 
-    def match_date(self, filter_date):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_date(filter_date):
         """
-        self.match_date(filter_date) -> function
+        Filter.match_date(filter_date) -> function
         ________________________________________________________________________
 
         Analyze the parameter filter_date and return a function which test the
@@ -369,10 +382,10 @@ class Filter:
 
         # beware !  the order matters (<= before <, >= before >)
         for condition, op in (('>=', operator.ge),
-                              ('>',  operator.gt),
+                              ('>', operator.gt),
                               ('<=', operator.le),
-                              ('<' , operator.lt),
-                              ('=' , operator.eq)):
+                              ('<', operator.lt),
+                              ('=', operator.eq)):
             if filter_date.startswith(condition):
                 filter_date = filter_date[(len(condition)):]
                 break
@@ -384,7 +397,7 @@ class Filter:
                             '%Y-%m-%d',         # '2015-09-17
                             '%Y-%m',            # '2015-09'
                             '%Y',               # '2015'
-                            ):
+                           ):
 
             try:
                 date = datetime.strptime(filter_date, time_format)
@@ -398,11 +411,11 @@ class Filter:
 
 
         def return_match(name):
-            # ..................................................................
-            # protection against the FileNotFoundError exception.
-            # This exception would be raised on broken symbolic link on the
-            #   "size = os.stat(normpath(fullname)).st_size" line (see below).
-            # ..................................................................
+            """
+             protection against the FileNotFoundError exception.
+             This exception would be raised on broken symbolic link on the
+               "size = os.stat(normpath(fullname)).st_size" line (see below).
+            """
             if not os.path.exists(name):
                 return False
 
@@ -414,9 +427,11 @@ class Filter:
 
         return return_match
 
-    def match_regex(self, regex):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_regex(regex):
         """
-        self.match_regex(regex) -> test_function
+        match_regex(regex) -> test_function
         ________________________________________________________________________
 
         Analyze the parameter filter_regex and return a function which test if
@@ -443,9 +458,11 @@ class Filter:
 
         return return_match
 
-    def match_size(self, filter_size):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_size(filter_size):
         """
-        self.match_file(filter_size) -> test_function
+        Filter.match_file(filter_size) -> test_function
         ________________________________________________________________________
 
         Analyze the parameter filter_regex and return a function which test if
@@ -472,10 +489,10 @@ class Filter:
 
         # beware !  the order matters (<= before <, >= before >)
         for condition, op in (('>=', operator.ge),
-                              ('>',  operator.gt),
+                              ('>', operator.gt),
                               ('<=', operator.le),
-                              ('<' , operator.lt),
-                              ('=' , operator.eq)):
+                              ('<', operator.lt),
+                              ('=', operator.eq)):
             if filter_size.startswith(condition):
                 filter_size = filter_size[(len(condition)):]
                 break
@@ -491,7 +508,7 @@ class Filter:
         else:
             if not filter_size[-1].isdigit():
                 raise KatalError("Can't analyse {0} in the filter. "
-                                "Available multiples are : {1}".format(filter_size,
+                                 "Available multiples are : {1}".format(filter_size,
                                                                         CST__MULTIPLES))
         try:
             match_size = float(filter_size) * multiple
@@ -512,6 +529,7 @@ class Filter:
 
         return return_match
 
+    #///////////////////////////////////////////////////////////////////////////
     def match_operator(self, op, filter2=None):
         """
         self.match_operator(op, filter2=None) -> test_function
@@ -543,9 +561,11 @@ class Filter:
 
         return return_match
 
-    def match_name_not_existing(self, name_template=None):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_name_not_existing(name_template=None):
         """
-        self.match_name_not_existing(name_template) -> test_function
+        Filter.match_name_not_existing(name_template) -> test_function
         ________________________________________________________________________
 
         Analyze the name_template and return a function which test if the
@@ -599,10 +619,11 @@ class Filter:
                                  ' config key')
 
             res = res.replace("%i",
-                            remove_illegal_characters(str(database_index)))
+                              remove_illegal_characters(str(database_index)))
 
             return res not in list_names
 
+    #///////////////////////////////////////////////////////////////////////////
     def test(self, file_name):
         """
         self.test(file_name) -> check if the file succed to all conditions"
@@ -618,60 +639,79 @@ class Filter:
                               if not test(file_name)]
 
         if list_tests_failled:
-            LOGGER.info('  o The following tests failed for filter "{}" and file "{}": '
-                        '{}'.format(self.name, file_name, list_tests_failled))
+            LOGGER.info('  o The following tests failed for filter "%s" and file "%s": '
+                        '%s', self.name, file_name, list_tests_failled)
             return False
         else:
             return True
 
+    #///////////////////////////////////////////////////////////////////////////
     def __call__(self, file_name):
         """
         self(file_name) -> self.test(file_name)
         """
         return self.test(file_name)
 
+    #///////////////////////////////////////////////////////////////////////////
     def __and__(self, filter2):
         """
         Return (self & filter2)
 
         (self & filter2)(file_name) <=> self(file_name) and filter2(file_name)
         """
-        f = Filter()
-        f.conditions['and'] = self.match_operator(operator.and_, filter2)
-        return f
+        resfilter = Filter()
+        resfilter.conditions['and'] = self.match_operator(operator.and_, filter2)
+        return resfilter
 
+    #///////////////////////////////////////////////////////////////////////////
     def __or__(self, filter2):
         """
         Return (self | filter2)
 
         (self | filter2)(file_name) <=> self(file_name) or² filter2(file_name)
         """
-        f = Filter()
-        f.conditions['or'] = self.match_operator(operator.or_, filter2)
-        return f
+        resfilter = Filter()
+        resfilter.conditions['or'] = self.match_operator(operator.or_, filter2)
+        return resfilter
 
+    #///////////////////////////////////////////////////////////////////////////
     def __xor__(self, filter2):
         """
-        Return (self ^ filter2)
+                Filter.__xor__()
+                ________________________________________________________________
 
-        (self ^ filter2)(file_name) <=> self(file_name) xor filter2(file_name)
+                Return (self ^ filter2)
+
+                (self ^ filter2)(file_name) <=> self(file_name) xor filter2(file_name)
+                ________________________________________________________________
+
+                PARAMETER :
+                        o filter2 : a Filter object
+
+                RETURNED VALUE : self xor filter2
         """
-        f = Filter()
-        f.conditions['xor'] = self.match_operator(operator.xor, filter2)
-        return f
+        resfilter = Filter()
+        resfilter.conditions['xor'] = self.match_operator(operator.xor, filter2)
+        return resfilter
 
+    #///////////////////////////////////////////////////////////////////////////
     def __invert__(self):
         """
-        Return ~self (not self)
+                Filter.__invert__()
+                ________________________________________________________________
 
-        (~ self)(file_name) <=> not self(file_name)
+                Return ~self (not self)
+
+                (~ self)(file_name) <=> not self(file_name)
+                ________________________________________________________________
+
+                NO PARAMETER
+
+                RETURNED VALUE : not self
         """
-        f = Filter()
-        f.conditions['not'] = self.match_operator(operator.not_)
-        return f
-
-#///////////////////////////////////////////////////////////////////////////////
-
+        resfilter = Filter()
+        resfilter.conditions['not'] = self.match_operator(operator.not_)
+        return resfilter
 
 ################################################################################
 class KatalError(BaseException):
@@ -3459,7 +3499,7 @@ def thefilehastobeadded__db(filename, _size):
                 either (False, None, None)
                 either (True, partial hashid, hashid)
     """
-    # (1) hont(datetime.strptime(date, CST__DTIME_FORMAT))w many file(s) in the database have a size equal to _size ?
+    # (1) how many file(s) in the database have a size equal to _size ?
     # a list of hashid(s) :
     res = [hashid for hashid in TARGET_DB if TARGET_DB[hashid][1] == _size]
 
