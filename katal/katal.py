@@ -372,7 +372,7 @@ class Filter:
                                 to the condition on date (eg. >2016-09).
 
         RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
+                o function(file_name) : function which tests if the file succeed
                                         to the date condition.
                                         If filter_date is evaluated to False,
                                         always return True
@@ -381,11 +381,12 @@ class Filter:
             return lambda name: True
 
         # beware !  the order matters (<= before <, >= before >)
-        for condition, op in (('>=', operator.ge),
-                              ('>', operator.gt),
-                              ('<=', operator.le),
-                              ('<', operator.lt),
-                              ('=', operator.eq)):
+        operat = None  # to ensure 'operat' will be defined after the loop.
+        for condition, operat in (('>=', operator.ge),
+                                  ('>', operator.gt),
+                                  ('<=', operator.le),
+                                  ('<', operator.lt),
+                                  ('=', operator.eq)):
             if filter_date.startswith(condition):
                 filter_date = filter_date[(len(condition)):]
                 break
@@ -400,7 +401,7 @@ class Filter:
                            ):
 
             try:
-                date = datetime.strptime(filter_date, time_format)
+                datetime.strptime(filter_date, time_format)
             except ValueError:
                 pass
             else:
@@ -408,7 +409,6 @@ class Filter:
         else:
             raise KatalError("Can't analyse the 'date' field {}, see "
                              "configuration example for correct format".format(filter_date))
-
 
         def return_match(name):
             """
@@ -423,7 +423,7 @@ class Filter:
             # tz, time must be also in local tz.
             time = datetime.fromtimestamp(os.stat(name).st_mtime)
             time = time.replace(second=0, microsecond=0)
-            return op(time, filter_date)
+            return operat(time, filter_date)
 
         return return_match
 
@@ -440,7 +440,7 @@ class Filter:
 
         PARAMETERS
                 o regex : (str) the string from config file corresponding
-                                to the condition on date (eg. .*\.jpg).
+                                to the condition on date.
 
         RETURNED VALUE
                 o function(file_name) : function which test if the file match the regex
@@ -488,11 +488,12 @@ class Filter:
         filter_size = filter_size.replace(' ', '')
 
         # beware !  the order matters (<= before <, >= before >)
-        for condition, op in (('>=', operator.ge),
-                              ('>', operator.gt),
-                              ('<=', operator.le),
-                              ('<', operator.lt),
-                              ('=', operator.eq)):
+        operat = None  # to ensure 'operat' will be defined after the loop.
+        for condition, operat in (('>=', operator.ge),
+                                  ('>', operator.gt),
+                                  ('<=', operator.le),
+                                  ('<', operator.lt),
+                                  ('=', operator.eq)):
             if filter_size.startswith(condition):
                 filter_size = filter_size[(len(condition)):]
                 break
@@ -525,14 +526,14 @@ class Filter:
                 return False
 
             size = os.stat(name).st_size
-            return op(size, match_size)
+            return operat(size, match_size)
 
         return return_match
 
     #///////////////////////////////////////////////////////////////////////////
-    def match_operator(self, op, filter2=None):
+    def match_operator(self, operat, filter2=None):
         """
-        self.match_operator(op, filter2=None) -> test_function
+        self.match_operator(operat, filter2=None) -> test_function
         ________________________________________________________________________
 
         Test the boolean operation between self and filter2.
@@ -541,23 +542,23 @@ class Filter:
         ________________________________________________________________________
 
         PARAMETERS
-                o op : the boolean operation to make between filters (eg. operator.and)
+                o operat : the boolean operation to make between filters (eg. operator.and)
                 o filter2: (Filter default=None) the second filter to do the operation
 
         RETURNED VALUE
                 o function(file_name) : function which test if the file succeed
                                         the condition on operations of Filters.
-                                        If op is evaluated to False,
+                                        If operat is evaluated to False,
                                         always return True
         """
-        if not op:
+        if not operat:
             return lambda name: True
 
         def return_match(name):
             if filter2 is None:             # Negation is not a binary operator
-                return op(self(name))
+                return operat(self(name))
             else:
-                return op(self(name), filter2(name))
+                return operat(self(name), filter2(name))
 
         return return_match
 
@@ -2134,7 +2135,7 @@ def eval_filters(filters):
                                                                               exception))
 
 #///////////////////////////////////////////////////////////////////////////////
-def fill_select(debug_datatime=None):
+def fill_select():
     """
         fill_select()
         ________________________________________________________________________
@@ -2143,9 +2144,7 @@ def fill_select(debug_datatime=None):
         the source path. This function is used by action__select() .
         ________________________________________________________________________
 
-        PARAMETERS
-                o debug_datatime : None (normal value) or a dict of CST__DTIME_FORMAT
-                                   strings if in debug/test mode.
+        NO PARAMETER
 
         RETURNED VALUE
                 (int) the number of discarded files
@@ -3514,7 +3513,7 @@ def thefilehastobeadded__db(filename, _size):
     src_partialhashid = hashfile64(filename=filename,
                                    stop_after=CST__PARTIALHASHID_BYTESNBR)
 
-    new_res = [hashid for hashid in res if TARGET_DB[0] == target_partialhashid]
+    new_res = [hashid for hashid in res if TARGET_DB[0] == src_partialhashid]
 
     res = new_res
     if not res:
