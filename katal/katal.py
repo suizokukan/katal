@@ -318,9 +318,23 @@ class Config(configparser.ConfigParser):
         super().__init__(interpolation=None)
 
     def read_config(self, args=None, cfg_file=None):
+        """
+            self.check_args(args=None, cfg_file=None)
+            ________________________________________________________________________
+
+            Read all the configuration, from the the default configuration, from all
+            posible configuration files, and from the command line.
+            ________________________________________________________________________
+
+            PARAMETERS
+                args (list, optional): list of optional args, to parse as command
+                    line arguments instead of sys.argv
+                cdg_file (str, optional): name of an optional config_file to read
+            no RETURNED VALUE
+        """
         self.read_command_line_arguments(args)
 
-        # TODO: download configfile
+        # TODO: download configfile here and use it
         self.read_dict(self.default_config())    # Initialize the defaults value
         self.read_all_config_files(cfg_file)
         self.read_dict(self.arguments_to_dict()) # Modifications from command line
@@ -328,20 +342,32 @@ class Config(configparser.ConfigParser):
         self.read_parameters_from_cfgfile()
 
     def arguments_to_dict(self):
+        """
+            self.arguments_to_dict()
+            ________________________________________________________________________
+
+            Return a dict from the command line arguments
+            ________________________________________________________________________
+
+            no PARAMETERS
+
+            RETURNED VALUE
+                A dict ready to be passed to self.read_dict
+        """
         return_dict = {'display': {},
                        'source': {},
-                       }
+                      }
         if self.verbosity is not None:
             return_dict['display']['verbosity'] = self.verbosity
 
         if self.strictcmp:
-            return_dict['source']['strict comparison'] =  self.strictcmp
+            return_dict['source']['strict comparison'] = self.strictcmp
 
         return return_dict
 
     def check_args(self, parser):
         """
-            check_args(self, parser)
+            self.check_args(parser)
             ________________________________________________________________________
 
             check the arguments of the command line. Raise a parser error if
@@ -375,7 +401,20 @@ class Config(configparser.ConfigParser):
             parser.error("--copyto can only be used in combination with --findtag .")
 
 #///////////////////////////////////////////////////////////////////////////////
-    def default_config(self):
+    @staticmethod
+    def default_config():
+        """
+            self.default_config()
+            ________________________________________________________________________
+
+            Return the default values for the config.
+            ________________________________________________________________________
+
+            no PARAMETER
+
+            RETURNED VALUE
+                A dict ready to be passed to self.read_dict
+        """
         return {
         'source': {
             'path': '.',
@@ -406,7 +445,22 @@ class Config(configparser.ConfigParser):
     }
 
     def read_all_config_files(self, cfg_file=None):
-        config_files = self.possible_paths_to_cfg(cfg_file)
+        """
+        self.read_all_config_files(cfg_file=None)
+        ________________________________________________________________________
+
+        Update self from all possible config files, from cfg_file if provided and
+        from config file given as a command line argument
+        ________________________________________________________________________
+        PARAMETERS
+            cdg_file (str, optional): name of an optional config_file to read
+
+        no RETURNED VALUE
+        """
+        config_files = self.possible_paths_to_cfg()
+
+        if cfg_file:
+            config_files.append(cfg_file)
 
         self.cfg_files = self.read(config_files)
 
@@ -417,7 +471,7 @@ class Config(configparser.ConfigParser):
                     self.cfg_files.append(self.configfile)
             except FileNotFoundError:
                 print('  ! The config file "%s" (path : "%s") '
-                    " doesn't exist. " % self.configfile, normpath(self.configfile))
+                      "doesn't exist. " % self.configfile, normpath(self.configfile))
                 raise ConfigError
 
         if not self.cfg_files:
@@ -446,10 +500,10 @@ class Config(configparser.ConfigParser):
                                 epilog="{0} v. {1} ({2}), "
                                         "a project by {3} "
                                         "({4})".format(__projectname__,
-                                                        __version__,
-                                                        __license__,
-                                                        __author__,
-                                                        __email__),
+                                                       __version__,
+                                                       __license__,
+                                                       __author__,
+                                                       __email__),
                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
         exclusive_group = parser.add_mutually_exclusive_group()
@@ -457,16 +511,16 @@ class Config(configparser.ConfigParser):
         exclusive_group.add_argument('--add',
                             action="store_true",
                             help="# Select files according to what is described "
-                                "in the configuration file "
-                                "then add them to the target directory. "
-                                "This option can't be used with the --select one."
-                                "If you want more informations about the process, please "
-                                "use this option in combination with --infos .")
+                                 "in the configuration file "
+                                 "then add them to the target directory. "
+                                 "This option can't be used with the --select one."
+                                 "If you want more informations about the process, please "
+                                 "use this option in combination with --infos .")
 
         parser.add_argument('--addtag',
                             type=str,
                             help="# Add a tag to some file(s) in combination "
-                                "with the --to option. ")
+                                 "with the --to option. ")
 
         parser.add_argument('-cfg', '--configfile',
                             type=str,
@@ -479,26 +533,26 @@ class Config(configparser.ConfigParser):
         parser.add_argument('--copyto',
                             type=str,
                             help="# To be used with the --findtag parameter. Copy the found files "
-                                "into an export directory.")
+                                 "into an export directory.")
 
         parser.add_argument('-dlcfg', '--downloaddefaultcfg',
                             choices=("local", "home",),
                             help="# Download the default config file and overwrite the file having "
-                                "the same name. This is done before the script reads the parameters "
-                                "in the config file. Use 'local' to download in the current "
-                                "directory, 'home' to download in the user's HOME directory.")
+                                 "the same name. This is done before the script reads the parameters "
+                                 "in the config file. Use 'local' to download in the current "
+                                 "directory, 'home' to download in the user's HOME directory.")
 
         parser.add_argument('--findtag',
                             type=str,
                             help="# Find the files in the target directory with the given tag. "
-                                "The tag is a simple string, not a regex.")
+                                 "The tag is a simple string, not a regex.")
 
         parser.add_argument('--infos',
                             action="store_true",
                             help="# Display informations about the source directory "
-                                "given in the configuration file. Help the --select/--add "
-                                "options to display more informations about the process : in "
-                                "this case, the --infos will be executed before --select/--add")
+                                 "given in the configuration file. Help the --select/--add "
+                                 "options to display more informations about the process : in "
+                                 "this case, the --infos will be executed before --select/--add")
 
         parser.add_argument('-n', '--new',
                             type=str,
@@ -507,18 +561,18 @@ class Config(configparser.ConfigParser):
         parser.add_argument('--off',
                             action="store_true",
                             help="# Don't write anything into the target directory or into "
-                                "the database, except into the current log file. "
-                                "Use this option to simulate an operation : you get the messages "
-                                "but no file is modified on disk, no directory is created.")
+                                 "the database, except into the current log file. "
+                                 "Use this option to simulate an operation : you get the messages "
+                                 "but no file is modified on disk, no directory is created.")
 
         parser.add_argument('--rebase',
                             type=str,
                             help="# Copy the current target directory into a new one : you "
-                                "rename the files in the target directory and in the database. "
-                                "First, use the --new option to create a new target directory, "
-                                "modify the .ini file of the new target directory "
-                                "(modify [target]name of the target files), "
-                                "then use --rebase with the name of the new target directory")
+                                 "rename the files in the target directory and in the database. "
+                                 "First, use the --new option to create a new target directory, "
+                                 "modify the .ini file of the new target directory "
+                                 "(modify [target]name of the target files), "
+                                 "then use --rebase with the name of the new target directory")
 
         parser.add_argument('--reset',
                             action="store_true",
@@ -531,25 +585,25 @@ class Config(configparser.ConfigParser):
         parser.add_argument('--rmtags',
                             action="store_true",
                             help="# Remove all the tags of some file(s) in combination "
-                                "with the --to option. ")
+                                 "with the --to option. ")
 
         exclusive_group.add_argument('-s', '--select',
                             action="store_true",
                             help="# Select files according to what is described "
-                                "in the configuration file "
-                                "without adding them to the target directory. "
-                                "This option can't be used with the --add one."
-                                "If you want more informations about the process, please "
-                                "use this option in combination with --infos .")
+                                 "in the configuration file "
+                                 "without adding them to the target directory. "
+                                 "This option can't be used with the --add one."
+                                 "If you want more informations about the process, please "
+                                 "use this option in combination with --infos .")
 
         parser.add_argument('--settagsstr',
                             type=str,
                             help="# Give the tag to some file(s) in combination "
-                                "with the --to option. "
-                                "Overwrite the ancient tag string. "
-                                "If you want to empty the tags' string, please use a space, "
-                                "not an empty string : otherwise the parameter given "
-                                "to the script wouldn't be taken in account by the shell")
+                                 "with the --to option. "
+                                 "Overwrite the ancient tag string. "
+                                 "If you want to empty the tags' string, please use a space, "
+                                 "not an empty string : otherwise the parameter given "
+                                 "to the script wouldn't be taken in account by the shell")
 
         parser.add_argument('-si', '--sourceinfos',
                             action="store_true",
@@ -558,14 +612,14 @@ class Config(configparser.ConfigParser):
         parser.add_argument('--strictcmp',
                             action="store_true",
                             help="# To be used with --add or --select. Force a bit-to-bit comparision"
-                                "between files whose hashid-s is equal.")
+                                 "between files whose hashid-s is equal.")
 
         parser.add_argument('--targetpath',
                             type=str,
                             default=".",
                             help="# Target path, usually '.' . If you set path to . (=dot character)"
-                                ", it means that the source path is the current directory"
-                                " (=the directory where the script katal.py has been launched)")
+                                 ", it means that the source path is the current directory"
+                                 " (=the directory where the script katal.py has been launched)")
 
         parser.add_argument('-ti', '--targetinfos',
                             action="store_true",
@@ -574,9 +628,9 @@ class Config(configparser.ConfigParser):
         parser.add_argument('-tk', '--targetkill',
                             type=str,
                             help="# Kill (=move to the trash directory) one file from "
-                                "the target directory."
-                                "DO NOT GIVE A PATH, just the file's name, "
-                                "without the path to the target directory")
+                                 "the target directory."
+                                 "DO NOT GIVE A PATH, just the file's name, "
+                                 "without the path to the target directory")
 
         parser.add_argument('--to',
                             type=str,
@@ -587,18 +641,18 @@ class Config(configparser.ConfigParser):
         parser.add_argument('--usentfsprefix',
                             action="store_true",
                             help="# Force the script to prefix filenames by a special string "
-                                "required by the NTFS for long filenames, namely \\\\?\\")
+                                 "required by the NTFS for long filenames, namely \\\\?\\")
 
         parser.add_argument('--verbosity',
                             choices=("none", "normal", "high"),
                             default='normal',
                             help="# Console verbosity : "
-                                "'none'=no output to the console, no question asked on the console; "
-                                "'normal'=messages to the console "
-                                "and questions asked on the console; "
-                                "'high'=display discarded files. A question may be asked only by "
-                                "using the following arguments : "
-                                "--new, --rebase, --reset and --select")
+                                 "'none'=no output to the console, no question asked on the console; "
+                                 "'normal'=messages to the console "
+                                 "and questions asked on the console; "
+                                 "'high'=display discarded files. A question may be asked only by "
+                                 "using the following arguments : "
+                                 "--new, --rebase, --reset and --select")
 
         parser.add_argument('--version',
                             action='version',
@@ -608,8 +662,8 @@ class Config(configparser.ConfigParser):
         parser.add_argument('--whatabout',
                             type=str,
                             help="# Say if the file[the files in a directory] already in the "
-                                "given as a parameter is in the target directory "
-                                "notwithstanding its name.")
+                                 "given as a parameter is in the target directory "
+                                 "notwithstanding its name.")
 
         parser.parse_args(args=args, namespace=self)
 
@@ -618,9 +672,9 @@ class Config(configparser.ConfigParser):
         return self
 
     #///////////////////////////////////////////////////////////////////////////////
-    def possible_paths_to_cfg(self, cfg_file=None):
+    def possible_paths_to_cfg(self):
         """
-            possible_paths_to_cfg()
+            selfpossible_paths_to_cfg()
             ________________________________________________________________________
 
             return a list of the (str)paths to the config file, without the name
@@ -653,9 +707,6 @@ class Config(configparser.ConfigParser):
 
         cfg_localisation = [os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
                             for cfg_path in res]
-
-        if cfg_file:
-            cfg_localisation.append(cfg_file)
 
         return cfg_localisation
 
@@ -700,7 +751,7 @@ class Config(configparser.ConfigParser):
             print("  ! An error occured while reading config files.")
             print('  ! Your configuration file lacks a specific value : "%s".' % exception)
             print("  ... you should download a new default config file : "
-                        "see -dlcfg/--downloaddefaultcfg option")
+                  "see -dlcfg/--downloaddefaultcfg option")
             raise ConfigError
         except configparser.Error as exception:
             print("  ! An error occured while reading the config files.")
@@ -817,7 +868,7 @@ class Filter:
                             '%Y-%m-%d',         # '2015-09-17
                             '%Y-%m',            # '2015-09'
                             '%Y',               # '2015'
-                            ):
+                           ):
 
             try:
                 date = datetime.strptime(filter_date, time_format)
@@ -924,7 +975,7 @@ class Filter:
         else:
             if not filter_size[-1].isdigit():
                 raise KatalError("Can't analyse {0} in the filter. "
-                                "Available multiples are : {1}".format(filter_size,
+                                 "Available multiples are : {1}".format(filter_size,
                                                                         CST__MULTIPLES))
         try:
             match_size = float(filter_size) * multiple
@@ -1032,7 +1083,7 @@ class Filter:
                                  ' config key')
 
             res = res.replace("%i",
-                            remove_illegal_characters(str(database_index)))
+                              remove_illegal_characters(str(database_index)))
 
             return res not in list_names
 
@@ -3560,7 +3611,7 @@ def thefilehastobeadded__db(filename, _size):
                 either (False, None, None)
                 either (True, partial hashid, hashid)
     """
-    # (1) hont(datetime.strptime(date, CST__DTIME_FORMAT))w many file(s) in the database have a size equal to _size ?
+    # (1) how many file(s) in the database have a size equal to _size ?
     # a list of hashid(s) :
     res = [hashid for hashid in TARGET_DB if TARGET_DB[hashid][1] == _size]
 
