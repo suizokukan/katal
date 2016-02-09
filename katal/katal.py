@@ -56,7 +56,6 @@ import shutil
 import sqlite3
 import urllib.request
 import sys
-import unicodedata
 
 #===============================================================================
 # project's settings
@@ -108,14 +107,17 @@ def extra_logger(custom_parameters):
     """"
         extraLogger(custom_parameters)
         ________________________________________________________________________
+
         Mainly for syntax sugar.
-        R
-        It let to write logger.info(msg, color='blue') rather than
+
+        This functions allows to write logger.info(msg, color='blue') rather than
         logger.info(msg, extra={'color': 'blue'})
         ________________________________________________________________________
+
         PARAMETER
                 o custom_parameters : (list) extra parameters added to a Logger
-        RETURN
+
+        RETURNED VALUE
                 A Logger class which can take custom_parameters as extra parameters
                 and pass them to the extra argument of Logger
 
@@ -124,9 +126,12 @@ def extra_logger(custom_parameters):
                     Logger.info(msg, extra={'color': 'blue'})
         """
 
+    ############################################################################
     class CustomLogger(logging.Logger):
         """
-            A custom Logger class
+            A custom Logger class.
+
+            See https://docs.python.org/3.5/library/logging.html .
         """
         def _log(self, *args, **kwargs):
             extra = kwargs.get('extra', {})
@@ -145,24 +150,6 @@ USE_LOGFILE = False     # (bool) initialized from the configuration file
 LOGGER = logging.getLogger('katal')      # base logger, will log everywhere
 FILE_LOGGER = logging.getLogger('file')  # will log only in file
 LOGFILE_SIZE = 0                         # size of the current logfile.
-
-#===============================================================================
-# type(s)
-#===============================================================================
-
-# SELECT is made of SELECTELEMENT objects, where data about the original files
-# are stored.
-#
-# Due to Pylint's requirements, we can't name this type SelectElement.
-SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
-                                             "partialhashid",
-                                             "path",
-                                             "filename_no_extens",
-                                             "extension",
-                                             "size",
-                                             "date",
-                                             "targetname",
-                                             "targettags",])
 
 #===============================================================================
 # global constants : CST__*
@@ -237,6 +224,24 @@ except ImportError:
 else:
     CST__XDG_CONFIG = load_first_config(__projectname__)
 
+#===============================================================================
+# types and classes :
+#===============================================================================
+
+# SELECT is made of SELECTELEMENT objects, where data about the original files
+# are stored.
+#
+# Due to Pylint's requirements, we can't name this type SelectElement.
+SELECTELEMENT = namedtuple('SELECTELEMENT', ["fullname",
+                                             "partialhashid",
+                                             "path",
+                                             "filename_no_extens",
+                                             "extension",
+                                             "size",
+                                             "date",
+                                             "targetname",
+                                             "targettags",])
+
 ################################################################################
 class KatalError(Exception):
     """
@@ -261,11 +266,11 @@ class ConfigError(configparser.Error):
 #///////////////////////////////////////////////////////////////////////////////
 class ColorFormatter(logging.Formatter):
     """
-         A custom formatter class used to display color in stream output.
+        ColorFormatter class
 
-         see https://docs.python.org/3/library/logging.html .
+        A custom formatter class used to display color in stream output.
     """
-    # foreground colors :
+    # foreground colors : see "documentation:console colors".
     # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
     default = "\033[0m"
     red = "\033[0;31;1m"
@@ -767,46 +772,54 @@ class Config(configparser.ConfigParser):
         return parser
 
 
+################################################################################
 class Filter:
     """
-    Filter class. Filter files according to conditions in config file
-    ________________________________________________________________________
+        Filter class.
 
-    PARAMETERS
-            o config :  (Configparser section, default=None) the config section
-                        where is defined the filter. If provided, the filter
-                        will analyze to find conditions, else nothing is done.
-            o name   :  (str, default='') the name of the parser, used for
-                        formatting.
+        Filter files according to conditions in config file
+        ________________________________________________________________________
 
-    ATTRIBUTES
-            o self.conditions : (dict) A dict of conditions a file must succeed.
-                        The key is the name of condition, used for formatting,
-                        and the values are funtion that take the name of the
-                        file as parameter and return True if the file suceed the
-                        conditions
-            o self.name : the name of the Filter, from the name parameter.
+        PARAMETERS
+                o config :  (Configparser section, default=None) the config section
+                            where is defined the filter. If provided, the filter
+                            will analyze to find conditions, else nothing is done.
+                o name   :  (str, default='') the name of the parser, used for
+                            formatting.
+
+        ATTRIBUTES
+                o self.conditions : (dict) A dict of conditions a file must succeed.
+                            The key is the name of condition, used for formatting,
+                            and the values are funtion that take the name of the
+                            file as parameter and return True if the file suceed the
+                            conditions
+                o self.name : the name of the Filter, from the name parameter.
     """
+
+    #///////////////////////////////////////////////////////////////////////////
     def __init__(self, config=None, name=''):
         self.conditions = {}
         self.name = name
         if config is not None:
             self.read_config(config)
 
+    #///////////////////////////////////////////////////////////////////////////
     def read_config(self, config):
         """
-        self.read_config(config) Extract conditions from config section
-        ________________________________________________________________________
+            Filter.read_config(config)
+            ____________________________________________________________________
 
-        Analyze the ConfigParser section corresponding to the filter, and extract
-        the different conditions a file must check.
-        Populate self.conditions.
-        ________________________________________________________________________
+            Extract conditions from config section
 
-        PARAMETERS
-                o config :  (Configparser) the config section to analyze.
+            Analyze the ConfigParser section corresponding to the filter, and extract
+            the different conditions a file must check.
+            Populate self.conditions.
+            ____________________________________________________________________
 
-        no RETURNED VALUE
+            PARAMETERS
+                    o config :  (Configparser) the config section to analyze.
+
+            no RETURNED VALUE
         """
 
         if 'name' and 'iname' in config:
@@ -829,34 +842,37 @@ class Filter:
         self.conditions['name not existing'] = \
             self.match_name_not_existing(config.get('name not existing'))
 
-    def match_date(self, filter_date):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_date(filter_date):
         """
-        self.match_date(filter_date) -> function
-        ________________________________________________________________________
+            Filter.match_date(filter_date) -> function
+            ____________________________________________________________________
 
-        Analyze the parameter filter_date and return a function which test the
-        file against the date.
-        ________________________________________________________________________
+            Analyze the parameter filter_date and return a function which test the
+            file against the date.
+            ____________________________________________________________________
 
-        PARAMETERS
-                o filter_date : (str) the string from config file corresponding
-                                to the condition on date (eg. >2016-09).
+            PARAMETERS
+                    o filter_date : (str) the string from config file corresponding
+                                    to the condition on date (eg. >2016-09).
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
-                                        to the date condition.
-                                        If filter_date is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which tests if the file succeed
+                                            to the date condition.
+                                            If filter_date is evaluated to False,
+                                            always return True
         """
         if not filter_date:
             return lambda name: True
 
         # beware !  the order matters (<= before <, >= before >)
-        for condition, op in (('>=', operator.ge),
-                              ('>',  operator.gt),
-                              ('<=', operator.le),
-                              ('<' , operator.lt),
-                              ('=' , operator.eq)):
+        operat = None  # to ensure 'operat' will be defined after the loop.
+        for condition, operat in (('>=', operator.ge),
+                                  ('>', operator.gt),
+                                  ('<=', operator.le),
+                                  ('<', operator.lt),
+                                  ('=', operator.eq)):
             if filter_date.startswith(condition):
                 filter_date = filter_date[(len(condition)):]
                 break
@@ -871,7 +887,7 @@ class Filter:
                            ):
 
             try:
-                date = datetime.strptime(filter_date, time_format)
+                datetime.strptime(filter_date, time_format)
             except ValueError:
                 pass
             else:
@@ -880,13 +896,12 @@ class Filter:
             raise KatalError("Can't analyse the 'date' field {}, see "
                              "configuration example for correct format".format(filter_date))
 
-
         def return_match(name):
-            # ..................................................................
-            # protection against the FileNotFoundError exception.
-            # This exception would be raised on broken symbolic link on the
-            #   "size = os.stat(normpath(fullname)).st_size" line (see below).
-            # ..................................................................
+            """
+             protection against the FileNotFoundError exception.
+             This exception would be raised on broken symbolic link on the
+               "size = os.stat(normpath(fullname)).st_size" line (see below).
+            """
             if not os.path.exists(name):
                 return False
 
@@ -894,32 +909,46 @@ class Filter:
             # tz, time must be also in local tz.
             time = datetime.fromtimestamp(os.stat(name).st_mtime)
             time = time.replace(second=0, microsecond=0)
-            return op(time, filter_date)
+            return operat(time, filter_date)
 
         return return_match
 
-    def match_regex(self, regex):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_regex(regex):
         """
-        self.match_regex(regex) -> test_function
-        ________________________________________________________________________
+            Filter.match_regex(regex) -> test_function
+            ____________________________________________________________________
 
-        Analyze the parameter filter_regex and return a function which test if
-        the basename of the file match the regex
-        ________________________________________________________________________
+            Analyze the parameter filter_regex and return a function which test if
+            the basename of the file match the regex
+            ____________________________________________________________________
 
-        PARAMETERS
-                o regex : (str) the string from config file corresponding
-                                to the condition on date (eg. .*\.jpg).
+            PARAMETERS
+                    o regex : (str) the string from config file corresponding
+                                    to the condition on date.
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file match the regex
-                                        If regex is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file match the regex
+                                            If regex is evaluated to False,
+                                            always return True
         """
         if not regex:
             return lambda name: True
 
         def return_match(name):
+            """
+                return_match()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_regex()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             # TODO: search or match ? Search will let to write for ex. .jpg instead
             # of *.jpg since it doesn't match from the start of the string, but it
             # may have side effects.
@@ -927,24 +956,26 @@ class Filter:
 
         return return_match
 
-    def match_size(self, filter_size):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_size(filter_size):
         """
-        self.match_file(filter_size) -> test_function
-        ________________________________________________________________________
+            Filter.match_file(filter_size) -> test_function
+            ____________________________________________________________________
 
-        Analyze the parameter filter_regex and return a function which test if
-        the basename of the file match the regex
-        ________________________________________________________________________
+            Analyze the parameter filter_regex and return a function which test if
+            the basename of the file match the regex
+            ____________________________________________________________________
 
-        PARAMETERS
-                o filter_size: (str) the string from config file corresponding
-                                to the condition on size (eg. >1MB).
+            PARAMETERS
+                    o filter_size: (str) the string from config file corresponding
+                                    to the condition on size (eg. >1MB).
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
-                                        the condition on size
-                                        If filter_size is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file succeed
+                                            the condition on size
+                                            If filter_size is evaluated to False,
+                                            always return True
         """
         if not filter_size:
             return lambda name: True
@@ -955,11 +986,12 @@ class Filter:
         filter_size = filter_size.replace(' ', '')
 
         # beware !  the order matters (<= before <, >= before >)
-        for condition, op in (('>=', operator.ge),
-                              ('>',  operator.gt),
-                              ('<=', operator.le),
-                              ('<' , operator.lt),
-                              ('=' , operator.eq)):
+        operat = None  # to ensure 'operat' will be defined after the loop.
+        for condition, operat in (('>=', operator.ge),
+                                  ('>', operator.gt),
+                                  ('<=', operator.le),
+                                  ('<', operator.lt),
+                                  ('=', operator.eq)):
             if filter_size.startswith(condition):
                 filter_size = filter_size[(len(condition)):]
                 break
@@ -984,6 +1016,18 @@ class Filter:
                              "Format must be for example size : >= 10 MB".format(filter_size))
 
         def return_match(name):
+            """
+                return_match()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_size()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             # ..................................................................
             # protection against the FileNotFoundError exception.
             # This exception would be raised on broken symbolic link
@@ -992,58 +1036,73 @@ class Filter:
                 return False
 
             size = os.stat(name).st_size
-            return op(size, match_size)
+            return operat(size, match_size)
 
         return return_match
 
-    def match_operator(self, op, filter2=None):
+    #///////////////////////////////////////////////////////////////////////////
+    def match_operator(self, operat, filter2=None):
         """
-        self.match_operator(op, filter2=None) -> test_function
-        ________________________________________________________________________
+            Filter.match_operator(operat, filter2=None) -> test_function
+            ____________________________________________________________________
 
-        Test the boolean operation between self and filter2.
-        For example, self.match_operator(operator.and_, filter2)(file)
-            -> self(file) and filter2(file)
-        ________________________________________________________________________
+            Test the boolean operation between self and filter2.
+            For example, self.match_operator(operator.and_, filter2)(file)
+                -> self(file) and filter2(file)
+            ____________________________________________________________________
 
-        PARAMETERS
-                o op : the boolean operation to make between filters (eg. operator.and)
-                o filter2: (Filter default=None) the second filter to do the operation
+            PARAMETERS
+                    o operat : the boolean operation to make between filters (eg. operator.and)
+                    o filter2: (Filter default=None) the second filter to do the operation
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
-                                        the condition on operations of Filters.
-                                        If op is evaluated to False,
-                                        always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file succeed
+                                            the condition on operations of Filters.
+                                            If operat is evaluated to False,
+                                            always return True
         """
-        if not op:
+        if not operat:
             return lambda name: True
 
         def return_match(name):
+            """
+                return_match()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_operator()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             if filter2 is None:             # Negation is not a binary operator
-                return op(self(name))
+                return operat(self(name))
             else:
-                return op(self(name), filter2(name))
+                return operat(self(name), filter2(name))
 
         return return_match
 
-    def match_name_not_existing(self, name_template=None):
+    #///////////////////////////////////////////////////////////////////////////
+    @staticmethod
+    def match_name_not_existing(name_template=None):
         """
-        self.match_name_not_existing(name_template) -> test_function
-        ________________________________________________________________________
+            Filter.match_name_not_existing(name_template) -> test_function
+            ____________________________________________________________________
 
-        Analyze the name_template and return a function which test if the
-        name_template modified accoding the file is already in the db.
-        ________________________________________________________________________
+            Analyze the name_template and return a function which test if the
+            name_template modified accoding the file is already in the db.
+            ____________________________________________________________________
 
-        PARAMETERS
-                o filter_name_not_existing: (str) the string from config file
-                corresponding to the name_template to test
+            PARAMETERS
+                    o filter_name_not_existing: (str) the string from config file
+                    corresponding to the name_template to test
 
-        RETURNED VALUE
-                o function(file_name) : function which test if the file succeed
-                the condition
-                If filter_size is evaluated to False, always return True
+            RETURNED VALUE
+                    o function(file_name) : function which test if the file succeed
+                    the condition
+                    If filter_size is evaluated to False, always return True
         """
         if not name_template:
             return lambda name: True
@@ -1051,6 +1110,18 @@ class Filter:
         list_names = set(name for _, _, name in TARGET_DB.items())
 
         def return_match(name):
+            """
+                match_name_not_existing()
+                ________________________________________________________________
+
+                the function to be returned by Filter.match_size()
+                ________________________________________________________________
+
+                PARAMETER :
+                        o  name : (str)
+
+                RETURNED VALUE : a boolean
+            """
             res = name
             size = os.stat(name).st_size
             time = datetime.fromtimestamp(os.stat(name).st_mtime)
@@ -1087,75 +1158,122 @@ class Filter:
 
             return res not in list_names
 
+    #///////////////////////////////////////////////////////////////////////////
     def test(self, file_name):
         """
-        self.test(file_name) -> check if the file succed to all conditions"
-        ________________________________________________________________________
+            Filter.test(file_name) -> check if the file succed to all conditions
+            ____________________________________________________________________
 
-        PARAMETERS
-                o file_name : the full name of the file to test
+            PARAMETERS
+                    o file_name : the full name of the file to test
 
-        RETURNED VALUE:
-                o True if file succed to all conditions, else False
+            RETURNED VALUE:
+                    o True if file succeed to all conditions, else False
         """
         list_tests_failled = [key for key, test in self.conditions.items()
                               if not test(file_name)]
 
         if list_tests_failled:
-            LOGGER.info('  o The following tests failed for filter "{}" and file "{}": '
-                        '{}'.format(self.name, file_name, list_tests_failled))
+            LOGGER.info('  o The following tests failed for filter "%s" and file "%s": '
+                        '%s', self.name, file_name, list_tests_failled)
             return False
         else:
             return True
 
+    #///////////////////////////////////////////////////////////////////////////
     def __call__(self, file_name):
         """
-        self(file_name) -> self.test(file_name)
+                Filter.__call__()
+                ________________________________________________________________
+
+                self(file_name) -> self.test(file_name)
+                ________________________________________________________________
+
+                PARAMETER
+                        o file_name : (str)
+
+                RETURNED VALUE : (bool) Filter.test(file_name)
         """
         return self.test(file_name)
 
+    #///////////////////////////////////////////////////////////////////////////
     def __and__(self, filter2):
         """
-        Return (self & filter2)
+                Filter.__and__()
+                ________________________________________________________________
 
-        (self & filter2)(file_name) <=> self(file_name) and filter2(file_name)
+                Return (self & filter2)
+
+                (self & filter2)(file_name) <=> self(file_name) and filter2(file_name)
+                ________________________________________________________________
+
+                PARAMETER
+                        o filter2 : a Filter object
+
+                RETURNED VALUE : self and filter2
         """
-        f = Filter()
-        f.conditions['and'] = self.match_operator(operator.and_, filter2)
-        return f
+        resfilter = Filter()
+        resfilter.conditions['and'] = self.match_operator(operator.and_, filter2)
+        return resfilter
 
+    #///////////////////////////////////////////////////////////////////////////
     def __or__(self, filter2):
         """
-        Return (self | filter2)
+                Filter.__or__()
+                ________________________________________________________________
 
-        (self | filter2)(file_name) <=> self(file_name) or² filter2(file_name)
+                Return (self | filter2)
+
+                (self | filter2)(file_name) <=> self(file_name) or² filter2(file_name)
+                ________________________________________________________________
+
+                PARAMETER
+                        o filter2 : a Filter object
+
+                RETURNED VALUE : self or filter2
         """
-        f = Filter()
-        f.conditions['or'] = self.match_operator(operator.or_, filter2)
-        return f
+        resfilter = Filter()
+        resfilter.conditions['or'] = self.match_operator(operator.or_, filter2)
+        return resfilter
 
+    #///////////////////////////////////////////////////////////////////////////
     def __xor__(self, filter2):
         """
-        Return (self ^ filter2)
+                Filter.__xor__()
+                ________________________________________________________________
 
-        (self ^ filter2)(file_name) <=> self(file_name) xor filter2(file_name)
+                Return (self ^ filter2)
+
+                (self ^ filter2)(file_name) <=> self(file_name) xor filter2(file_name)
+                ________________________________________________________________
+
+                PARAMETER :
+                        o filter2 : a Filter object
+
+                RETURNED VALUE : self xor filter2
         """
-        f = Filter()
-        f.conditions['xor'] = self.match_operator(operator.xor, filter2)
-        return f
+        resfilter = Filter()
+        resfilter.conditions['xor'] = self.match_operator(operator.xor, filter2)
+        return resfilter
 
+    #///////////////////////////////////////////////////////////////////////////
     def __invert__(self):
         """
-        Return ~self (not self)
+                Filter.__invert__()
+                ________________________________________________________________
 
-        (~ self)(file_name) <=> not self(file_name)
+                Return ~self (not self)
+
+                (~ self)(file_name) <=> not self(file_name)
+                ________________________________________________________________
+
+                NO PARAMETER
+
+                RETURNED VALUE : not self
         """
-        f = Filter()
-        f.conditions['not'] = self.match_operator(operator.not_)
-        return f
-
-#///////////////////////////////////////////////////////////////////////////////
-
+        resfilter = Filter()
+        resfilter.conditions['not'] = self.match_operator(operator.not_)
+        return resfilter
 
 ################################################################################
 class KatalError(BaseException):
@@ -1316,7 +1434,8 @@ def action__cleandbrm():
         for hashid in files_to_be_rmved_from_the_db:
             if not ARGS.off:
                 LOGGER.info("    o removing \"%s\" record "
-                            "from the database", hashid)
+                            "from the database", hashid,
+                            color="white")
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
                 db_connection.commit()
 
@@ -1412,11 +1531,14 @@ def action__findtag(tag):
 
     len_res = len(res)
     if len_res == 0:
-        LOGGER.info("    o no file matches the tag \"%s\" .", tag)
+        LOGGER.info("    o no file matches the tag \"%s\" .", tag,
+                    color='white')
     elif len_res == 1:
-        LOGGER.info("    o one file matches the tag \"%s\" .", tag)
+        LOGGER.info("    o one file matches the tag \"%s\" .", tag,
+                    color="white")
     else:
-        LOGGER.info("    o %s files match the tag \"%s\" .", len_res, tag)
+        LOGGER.info("    o %s files match the tag \"%s\" .", len_res, tag,
+                    color="white")
 
     db_connection.commit()
     db_connection.close()
@@ -1875,7 +1997,8 @@ def action__select():
         LOGGER.info("    o required space : %s; "
                     "available space on disk : %s (%s)",
                     size_as_str(SELECT_SIZE_IN_BYTES), size_as_str(available_space),
-                    size_ok, color=colorconsole)
+                    size_ok,
+                    color=colorconsole)
 
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add and CFG_PARAMETERS["target"]["mode"] != "nocopy":
@@ -1908,7 +2031,7 @@ def action__settagsstr(tagsstr, dest):
                 o dest         : (str) a regex string describing what files are
                                  concerned
     """
-    LOGGER.info("  = let's apply the tag string\"%s\" to %s", tagsstr, dest)
+    LOGGER.info("  = let's apply the tag string \"%s\" to %s", tagsstr, dest)
     modify_the_tag_of_some_files(tag=tagsstr, dest=dest, mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1990,19 +2113,23 @@ def action__whatabout(src):
         """
                 Display the expected informations about a file named srcfile_name .
         """
-        LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, srcfile_name)
+        LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, srcfile_name,
+                    color="white")
         size = os.stat(srcfile_name).st_size
-        LOGGER.info("    = size : %s", size_as_str(size))
+        LOGGER.info("    = size : %s", size_as_str(size),
+                    color="white")
 
         sourcedate = datetime.utcfromtimestamp(os.path.getmtime(srcfile_name))
         sourcedate = sourcedate.replace(second=0, microsecond=0)
         sourcedate2 = sourcedate
         sourcedate2 -= datetime(1970, 1, 1)
         sourcedate2 = sourcedate2.total_seconds()
-        LOGGER.info("    = mtime : %s (epoch value : %s)", sourcedate, sourcedate2)
+        LOGGER.info("    = mtime : %s (epoch value : %s)", sourcedate, sourcedate2,
+                    color="white")
 
         srchash = hashfile64(srcfile_name)
-        LOGGER.info("    = hash : %s", srchash)
+        LOGGER.info("    = hash : %s", srchash,
+                    color="white")
 
         # is the hash in the database ?
         already_present_in_db = False
@@ -2012,9 +2139,11 @@ def action__whatabout(src):
                 break
         if already_present_in_db:
             LOGGER.info("    = the file's content is equal to a file "
-                        "ALREADY present in the database.")
+                        "ALREADY present in the database.",
+                        color="white")
         else:
-            LOGGER.info("    = the file isn't present in the database.")
+            LOGGER.info("    = the file isn't present in the database.",
+                        color="white")
 
     # (1) does src exist ?
     normsrc = normpath(src)
@@ -2038,22 +2167,32 @@ def action__whatabout(src):
         # informations about the source file :
         if normpath(ARGS.targetpath) in normpath(src):
             # special case : the file is inside the target directory :
-            LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, normsrc)
-            LOGGER.info("    This file is inside the target directory.")
+            LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, normsrc,
+                        color="white")
+            LOGGER.info("    This file is inside the target directory.",
+                        color="white")
             srchash = hashfile64(normsrc)
-            LOGGER.info("    = hash : %s", srchash)
-            LOGGER.info("    Informations extracted from the database :")
+            LOGGER.info("    = hash : %s", srchash,
+                        color="white")
+            LOGGER.info("    Informations extracted from the database :",
+                        color="white")
             # informations from the database :
             db_connection = sqlite3.connect(get_database_fullname())
             db_connection.row_factory = sqlite3.Row
             db_cursor = db_connection.cursor()
             for db_record in db_cursor.execute("SELECT * FROM dbfiles WHERE hashid=?", (srchash,)):
-                LOGGER.info("    = partial hashid : %s", db_record["partialhashid"])
-                LOGGER.info("    = name : %s", db_record["name"])
-                LOGGER.info("    = size : %s", db_record["size"])
-                LOGGER.info("    = source name : %s", db_record["sourcename"])
-                LOGGER.info("    = source date : %s", db_record["sourcedate"])
-                LOGGER.info("    = tags' string : %s", db_record["tagsstr"])
+                LOGGER.info("    = partial hashid : %s", db_record["partialhashid"],
+                            color="white")
+                LOGGER.info("    = name : %s", db_record["name"],
+                            color="white")
+                LOGGER.info("    = size : %s", db_record["size"],
+                            color="white")
+                LOGGER.info("    = source name : %s", db_record["sourcename"],
+                            color="white")
+                LOGGER.info("    = source date : %s", db_record["sourcedate"],
+                            color="white")
+                LOGGER.info("    = tags' string : %s", db_record["tagsstr"],
+                            color="white")
             db_connection.close()
 
         else:
@@ -2161,12 +2300,8 @@ def configure_loggers():
             formatter1 = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
             handler1.setFormatter(formatter1)
 
-            if CONFIG['display']['verbosity'] == 'none':
-                handler1.setLevel(logging.INFO) # To keep a record of what is done
-            elif CONFIG['display']['verbosity'] == 'normal':
-                handler1.setLevel(logging.INFO)
-            elif CONFIG['display']['verbosity'] == 'high':
-                handler1.setLevel(logging.DEBUG)
+            # NB: the --verbosity argument has nothing to do with the log file :
+            handler1.setLevel(logging.DEBUG)
 
             LOGGER.addHandler(handler1)
             FILE_LOGGER.addHandler(handler1)
@@ -2195,7 +2330,7 @@ def configure_loggers():
     LOGGER.addHandler(handler2)
 
     #...........................................................................
-    # setting the threshold for each handler :
+    # setting the threshold for each logger :
     # see https://docs.python.org/3.5/library/logging.html
     FILE_LOGGER.setLevel(logging.DEBUG)
     LOGGER.setLevel(logging.DEBUG)
@@ -2470,7 +2605,8 @@ def draw_table(rows, data):
         string = " "*6 + "+"
         for _, row_maxlength, _ in rows:
             string += "-"*(row_maxlength+2) + "+"
-        LOGGER.info(string)
+        LOGGER.info(string,
+                    color="white")
 
     # real rows' widths : it may happen that a row's width is greater than
     # the maximal value given in rows since the row name is longer than
@@ -2485,7 +2621,8 @@ def draw_table(rows, data):
     string = " "*6 + "|"
     for row_name, row_maxlength, row_separator in _rows:
         string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + row_separator
-    LOGGER.info(string)
+    LOGGER.info(string,
+                color="white")
 
     draw_line()
 
@@ -2497,7 +2634,8 @@ def draw_table(rows, data):
             string += (" " + text + \
                        " "*(rows[row_index][1]-len(text)) + \
                        " " + rows[row_index][2])
-        LOGGER.info(string)  # let's write the computed line
+        LOGGER.info(string,
+                    color="white")  # let's write the computed line
 
     draw_line()
 
@@ -2539,7 +2677,7 @@ def eval_filters(filters):
                                                                               exception))
 
 #///////////////////////////////////////////////////////////////////////////////
-def fill_select(debug_datatime=None):
+def fill_select():
     """
         fill_select()
         ________________________________________________________________________
@@ -2548,9 +2686,7 @@ def fill_select(debug_datatime=None):
         the source path. This function is used by action__select() .
         ________________________________________________________________________
 
-        PARAMETERS
-                o debug_datatime : None (normal value) or a dict of CST__DTIME_FORMAT
-                                   strings if in debug/test mode.
+        NO PARAMETER
 
         RETURNED VALUE
                 (int) the number of discarded files
@@ -3141,10 +3277,10 @@ def main_warmup(timestamp_start):
                                      CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
                                      CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
-        LOGGER.debug("  = let's use \"%s\" as %s", path, info)
+        LOGGER.info("  = let's use \"%s\" as %s", path, info)
 
-    LOGGER.debug("  = source directory : \"%s\" (path : \"%s\")",
-                 source_path, normpath(source_path))
+    LOGGER.info("  = source directory : \"%s\" (path : \"%s\")",
+                source_path, normpath(source_path))
 
     #...........................................................................
     if ARGS.infos:
@@ -3187,12 +3323,13 @@ def modify_the_tag_of_some_files(tag, dest, mode):
                 files_to_be_modified.append((db_record["hashid"], db_record["name"]))
 
         if len(files_to_be_modified) == 0:
-            LOGGER.info("    * no files match the given name(s) given as a parameter.")
+            LOGGER.warning("    * no files match the given name(s) given as a parameter.")
         else:
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
 
-                LOGGER.info("    o applying the tag string \"%s\" to %s.", tag, filename)
+                LOGGER.info("    o applying the tag string \"%s\" to %s.", tag, filename,
+                            color="white")
 
                 if ARGS.off:
                     pass
@@ -3284,6 +3421,14 @@ def read_target_db():
     if not os.path.exists(normpath(get_database_fullname())):
         create_empty_db(normpath(get_database_fullname()))
 
+    # This test should be useless since read_target_db() is called at the very
+    # beginning of the script, when TARGET_DB is empty. Just to be sure, the
+    # test has been added to avoid that the line :
+    #           TARGET_DB[db_record["hashid"]] = ...
+    # ... erases some data.
+    if TARGET_DB:
+        raise KatalError("Anomaly : read_target_db() must be used with an empty TARGET_DB dict !")
+
     db_connection = sqlite3.connect(get_database_fullname())
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
@@ -3353,7 +3498,8 @@ def show_infos_about_source_path():
     source_path = CFG_PARAMETERS["source"]["path"]
 
     LOGGER.info("  = informations about the \"%s\" "
-                "(path: \"%s\") source directory =", source_path, normpath(source_path))
+                "(path: \"%s\") source directory =", source_path, normpath(source_path),
+                color="white")
 
     if not os.path.exists(normpath(source_path)):
         LOGGER.warning("    ! can't find source path \"%s\" .", source_path)
@@ -3405,16 +3551,20 @@ def show_infos_about_source_path():
                     files_number_interval = 0
             else:
                 LOGGER.warning("    ! browsing %s, an error occured : "
-                               "can't read the file ", source_path, color='red')
-                LOGGER.warning("    \"%s\"", fullname, color='red')
+                               "can't read the file ", source_path)
+                LOGGER.warning("    \"%s\"", fullname)
 
-    LOGGER.info("    o files number : %s file(s)", files_number)
-    LOGGER.info("    o total size : %s", size_as_str(total_size))
-    LOGGER.info("    o list of all extensions (%s extension(s) found): ", len(extensions))
+    LOGGER.info("    o files number : %s file(s)", files_number,
+                color="white")
+    LOGGER.info("    o total size : %s", size_as_str(total_size),
+                color="white")
+    LOGGER.info("    o list of all extensions (%s extension(s) found): ", len(extensions),
+                color="white")
 
     for extension in sorted(extensions, key=lambda s: s.lower()):
         LOGGER.info("      - %15s : %s files, %s",
-                    extension, extensions[extension][0], size_as_str(extensions[extension][1]))
+                    extension, extensions[extension][0], size_as_str(extensions[extension][1]),
+                    color="white")
 
     INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
 
@@ -3435,7 +3585,8 @@ def show_infos_about_target_path():
     #...........................................................................
     LOGGER.info("  = informations about the \"%s\" "
                 "(path: \"%s\") target directory =",
-                ARGS.targetpath, normpath(ARGS.targetpath))
+                ARGS.targetpath, normpath(ARGS.targetpath),
+                color="white")
 
     #...........................................................................
     if is_ntfs_prefix_mandatory(ARGS.targetpath):
@@ -3471,7 +3622,7 @@ def show_infos_about_target_path():
     # code which reads the table.
     rows_data = []
     row_index = 0
-    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles ORDER BY name'):
         sourcedate = \
             datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(CST__DTIME_FORMAT)
 
@@ -3492,7 +3643,8 @@ def show_infos_about_target_path():
         LOGGER.warning("    ! (empty database)")
         return 0
 
-    LOGGER.info("    o %s file(s) in the database :", row_index)
+    LOGGER.info("    o %s file(s) in the database :", row_index,
+                color="white")
 
     targetname_maxlength = \
             int(CFG_PARAMETERS["display"]["target filename.max length on console"])
@@ -3626,7 +3778,7 @@ def thefilehastobeadded__db(filename, _size):
     src_partialhashid = hashfile64(filename=filename,
                                    stop_after=CST__PARTIALHASHID_BYTESNBR)
 
-    new_res = [hashid for hashid in res if TARGET_DB[0] == target_partialhashid]
+    new_res = [hashid for hashid in res if TARGET_DB[0] == src_partialhashid]
 
     res = new_res
     if not res:
