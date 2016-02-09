@@ -3248,6 +3248,14 @@ def read_target_db():
     if not os.path.exists(normpath(get_database_fullname())):
         create_empty_db(normpath(get_database_fullname()))
 
+    # This test should be useless since read_target_db() is called at the very
+    # beginning of the script, when TARGET_DB is empty. Just to be sure, the
+    # test has been added to avoid that the line :
+    #           TARGET_DB[db_record["hashid"]] = ...
+    # ... erases some data.
+    if TARGET_DB:
+        raise KatalError("Anomaly : read_target_db() must be used with an empty TARGET_DB dict !")
+
     db_connection = sqlite3.connect(get_database_fullname())
     db_connection.row_factory = sqlite3.Row
     db_cursor = db_connection.cursor()
