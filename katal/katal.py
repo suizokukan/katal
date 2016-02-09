@@ -1862,7 +1862,7 @@ def configure_loggers():
     LOGGER.addHandler(handler2)
 
     #...........................................................................
-    # setting the threshold for each handler :
+    # setting the threshold for each logger :
     # see https://docs.python.org/3.5/library/logging.html
     FILE_LOGGER.setLevel(logging.DEBUG)
     LOGGER.setLevel(logging.DEBUG)
