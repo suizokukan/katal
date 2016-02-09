@@ -3372,8 +3372,8 @@ def show_infos_about_source_path():
                     files_number_interval = 0
             else:
                 LOGGER.warning("    ! browsing %s, an error occured : "
-                               "can't read the file ", source_path, color='red')
-                LOGGER.warning("    \"%s\"", fullname, color='red')
+                               "can't read the file ", source_path)
+                LOGGER.warning("    \"%s\"", fullname)
 
     LOGGER.info("    o files number : %s file(s)", files_number)
     LOGGER.info("    o total size : %s", size_as_str(total_size))
