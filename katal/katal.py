@@ -1832,12 +1832,8 @@ def configure_loggers():
             formatter1 = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
             handler1.setFormatter(formatter1)
 
-            if ARGS.verbosity == 'none':
-                handler1.setLevel(logging.INFO) # To keep a record of what is done
-            elif ARGS.verbosity == 'normal':
-                handler1.setLevel(logging.INFO)
-            elif ARGS.verbosity == 'high':
-                handler1.setLevel(logging.DEBUG)
+            # NB: the --verbosity argument has nothing to do with the log file :
+            handler1.setLevel(logging.DEBUG)
 
             LOGGER.addHandler(handler1)
             FILE_LOGGER.addHandler(handler1)
