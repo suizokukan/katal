@@ -1046,11 +1046,14 @@ def action__findtag(tag):
 
     len_res = len(res)
     if len_res == 0:
-        LOGGER.info("    o no file matches the tag \"%s\" .", tag, color='white')
+        LOGGER.info("    o no file matches the tag \"%s\" .", tag,
+                    color='white')
     elif len_res == 1:
-        LOGGER.info("    o one file matches the tag \"%s\" .", tag, color="white")
+        LOGGER.info("    o one file matches the tag \"%s\" .", tag,
+                    color="white")
     else:
-        LOGGER.info("    o %s files match the tag \"%s\" .", len_res, tag, color="white")
+        LOGGER.info("    o %s files match the tag \"%s\" .", len_res, tag,
+                    color="white")
 
     db_connection.commit()
     db_connection.close()
@@ -1509,7 +1512,8 @@ def action__select():
         LOGGER.info("    o required space : %s; "
                     "available space on disk : %s (%s)",
                     size_as_str(SELECT_SIZE_IN_BYTES), size_as_str(available_space),
-                    size_ok, color=colorconsole)
+                    size_ok,
+                    color=colorconsole)
 
     # if there's no --add option, let's give some examples of the target names :
     if not ARGS.add and CFG_PARAMETERS["target"]["mode"] != "nocopy":
@@ -1672,22 +1676,32 @@ def action__whatabout(src):
         # informations about the source file :
         if normpath(ARGS.targetpath) in normpath(src):
             # special case : the file is inside the target directory :
-            LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, normsrc, color="white")
-            LOGGER.info("    This file is inside the target directory.", color="white")
+            LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, normsrc,
+                        color="white")
+            LOGGER.info("    This file is inside the target directory.",
+                        color="white")
             srchash = hashfile64(normsrc)
-            LOGGER.info("    = hash : %s", srchash, color="white")
-            LOGGER.info("    Informations extracted from the database :", color="white")
+            LOGGER.info("    = hash : %s", srchash,
+                        color="white")
+            LOGGER.info("    Informations extracted from the database :",
+                        color="white")
             # informations from the database :
             db_connection = sqlite3.connect(get_database_fullname())
             db_connection.row_factory = sqlite3.Row
             db_cursor = db_connection.cursor()
             for db_record in db_cursor.execute("SELECT * FROM dbfiles WHERE hashid=?", (srchash,)):
-                LOGGER.info("    = partial hashid : %s", db_record["partialhashid"], color="white")
-                LOGGER.info("    = name : %s", db_record["name"], color="white")
-                LOGGER.info("    = size : %s", db_record["size"], color="white")
-                LOGGER.info("    = source name : %s", db_record["sourcename"], color="white")
-                LOGGER.info("    = source date : %s", db_record["sourcedate"], color="white")
-                LOGGER.info("    = tags' string : %s", db_record["tagsstr"], color="white")
+                LOGGER.info("    = partial hashid : %s", db_record["partialhashid"],
+                            color="white")
+                LOGGER.info("    = name : %s", db_record["name"],
+                            color="white")
+                LOGGER.info("    = size : %s", db_record["size"],
+                            color="white")
+                LOGGER.info("    = source name : %s", db_record["sourcename"],
+                            color="white")
+                LOGGER.info("    = source date : %s", db_record["sourcedate"],
+                            color="white")
+                LOGGER.info("    = tags' string : %s", db_record["tagsstr"],
+                            color="white")
             db_connection.close()
 
         else:
@@ -2137,7 +2151,8 @@ def draw_table(rows, data):
         string = " "*6 + "+"
         for _, row_maxlength, _ in rows:
             string += "-"*(row_maxlength+2) + "+"
-        LOGGER.info(string, color="white")
+        LOGGER.info(string,
+                    color="white")
 
     # real rows' widths : it may happen that a row's width is greater than
     # the maximal value given in rows since the row name is longer than
@@ -2152,7 +2167,8 @@ def draw_table(rows, data):
     string = " "*6 + "|"
     for row_name, row_maxlength, row_separator in _rows:
         string += " " + row_name + " "*(row_maxlength-len(row_name)+1) + row_separator
-    LOGGER.info(string, color="white")
+    LOGGER.info(string,
+                color="white")
 
     draw_line()
 
@@ -2164,7 +2180,8 @@ def draw_table(rows, data):
             string += (" " + text + \
                        " "*(rows[row_index][1]-len(text)) + \
                        " " + rows[row_index][2])
-        LOGGER.info(string, color="white")  # let's write the computed line
+        LOGGER.info(string,
+                    color="white")  # let's write the computed line
 
     draw_line()
 
@@ -3320,7 +3337,8 @@ def show_infos_about_source_path():
     source_path = CFG_PARAMETERS["source"]["path"]
 
     LOGGER.info("  = informations about the \"%s\" "
-                "(path: \"%s\") source directory =", source_path, normpath(source_path), color="white")
+                "(path: \"%s\") source directory =", source_path, normpath(source_path),
+                color="white")
 
     if not os.path.exists(normpath(source_path)):
         LOGGER.warning("    ! can't find source path \"%s\" .", source_path)
@@ -3375,13 +3393,17 @@ def show_infos_about_source_path():
                                "can't read the file ", source_path)
                 LOGGER.warning("    \"%s\"", fullname)
 
-    LOGGER.info("    o files number : %s file(s)", files_number, color="white")
-    LOGGER.info("    o total size : %s", size_as_str(total_size), color="white")
-    LOGGER.info("    o list of all extensions (%s extension(s) found): ", len(extensions), color="white")
+    LOGGER.info("    o files number : %s file(s)", files_number,
+                color="white")
+    LOGGER.info("    o total size : %s", size_as_str(total_size),
+                color="white")
+    LOGGER.info("    o list of all extensions (%s extension(s) found): ", len(extensions),
+                color="white")
 
     for extension in sorted(extensions, key=lambda s: s.lower()):
         LOGGER.info("      - %15s : %s files, %s",
-                    extension, extensions[extension][0], size_as_str(extensions[extension][1]), color="white")
+                    extension, extensions[extension][0], size_as_str(extensions[extension][1]),
+                    color="white")
 
     INFOS_ABOUT_SRC_PATH = (total_size, files_number, extensions)
 
@@ -3402,7 +3424,8 @@ def show_infos_about_target_path():
     #...........................................................................
     LOGGER.info("  = informations about the \"%s\" "
                 "(path: \"%s\") target directory =",
-                ARGS.targetpath, normpath(ARGS.targetpath), color="white")
+                ARGS.targetpath, normpath(ARGS.targetpath),
+                color="white")
 
     #...........................................................................
     if is_ntfs_prefix_mandatory(ARGS.targetpath):
@@ -3459,7 +3482,8 @@ def show_infos_about_target_path():
         LOGGER.warning("    ! (empty database)")
         return 0
 
-    LOGGER.info("    o %s file(s) in the database :", row_index, color="white")
+    LOGGER.info("    o %s file(s) in the database :", row_index,
+                color="white")
 
     targetname_maxlength = \
             int(CFG_PARAMETERS["display"]["target filename.max length on console"])
