@@ -241,7 +241,7 @@ class ColorFormatter(logging.Formatter):
 
         A custom formatter class used to display color in stream output.
     """
-    # foreground colors :
+    # foreground colors : see "documentation:console colors".
     # (for more colors, see https://en.wikipedia.org/wiki/ANSI_escape_code)
     default = "\033[0m"
     red = "\033[0;31;1m"

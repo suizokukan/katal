@@ -525,3 +525,12 @@ trash name is defined in the configuration file.
     o  welcome_in_logfile()                 : display a welcome message in the log file
     o  where_is_the_configfile()            : return the config file name from ARGS.configfile or
                                               from the paths returned by possible_paths_to_cfg().
+##(8.8) console colors
+
+Katal uses four different colors (see the ColorFormatter class for more details) :
+
+    * default : LOGGER.debug(), LOGGER.info()
+    * white : LOGGER.info(..., color='white')
+    * red : LOGGER.error()
+    * cyan : LOGGER.warning()
+    
