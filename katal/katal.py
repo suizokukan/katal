@@ -3469,7 +3469,7 @@ def show_infos_about_target_path():
     # code which reads the table.
     rows_data = []
     row_index = 0
-    for db_record in db_cursor.execute('SELECT * FROM dbfiles'):
+    for db_record in db_cursor.execute('SELECT * FROM dbfiles ORDER BY name'):
         sourcedate = \
             datetime.utcfromtimestamp(db_record["sourcedate"]).strftime(CST__DTIME_FORMAT)
 
