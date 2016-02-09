@@ -2821,10 +2821,10 @@ def main_warmup(timestamp_start):
                                      CST__KATALSYS_SUBDIR, CST__TASKS_SUBSUBDIR), "tasks subdir"),
                        (os.path.join(normpath(ARGS.targetpath),
                                      CST__KATALSYS_SUBDIR, CST__LOG_SUBSUBDIR), "log subdir"),):
-        LOGGER.debug("  = let's use \"%s\" as %s", path, info)
+        LOGGER.info("  = let's use \"%s\" as %s", path, info)
 
-    LOGGER.debug("  = source directory : \"%s\" (path : \"%s\")",
-                 source_path, normpath(source_path))
+    LOGGER.info("  = source directory : \"%s\" (path : \"%s\")",
+                source_path, normpath(source_path))
 
     #...........................................................................
     if ARGS.infos:
