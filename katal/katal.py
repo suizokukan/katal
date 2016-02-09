@@ -328,14 +328,14 @@ class Config(configparser.ConfigParser):
         self.read_parameters_from_cfgfile()
 
     def arguments_to_dict(self):
-        return {
-            'display': {
-                'verbosity': self.verbosity,
-            },
-            'source': {
-                'strict comparison': self.strictcmp
-            },
-        }
+        return_dict = {}
+        if self.verbosity is not None:
+            return_dict['display']['verbosity'] = self.verbosity
+
+        if self.strictcmp:
+            return_dict['source']['strict comparison'] =  self.strictcmp
+
+        return return_dict
 
     def check_args(self, parser):
         """
@@ -1431,7 +1431,7 @@ def action__new(targetname):
                                      CST__KATALSYS_SUBDIR,
                                      CST__DATABASE_NAME))
 
-    if ARGS.verbosity != 'none':
+    if CONFIG['display']['verbosity'] != 'none':
         answer = \
             input(("\nDo you want to download the default config file "
                    "into the expected directory ? (y/N) "))
@@ -1678,7 +1678,7 @@ def action__reset():
         LOGGER.warning("    ! no database found, nothing to do .")
         return
 
-    if ARGS.verbosity != 'none':
+    if CONFIG['display']['verbosity'] != 'none':
         answer = \
             input(("\nDo you really want to delete (=move to the katal trash directory)"
                    "the files in the target directory and the database (y/N) "))
@@ -2104,11 +2104,11 @@ def configure_loggers():
             formatter1 = logging.Formatter('%(levelname)s::%(asctime)s::  %(message)s')
             handler1.setFormatter(formatter1)
 
-            if ARGS.verbosity == 'none':
+            if CONFIG['display']['verbosity'] == 'none':
                 handler1.setLevel(logging.INFO) # To keep a record of what is done
-            elif ARGS.verbosity == 'normal':
+            elif CONFIG['display']['verbosity'] == 'normal':
                 handler1.setLevel(logging.INFO)
-            elif ARGS.verbosity == 'high':
+            elif CONFIG['display']['verbosity'] == 'high':
                 handler1.setLevel(logging.DEBUG)
 
             LOGGER.addHandler(handler1)
@@ -2128,11 +2128,11 @@ def configure_loggers():
     handler2 = logging.StreamHandler()
     handler2.setFormatter(formatter2)
 
-    if ARGS.verbosity == 'none':
+    if CONFIG['display']['verbosity'] == 'none':
         handler2.setLevel(logging.ERROR)
-    elif ARGS.verbosity == 'normal':
+    elif CONFIG['display']['verbosity'] == 'normal':
         handler2.setLevel(logging.INFO)
-    elif ARGS.verbosity == 'high':
+    elif CONFIG['display']['verbosity'] == 'high':
         handler2.setLevel(logging.DEBUG)
 
     LOGGER.addHandler(handler2)
@@ -2545,7 +2545,7 @@ def fill_select(debug_datatime=None):
                     # ... nothing : incompatibility with at least one filter :
                     number_of_discarded_files += 1
 
-                    if ARGS.verbosity == 'high':
+                    if CONFIG['display']['verbosity'] == 'high':
                         LOGGER.info("    - %s discarded \"%s\" "
                                     ": incompatibility with the filter(s)",
                                     prefix, fullname)
@@ -2563,7 +2563,7 @@ def fill_select(debug_datatime=None):
                         # <filename> :
                         number_of_discarded_files += 1
 
-                        if ARGS.verbosity == 'high':
+                        if CONFIG['display']['verbosity'] == 'high':
                             LOGGER.info("    - %s (similar hashid among the files to be copied, "
                                         "in the source directory) discarded \"%s\"",
                                         prefix, fullname)
@@ -2612,7 +2612,7 @@ def fill_select(debug_datatime=None):
                         # tobeadded is False : let's discard <filename> :
                         number_of_discarded_files += 1
 
-                        if ARGS.verbosity == 'high':
+                        if CONFIG['display']['verbosity'] == 'high':
                             LOGGER.info("    - %s (similar hashid in the database) "
                                         " discarded \"%s\"", prefix, fullname)
 
@@ -2944,7 +2944,7 @@ def main_actions():
         read_filters()
         action__select()
 
-        if ARGS.verbosity != 'none' and len(SELECT) > 0:
+        if CONFIG['display']['verbosity'] != 'none' and len(SELECT) > 0:
             answer = \
                 input("\nDo you want to update the target database and to {0} the selected "
                       "files into the target directory "
@@ -3588,7 +3588,7 @@ def thefilehastobeadded__db(filename, _size):
                 src_partialhashid,
                 src_hashid)
 
-    if not ARGS.strictcmp:
+    if not CONFIG['source']['strict comparison']:
         return (False, None, None)
 
     # (4) bit-to-bit comparision :
