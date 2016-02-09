@@ -950,7 +950,8 @@ def action__cleandbrm():
         for hashid in files_to_be_rmved_from_the_db:
             if not ARGS.off:
                 LOGGER.info("    o removing \"%s\" record "
-                            "from the database", hashid)
+                            "from the database", hashid,
+                            color="white")
                 db_cursor.execute("DELETE FROM dbfiles WHERE hashid=?", (hashid,))
                 db_connection.commit()
 
@@ -1546,7 +1547,7 @@ def action__settagsstr(tagsstr, dest):
                 o dest         : (str) a regex string describing what files are
                                  concerned
     """
-    LOGGER.info("  = let's apply the tag string\"%s\" to %s", tagsstr, dest)
+    LOGGER.info("  = let's apply the tag string \"%s\" to %s", tagsstr, dest)
     modify_the_tag_of_some_files(tag=tagsstr, dest=dest, mode="set")
 
 #///////////////////////////////////////////////////////////////////////////////
@@ -1628,19 +1629,23 @@ def action__whatabout(src):
         """
                 Display the expected informations about a file named srcfile_name .
         """
-        LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, srcfile_name)
+        LOGGER.info("  = what about the \"%s\" file ? (path : \"%s\")", src, srcfile_name,
+                    color="white")
         size = os.stat(srcfile_name).st_size
-        LOGGER.info("    = size : %s", size_as_str(size))
+        LOGGER.info("    = size : %s", size_as_str(size),
+                    color="white")
 
         sourcedate = datetime.utcfromtimestamp(os.path.getmtime(srcfile_name))
         sourcedate = sourcedate.replace(second=0, microsecond=0)
         sourcedate2 = sourcedate
         sourcedate2 -= datetime(1970, 1, 1)
         sourcedate2 = sourcedate2.total_seconds()
-        LOGGER.info("    = mtime : %s (epoch value : %s)", sourcedate, sourcedate2)
+        LOGGER.info("    = mtime : %s (epoch value : %s)", sourcedate, sourcedate2,
+                    color="white")
 
         srchash = hashfile64(srcfile_name)
-        LOGGER.info("    = hash : %s", srchash)
+        LOGGER.info("    = hash : %s", srchash,
+                    color="white")
 
         # is the hash in the database ?
         already_present_in_db = False
@@ -1650,9 +1655,11 @@ def action__whatabout(src):
                 break
         if already_present_in_db:
             LOGGER.info("    = the file's content is equal to a file "
-                        "ALREADY present in the database.")
+                        "ALREADY present in the database.",
+                        color="white")
         else:
-            LOGGER.info("    = the file isn't present in the database.")
+            LOGGER.info("    = the file isn't present in the database.",
+                        color="white")
 
     # (1) does src exist ?
     normsrc = normpath(src)
@@ -2883,7 +2890,8 @@ def modify_the_tag_of_some_files(tag, dest, mode):
             # let's apply the tag(s) to the <files_to_be_modified> :
             for hashid, filename in files_to_be_modified:
 
-                LOGGER.info("    o applying the tag string \"%s\" to %s.", tag, filename)
+                LOGGER.info("    o applying the tag string \"%s\" to %s.", tag, filename,
+                            color="white")
 
                 if ARGS.off:
                     pass
