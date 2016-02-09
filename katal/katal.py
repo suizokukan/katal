@@ -317,18 +317,20 @@ class Config(configparser.ConfigParser):
     def __init__(self):
         super().__init__(interpolation=None)
 
-    def read_config(self, args=None):
+    def read_config(self, args=None, cfg_file=None):
         self.read_command_line_arguments(args)
 
         # TODO: download configfile
         self.read_dict(self.default_config())    # Initialize the defaults value
-        self.read_all_config_files()
+        self.read_all_config_files(cfg_file)
         self.read_dict(self.arguments_to_dict()) # Modifications from command line
 
         self.read_parameters_from_cfgfile()
 
     def arguments_to_dict(self):
-        return_dict = {}
+        return_dict = {'display': {},
+                       'source': {},
+                       }
         if self.verbosity is not None:
             return_dict['display']['verbosity'] = self.verbosity
 
@@ -403,8 +405,8 @@ class Config(configparser.ConfigParser):
         'tags': {}
     }
 
-    def read_all_config_files(self):
-        config_files = self.possible_paths_to_cfg()
+    def read_all_config_files(self, cfg_file=None):
+        config_files = self.possible_paths_to_cfg(cfg_file)
 
         self.cfg_files = self.read(config_files)
 
@@ -616,7 +618,7 @@ class Config(configparser.ConfigParser):
         return self
 
     #///////////////////////////////////////////////////////////////////////////////
-    def possible_paths_to_cfg(self):
+    def possible_paths_to_cfg(self, cfg_file=None):
         """
             possible_paths_to_cfg()
             ________________________________________________________________________
@@ -648,8 +650,12 @@ class Config(configparser.ConfigParser):
                                 CST__KATALSYS_SUBDIR))
         res.append(normpath(ARGS.targetpath))
 
+
         cfg_localisation = [os.path.join(cfg_path, CST__DEFAULT_CONFIGFILE_NAME)
                             for cfg_path in res]
+
+        if cfg_file:
+            cfg_localisation.append(cfg_file)
 
         return cfg_localisation
 
