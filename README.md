@@ -1,4 +1,4 @@
-#(1) Katal (0.3.3)
+# (1) Katal (0.3.3)
 A (Python3/GPLv3/OSX-Linux-Windows/CLI) project, using no additional modules than the ones installed with Python3. This project requires the installation of **one** file (katal.py).
 
 Create a catalogue from various source directories, without any duplicate. Add some tags to the files.
@@ -6,7 +6,7 @@ Create a catalogue from various source directories, without any duplicate. Add s
 * license : GPL-3.0 (License :: OSI Approved :: GNU General Public License v3 (GPLv3))
 * status : Beta (Development Status :: 5 - Production/Stable)
 
-#(2) purpose and caveats
+# (2) purpose and caveats
 Read a directory, select some files according to a configuration file (leaving aside the duplicates), copy the selected files in a target directory.
 Once the target directory is filled with some files, a database is added to the directory to avoid future duplicates. You can add new files to the target directory by using Katal one more time, with a different source directory.
 
@@ -19,7 +19,7 @@ Caveats :
 * Katal isn't immune to unexpected shutdowns/program's stops.
 * please use the `--usentfsprefix` option if you read files from a NTFS volume.
 
-#(3) installation and tests
+# (3) installation and tests
 
     Don't forget : Katal is Python3 project, not a Python2 project !
 
@@ -40,7 +40,7 @@ Caveats :
     
     $ nosetests
     
-#(4) workflow
+# (4) workflow
     
     $ katal -h
     ... will display all known parameters.
@@ -53,7 +53,7 @@ Caveats :
     note : Katal NEVER simply deletes a file : the script move ALWAYS the file to be deleted in its
     trash directory.
 
-####Create the target directory :
+#### Create the target directory :
     $ katal --new myworkingdirectory
     
     It may be convenient to go inside the target directory, e.g. :
@@ -63,7 +63,7 @@ Caveats :
     script katal.py inside the target directory, e.g. :
     $ cp katal.py myworkingdirectory
     
-####Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
+#### Then, modify the .ini file (myworkingdirectory/.katal/katal.ini) and choose a source :
 
     Inside the .ini file, modify the following lines :
     
@@ -78,14 +78,14 @@ Caveats :
     ->  'nocopy' : no source file is copied into the target directory (the
                    target database being updated).
     
-####Take a look at the files stored in the source directory :
+#### Take a look at the files stored in the source directory :
     $ katal -si
     or
     $ katal --sourceinfos
     Some informations are displayed : how many files lie in the source directory, what are
     the extensions, and so on.
     
-####Choose which files have to be selected; modify the .ini file :
+#### Choose which files have to be selected; modify the .ini file :
     
     (example 1 : all .jpg (any size) and all .bmp greater then 5MB.)
 
@@ -117,14 +117,14 @@ Caveats :
     (%%i : database index, like "0", "1", "2"...)
     (%%e : extension, like "jpg")
 
-####Let's see what would happen if the script tried to select the files :
+#### Let's see what would happen if the script tried to select the files :
     $ katal --select
     ... and answer 'yes' to the final question if all the details are ok to you.
     The files will be copied/moved/left (see the mode option) in the target directory.
     
     If you want a bit-to-bit check if two files have the same hashes, use the --strictcmp option.
     
-####See the result (ti : target informations)
+#### See the result (ti : target informations)
     $ katal -ti
     
     If want to start from scratch just keeping the configuration file, you may delete all target 
@@ -132,27 +132,27 @@ Caveats :
     $ katal --reset
     ... and modify the configuration file and use again --select
     
-####Let's tag some files :
+#### Let's tag some files :
     $ katal --addtag=tree --to=*.jpg
     $ katal --addtag=birthday --to=myfile.bmp
     
-####Let's search some tags :
+#### Let's search some tags :
     $ katal --findtag=tree
     
-####Let's search some files and copy the selected files in new directory :
+#### Let's search some files and copy the selected files in new directory :
     $ katal --findtag=birthday --copyto=backup_birthday
     
-####Let's remove all the files without any tag :
+#### Let's remove all the files without any tag :
     $ katal --rmnotags
     ... the files will be copied in the trash directory (myworkingdirectory/.katal/trash)
     
-####Let's remove a file :
+#### Let's remove a file :
     $ katal --targetkill=myfile.jpg
 
-####Let's remove some files :
+#### Let's remove some files :
     $ katal --targetkill=file*.jpg
     
-####Let's copy a target directory into another one, which didn't exist :
+#### Let's copy a target directory into another one, which didn't exist :
     $ katal --new=../target2
     
     modify the configuration file in target2 : e.g. you may change the name of the files.
@@ -160,21 +160,21 @@ Caveats :
     Then :
     $ katal --rebase=../target2
 
-####Check if a file external to the target directory is already stored in it :
+#### Check if a file external to the target directory is already stored in it :
     $ katal --whatabout=myfile
 
-####Check if the files external to the target directory are already stored in it :
+#### Check if the files external to the target directory are already stored in it :
     $ katal --whatabout=mydir/
 
-####Display informations about a file belonging to the target directory :
+#### Display informations about a file belonging to the target directory :
     $ katal --whatabout=myfile
 
-#(5) project's author and project's name
+# (5) project's author and project's name
 Xavier Faure (suizokukan / 94.23.197.37) : suizokukan @T orange D@T fr
 
 The name Katal is derived from the Ancient Greek κατάλογος ("enrolment, register, catalogue").
 
-#(6) arguments
+# (6) arguments
 
     usage: katal.py [-h] [--add] [--addtag ADDTAG] [-cfg CONFIGFILE] [--cleandbrm]
                     [--copyto COPYTO] [-dlcfg {local,home}] [--findtag FINDTAG]
@@ -285,23 +285,23 @@ The name Katal is derived from the Ancient Greek κατάλογος ("enrolment,
                             the given as a parameter is in the target directory
                             notwithstanding its name. (default: None)
 
-#(7) history / future versions
+# (7) history / future versions
 
 See the `roadmap.txt` file.
 
-#(8) technical details
+# (8) technical details
 
-##(8.0) structure
+## (8.0) structure
 
 see chart.txt
 
-##(8.1) exit codes
+## (8.1) exit codes
                  0      : success
                 -1      : can't read the parameters from the configuration file
                 -2      : a KatalError exception has been raised
                 -3      : an unexpected exception exception has been raised
 
-##(8.2) configuration file
+## (8.2) configuration file
     The informations stored in the configuration file are written in the CFG_PARAMETERS global
     variable. CFG_PARAMETERS is filled by read_parameters_from_cfgfile() and is a
     configparser.Configparser object.
@@ -383,14 +383,14 @@ see chart.txt
                 n.b. : keywords with a reduplicated letter (%%pp, %%ff, ...) are builded against
                        a set of illegal characters, replaced by "_". 
 
-##(8.3) logfile
+## (8.3) logfile
 Can be filled with many informations (verbosity="high") or less informations (verbosity="low"). See in documentation:configuration file the explanations about the log verbosity.
 
 The logfile is opened by logfile_opening. The program writes in it via msg() if _for_logfile is
 set to True. If the logfile becomes too large (see the "[log file]maximal size" value) the logfile
 if backuped and flushed.
 
-##(8.4) selection
+## (8.4) selection
 
     SELECT is filled by fill_select(), a function called by action__select(). SELECT is a dictionary with hashid as keys and SELECTELEMENT as values.
 
@@ -411,7 +411,7 @@ if backuped and flushed.
       FILTERS["date"] = a string like '>2015-09-17 20:01', initial symbol in ('=', '<', '>', '<=', '>=')
     FILTERS is filled by read_filters().
 
-##(8.5) database
+## (8.5) database
 In every target directory a database is created and filled. Its name is set by the
 global variable DATABASE_NAME.
 TARGET_DB is initialized by read_target_db(); hashid:(partialhashid, size, fullname)
@@ -425,12 +425,12 @@ TARGET_DB is initialized by read_target_db(); hashid:(partialhashid, size, fulln
     o tagsstr text                          : a list of tags separated by the TAG_SEPARATOR
                                               symbol.
 
-##(8.6) trash directory
+## (8.6) trash directory
 the deleted files are placed in a trashed directory placed inside the target directory. The
 trash name is defined in the configuration file.
 
 
-##(8.7) the functions
+## (8.7) the functions
 
     o  action__add()                        : add the source files to the target
                                               path.
